@@ -1,0 +1,16 @@
+{
+  "x-id": "main",
+  "properties": {
+    "prop_1": {
+      "$id": "urn:uuid:590e34ae-8e3d-4bdf-a748-beff72654d0e",
+      "x-id": "prop_1"
+    },
+    "prop_2": {
+      "$id": "urn:uuid:77ed19ca-1127-42dd-8194-3e48661ce672",
+      "x-id": "prop_2",
+      "not": {
+        "x-id": "not"
+      }
+    }
+  }
+}

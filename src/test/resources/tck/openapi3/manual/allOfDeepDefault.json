@@ -1,0 +1,44 @@
+{
+  "allOf": [
+    {
+      "type": "object",
+      "properties": {
+        "a": {
+          "type": "object",
+          "properties": {
+            "a": {
+              "type": "string",
+              "default": "deep_a"
+            }
+          }
+        },
+        "b": {
+          "type": "object",
+          "properties": {
+            "b": {
+              "type": "string",
+              "default": "deep_b"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "properties": {
+        "c": {
+          "type": "string",
+          "default": "c"
+        },
+        "a": {
+          "type": "object",
+          "properties": {
+            "a": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

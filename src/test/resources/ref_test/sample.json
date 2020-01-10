@@ -1,0 +1,8 @@
+{
+  "x-id": "main",
+  "definitions": {
+    "sub1": {
+      "x-id": "sub1"
+    }
+  }
+}

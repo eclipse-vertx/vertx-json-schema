@@ -1,0 +1,46 @@
+{
+  "x-id": "main",
+  "allOf": [
+    {
+      "x-id": "allOf_0"
+    },
+    {
+      "x-id": "allOf_1"
+    }
+  ],
+  "anyOf": [
+    {
+      "x-id": "anyOf_0"
+    },
+    {
+      "x-id": "anyOf_1"
+    }
+  ],
+  "oneOf": [
+    {
+      "x-id": "oneOf_0"
+    },
+    {
+      "x-id": "oneOf_1"
+    }
+  ],
+  "not": {
+    "x-id": "not"
+  },
+  "properties": {
+    "prop_1": {
+      "x-id": "prop_1"
+    },
+    "prop_2": {
+      "x-id": "prop_2"
+    }
+  },
+  "patternProperties": {
+    "^a": {
+      "x-id": "pattern_prop_1"
+    }
+  },
+  "additionalProperties": {
+    "x-id": "additional_prop"
+  }
+}

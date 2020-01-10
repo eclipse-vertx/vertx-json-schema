@@ -1,0 +1,14 @@
+= Enums
+
+[[ValidatorPriority]]
+== ValidatorPriority
+
+
+[cols=">25%,75%"]
+[frame="topbot"]
+|===
+^|Name | Description
+|[[MAX_PRIORITY]]`MAX_PRIORITY`|-
+|[[MIN_PRIORITY]]`MIN_PRIORITY`|-
+|===
+

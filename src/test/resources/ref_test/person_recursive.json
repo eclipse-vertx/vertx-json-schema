@@ -1,0 +1,21 @@
+{
+  "allOf": [
+    {
+      "$ref": "person.json"
+    },
+    {
+      "$ref": "citizen.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "mother": {
+          "$ref": "#"
+        },
+        "father": {
+          "$ref": "#"
+        }
+      }
+    }
+  ]
+}

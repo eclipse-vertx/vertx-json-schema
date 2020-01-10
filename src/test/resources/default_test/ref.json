@@ -1,0 +1,14 @@
+{
+  "type": "object",
+  "properties": {
+    "hello": {
+      "$ref": "#/definitions/hello"
+    }
+  },
+  "definitions": {
+    "hello": {
+      "type": "string",
+      "default": "world"
+    }
+  }
+}

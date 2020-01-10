@@ -1,0 +1,70 @@
+[
+    {
+        "description": "nullable validation",
+        "schema": {"nullable": true},
+        "tests": [
+            {
+                "description": "not null should be valid",
+                "data": [1, 2],
+                "valid": true
+            },
+            {
+                "description": "null should be valid",
+                "data": null,
+                "valid": true
+            },
+            {
+                "description": "empty array should be valid",
+                "data": [],
+                "valid": true
+            },
+            {
+                "description": "empty object should be valid",
+                "data": {},
+                "valid": true
+            }
+        ]
+    },
+    {
+        "description": "nullable with object type validation",
+        "schema": {"type": "object", "nullable": true},
+        "tests": [
+            {
+                "description": "not null array should be invalid",
+                "data": [1, 2],
+                "valid": false
+            },
+            {
+                "description": "null should be valid",
+                "data": null,
+                "valid": true
+            },
+            {
+                "description": "empty object should be valid",
+                "data": {},
+                "valid": true
+            }
+        ]
+    },
+    {
+        "description": "not nullable with object type validation",
+        "schema": {"nullable": false},
+        "tests": [
+            {
+                "description": "not null array should be valid",
+                "data": [1, 2],
+                "valid": true
+            },
+            {
+                "description": "null should be invalid",
+                "data": null,
+                "valid": false
+            },
+            {
+                "description": "empty object should be valid",
+                "data": {},
+                "valid": true
+            }
+        ]
+    }
+]

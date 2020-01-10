@@ -1,0 +1,194 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2011-2014 The original author or authors
+  ~
+  ~  All rights reserved. This program and the accompanying materials
+  ~  are made available under the terms of the Eclipse Public License v1.0
+  ~  and Apache License v2.0 which accompanies this distribution.
+  ~
+  ~      The Eclipse Public License is available at
+  ~      http://www.eclipse.org/legal/epl-v10.html
+  ~
+  ~      The Apache License v2.0 is available at
+  ~      http://www.opensource.org/licenses/apache2.0.php
+  ~
+  ~  You may elect to redistribute this code under either of these licenses.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.vertx</groupId>
+    <artifactId>vertx-ext-parent</artifactId>
+    <version>34</version>
+  </parent>
+
+  <artifactId>vertx-json-schema</artifactId>
+  <version>4.0.0-SNAPSHOT</version>
+
+  <name>Vert.x JSON Schema</name>
+
+  <properties>
+    <stack.version>4.0.0-SNAPSHOT</stack.version>
+    <junit5.version>5.5.2</junit5.version>
+    <doc.skip>true</doc.skip>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.vertx</groupId>
+        <artifactId>vertx-dependencies</artifactId>
+        <version>${stack.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-codegen</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-docgen</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Test deps -->
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-web</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-web-client</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-junit5</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${junit5.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>${junit5.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>3.11.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.21</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>1.7.25</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>2.27.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <version>2.27.0</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <resources>
+      <resource>
+        <directory>${project.basedir}/src/main/resources</directory>
+        <includes>
+          <include>**/*</include>
+        </includes>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.0.0-M4</version>
+        <configuration>
+          <trimStackTrace>false</trimStackTrace>
+          <additionalClasspathElements>
+            <additionalClasspathElement>${basedir}/src/test/resources/ref_test/schemas.jar</additionalClasspathElement>
+          </additionalClasspathElements>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>biz.aQute.bnd</groupId>
+        <artifactId>bnd-maven-plugin</artifactId>
+        <version>3.2.0</version>
+
+        <executions>
+          <execution>
+            <id>default-bnd-process</id>
+            <goals>
+              <goal>bnd-process</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <bnd><![CDATA[
+          Fragment-Host: vertx-web
+          Import-Package: \
+            io.vertx.ext.auth.*;resolution:=optional,\
+            io.vertx.codegen.annotations;resolution:=optional,\
+            !io.vertx.ext.web.validation.impl,\
+            *
+          -exportcontents: !*impl, !examples, *
+          ]]></bnd>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

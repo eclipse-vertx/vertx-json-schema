@@ -1,0 +1,19 @@
+= Cheatsheets
+
+[[SchemaRouterOptions]]
+== SchemaRouterOptions
+
+++++
+ Represents the options to resolve external schemas. You can configure auth options to access to external services
+
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[authHeaders]]`@authHeaders`|`String`|-
+|[[authQueryParams]]`@authQueryParams`|`String`|-
+|===
+

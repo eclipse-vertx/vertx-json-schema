@@ -1,0 +1,4 @@
+{
+  "type": "object",
+  "propertiesMultipleOf": 3
+}

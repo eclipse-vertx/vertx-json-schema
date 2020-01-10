@@ -1,0 +1,78 @@
+[
+  {
+    "description": "discriminator with oneOf validation with explicit names",
+    "schema": {
+      "oneOf": [
+        {
+          "name": "A",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "value_a": {
+              "type": "string"
+            }
+          },
+          "required": ["id", "value_a"]
+        },
+        {
+          "name": "B",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "value_b": {
+              "type": "string"
+            }
+          },
+          "required": ["id"]
+        }
+      ],
+      "discriminator": {
+        "propertyName": "id"
+      }
+    },
+    "tests": [
+      {
+        "description": "should be valid with id A and property value_a",
+        "data": {
+          "id": "A",
+          "value_a": "a"
+        },
+        "valid": true
+      },
+      {
+        "description": "should be invalid with id A and property value_b",
+        "data": {
+          "id": "A",
+          "value_b": "b"
+        },
+        "valid": false
+      },
+      {
+        "description": "should be valid with id B and property value_b",
+        "data": {
+          "id": "B",
+          "value_b": "b"
+        },
+        "valid": true
+      },
+      {
+        "description": "should be invalid without id",
+        "data": {
+          "value_b": "b"
+        },
+        "valid": false
+      },
+      {
+        "description": "should be invalid with id A and without value_a",
+        "data": {
+          "id": "A"
+        },
+        "valid": false
+      }
+    ]
+  }
+]
