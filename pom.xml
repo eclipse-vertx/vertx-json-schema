@@ -33,7 +33,7 @@
   <properties>
     <stack.version>4.0.0-SNAPSHOT</stack.version>
     <junit5.version>5.5.2</junit5.version>
-    <doc.skip>true</doc.skip>
+    <doc.skip>false</doc.skip>
   </properties>
 
   <dependencyManagement>
