@@ -6,18 +6,13 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.AbstractUser;
-import io.vertx.ext.auth.AuthProvider;
-import io.vertx.ext.auth.User;
-import io.vertx.ext.auth.authorization.Authorization;
-import io.vertx.ext.json.schema.*;
+import io.vertx.ext.json.schema.Schema;
+import io.vertx.ext.json.schema.SchemaRouter;
+import io.vertx.ext.json.schema.SchemaRouterOptions;
+import io.vertx.ext.json.schema.ValidationException;
 import io.vertx.ext.json.schema.draft7.Draft7SchemaParser;
-import io.vertx.ext.web.Route;
-import io.vertx.ext.web.Router;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.BasicAuthHandler;
-import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -27,9 +22,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 
 import static io.vertx.ext.json.schema.TestUtils.buildBaseUri;
 import static io.vertx.ext.json.schema.TestUtils.loadJson;
@@ -41,31 +40,59 @@ public class SchemaRouterRemoteRefTest {
 
   private HttpServer schemaServer;
 
-  private static final Handler<RoutingContext> queryParamAuthMock = rc -> {
-    if (rc.queryParam("francesco") == null || !"slinky".equals(rc.queryParam("francesco").get(0)))
-      rc.fail(401);
-    else
-      rc.next();
+  private static final Predicate<HttpServerRequest> queryParamAuthMock =
+    httpRequest -> httpRequest.getParam("francesco") != null && "slinky".equals(httpRequest.getParam("francesco"));
+
+  private static final Predicate<HttpServerRequest> headerAuthMock = httpServerRequest -> {
+    final String authHandler = httpServerRequest.getHeader("Authorization");
+    if (authHandler == null || !authHandler.contains("Basic ")) {
+      return false;
+    }
+
+    String parseAuthorization = authHandler.substring("Basic ".length());
+
+    final String suser;
+    final String spass;
+
+    try {
+      // decode the payload
+      String decoded = new String(Base64.getDecoder().decode(parseAuthorization.trim()), StandardCharsets.UTF_8);
+
+      int colonIdx = decoded.indexOf(":");
+      if (colonIdx != -1) {
+        suser = decoded.substring(0, colonIdx);
+        spass = decoded.substring(colonIdx + 1);
+      } else {
+        suser = decoded;
+        spass = null;
+      }
+    } catch (RuntimeException e) {
+      // IllegalArgumentException includes PatternSyntaxException
+      return false;
+    }
+
+    return "francesco".equals(suser) && "slinky".equals(spass);
   };
 
-  private static final Handler<RoutingContext> headerAuthMock = BasicAuthHandler.create((jsonObject, handler) -> {
-    if ("francesco".equals(jsonObject.getString("username")) && "slinky".equals(jsonObject.getString("password")))
-      handler.handle(Future.succeededFuture(User.create(new JsonObject())));
-    else
-      handler.handle(Future.failedFuture("Not match"));
-  });
-
-  private void startSchemaServer(Vertx vertx, List<Handler<RoutingContext>> authHandlers, Handler<AsyncResult<Void>> completion) {
-    Router r = Router.router(vertx);
-
-    Route route = r.route("/*")
-        .produces("application/json");
-    authHandlers.forEach(route::handler);
-    route.handler(StaticHandler.create("src/test/resources/remote").setCachingEnabled(true));
+  private Future<Void> startSchemaServer(Vertx vertx, List<Predicate<HttpServerRequest>> authPredicates) {
+    Predicate<HttpServerRequest> p = authPredicates.stream().reduce(h -> true, Predicate::and);
 
     schemaServer = vertx.createHttpServer(new HttpServerOptions().setPort(9000))
-        .requestHandler(r)
-        .listen(l -> completion.handle(Future.succeededFuture()));
+      .requestHandler(req -> {
+        String path = req.path();
+
+        if (!p.test(req)) {
+          req.response()
+            .setStatusCode(401)
+            .end();
+        } else {
+          req.response()
+            .putHeader("Content-type", "application/json")
+            .sendFile(Paths.get("src/test/resources/remote", path).toString());
+        }
+      });
+
+    return schemaServer.listen().mapEmpty();
   }
 
   private void stopSchemaServer(Handler<AsyncResult<Void>> completion) {
@@ -85,62 +112,62 @@ public class SchemaRouterRemoteRefTest {
     stopSchemaServer(testContext.completing());
   }
 
-  private void testValid(Vertx vertx, VertxTestContext context, SchemaRouterOptions options, List<Handler<RoutingContext>> authHandlers) throws IOException {
+  private void testValid(Vertx vertx, VertxTestContext context, SchemaRouterOptions options, List<Predicate<HttpServerRequest>> authHandlers) throws IOException {
     Checkpoint check = context.checkpoint(2);
 
     URI mainSchemaURI = buildBaseUri("remote", "base.json");
     JsonObject mainSchemaUnparsed = loadJson(mainSchemaURI);
     SchemaRouter router = SchemaRouter.create(
-        vertx,
-        options
+      vertx,
+      options
     );
     SchemaParserInternal parser = Draft7SchemaParser.create(router);
 
-    startSchemaServer(vertx, authHandlers, v -> {
+    context.assertComplete(startSchemaServer(vertx, authHandlers)).onSuccess(v -> {
       Schema mainSchema = parser.parse(mainSchemaUnparsed, mainSchemaURI);
 
       mainSchema
-          .validateAsync(new JsonObject().put("hello", 1))
-          .setHandler(context.failing(e -> {
-            context.verify(() -> {
-              assertThat(e).isInstanceOf(ValidationException.class);
-              assertThat(router)
-                  .canResolveSchema(URIUtils.createJsonPointerFromURI(URI.create("http://localhost:9000/remote.json#hello")), mainSchema.getScope(), parser)
-                  .hasXIdEqualsTo("hello_def");
-            });
-            check.flag();
-          }));
+        .validateAsync(new JsonObject().put("hello", 1))
+        .onComplete(context.failing(e -> {
+          context.verify(() -> {
+            assertThat(e).isInstanceOf(ValidationException.class);
+            assertThat(router)
+              .canResolveSchema(URIUtils.createJsonPointerFromURI(URI.create("http://localhost:9000/remote.json#hello")), mainSchema.getScope(), parser)
+              .hasXIdEqualsTo("hello_def");
+          });
+          check.flag();
+        }));
 
       mainSchema
-          .validateAsync(new JsonObject().put("hello", "a"))
-          .setHandler(context.succeeding(v1 -> check.flag()));
+        .validateAsync(new JsonObject().put("hello", "a"))
+        .onComplete(context.succeeding(v1 -> check.flag()));
     });
   }
 
-  private void testInvalid(Vertx vertx, VertxTestContext context, SchemaRouterOptions options, List<Handler<RoutingContext>> authHandlers) throws IOException {
+  private void testInvalid(Vertx vertx, VertxTestContext context, SchemaRouterOptions options, List<Predicate<HttpServerRequest>> authHandlers) throws IOException {
     URI mainSchemaURI = buildBaseUri("remote", "base.json");
     JsonObject mainSchemaUnparsed = loadJson(mainSchemaURI);
     SchemaRouter router = SchemaRouter.create(
-        vertx,
-        options
+      vertx,
+      options
     );
     SchemaParserInternal parser = Draft7SchemaParser.create(router);
 
-    startSchemaServer(vertx, authHandlers, v -> {
+    context.assertComplete(startSchemaServer(vertx, authHandlers)).onSuccess(v -> {
       Schema mainSchema = parser.parse(mainSchemaUnparsed, mainSchemaURI);
 
       mainSchema
-          .validateAsync(new JsonObject().put("hello", "a"))
-          .setHandler(context.failing(e -> {
-            context.verify(() -> {
-              assertThat(e)
-                  .isInstanceOf(ValidationException.class)
-                  .hasMessageStartingWith("Error while resolving reference");
-              assertThat(router)
-                  .cannotResolveSchema(URIUtils.createJsonPointerFromURI(URI.create("http://localhost:9000/remote.json#hello")), mainSchema.getScope(), parser);
-            });
-            context.completeNow();
-          }));
+        .validateAsync(new JsonObject().put("hello", "a"))
+        .onComplete(context.failing(e -> {
+          context.verify(() -> {
+            assertThat(e)
+              .isInstanceOf(ValidationException.class)
+              .hasMessageStartingWith("Error while resolving reference");
+            assertThat(router)
+              .cannotResolveSchema(URIUtils.createJsonPointerFromURI(URI.create("http://localhost:9000/remote.json#hello")), mainSchema.getScope(), parser);
+          });
+          context.completeNow();
+        }));
     });
   }
 

@@ -4,8 +4,8 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.json.schema.draft7.Draft7SchemaParser;
 import io.vertx.ext.json.schema.common.SchemaParserInternal;
+import io.vertx.ext.json.schema.draft7.Draft7SchemaParser;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Test;
@@ -92,18 +92,18 @@ public class DefaultValuesApplyTest {
     Schema schema = parser.parse(obj, u);
 
     router
-        .solveAllSchemaReferences(schema)
-        .setHandler(testContext.succeeding(s -> {
-          testContext.verify(() -> {
-            assertThatCode(() -> schema.validateSync(new JsonObject().put("hello", "francesco")))
-                .doesNotThrowAnyException();
+      .solveAllSchemaReferences(schema)
+      .onComplete(testContext.succeeding(s -> {
+        testContext.verify(() -> {
+          assertThatCode(() -> schema.validateSync(new JsonObject().put("hello", "francesco")))
+            .doesNotThrowAnyException();
 
-            JsonObject objToApplyDefaults = new JsonObject();
-            assertThatCode(() -> schema.applyDefaultValues(objToApplyDefaults)).doesNotThrowAnyException();
-            assertThatJson(objToApplyDefaults)
-                .extracting(JsonPointer.create().append("hello"))
-                .isEqualTo("world");
-          });
+          JsonObject objToApplyDefaults = new JsonObject();
+          assertThatCode(() -> schema.applyDefaultValues(objToApplyDefaults)).doesNotThrowAnyException();
+          assertThatJson(objToApplyDefaults)
+            .extracting(JsonPointer.create().append("hello"))
+            .isEqualTo("world");
+        });
           testContext.completeNow();
         }));
   }
@@ -117,18 +117,18 @@ public class DefaultValuesApplyTest {
     Schema schema = parser.parse(obj, u);
 
     router
-        .solveAllSchemaReferences(schema)
-        .setHandler(testContext.succeeding(s -> {
-          testContext.verify(() -> {
-            assertThatCode(() -> schema.validateSync(new JsonObject().put("hello", new JsonObject())))
-                .doesNotThrowAnyException();
+      .solveAllSchemaReferences(schema)
+      .onComplete(testContext.succeeding(s -> {
+        testContext.verify(() -> {
+          assertThatCode(() -> schema.validateSync(new JsonObject().put("hello", new JsonObject())))
+            .doesNotThrowAnyException();
 
-            JsonObject objToApplyDefaults = new JsonObject().put("hello", new JsonObject());
-            assertThatCode(() -> schema.applyDefaultValues(objToApplyDefaults)).doesNotThrowAnyException();
-            assertThatJson(objToApplyDefaults)
-                .extracting(JsonPointer.create().append("hello").append("name"))
-                .isEqualTo("world");
-            assertThatJson(objToApplyDefaults)
+          JsonObject objToApplyDefaults = new JsonObject().put("hello", new JsonObject());
+          assertThatCode(() -> schema.applyDefaultValues(objToApplyDefaults)).doesNotThrowAnyException();
+          assertThatJson(objToApplyDefaults)
+            .extracting(JsonPointer.create().append("hello").append("name"))
+            .isEqualTo("world");
+          assertThatJson(objToApplyDefaults)
                 .extracting(JsonPointer.create().append("hello").append("and"))
                 .isEqualTo(new JsonObject().put("hello", new JsonObject().put("name", "francesco")));
           });

@@ -3,8 +3,8 @@ package io.vertx.ext.json.schema;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.json.schema.draft7.Draft7SchemaParser;
 import io.vertx.ext.json.schema.common.SchemaParserInternal;
+import io.vertx.ext.json.schema.draft7.Draft7SchemaParser;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Test;
@@ -47,16 +47,16 @@ public class MutableSchemaTest {
         .isInstanceOf(NoSyncValidationException.class);
 
     schema
-        .validateAsync(new JsonObject().put("hello", "a"))
-        .setHandler(testContext.succeeding(r -> {
-      testContext.verify(() -> {
-        assertThat(schema)
+      .validateAsync(new JsonObject().put("hello", "a"))
+      .onComplete(testContext.succeeding(r -> {
+        testContext.verify(() -> {
+          assertThat(schema)
             .isSync();
-        assertThatThrownBy(() -> schema.validateSync(new JsonObject().put("hello", 0)))
+          assertThatThrownBy(() -> schema.validateSync(new JsonObject().put("hello", 0)))
             .isInstanceOf(ValidationException.class);
-      });
-      testContext.completeNow();
-    }));
+        });
+        testContext.completeNow();
+      }));
   }
 
   @Test
@@ -73,18 +73,18 @@ public class MutableSchemaTest {
         .isInstanceOf(NoSyncValidationException.class);
 
     router
-        .solveAllSchemaReferences(schema)
-        .setHandler(testContext.succeeding(s -> {
-          testContext.verify(() -> {
-            assertThat(s).isSameAs(schema);
-            assertThat(schema)
-                .isSync();
-            assertThatCode(() -> schema.validateSync(new JsonObject().put("hello", "francesco")))
-                .doesNotThrowAnyException();
-            assertThatThrownBy(() -> schema.validateSync(new JsonObject().put("hello", 0)))
-                .isInstanceOf(ValidationException.class);
-            assertThat(router)
-                .containsCachedSchemasWithXIds("main", "hello_prop", "hello_def");
+      .solveAllSchemaReferences(schema)
+      .onComplete(testContext.succeeding(s -> {
+        testContext.verify(() -> {
+          assertThat(s).isSameAs(schema);
+          assertThat(schema)
+            .isSync();
+          assertThatCode(() -> schema.validateSync(new JsonObject().put("hello", "francesco")))
+            .doesNotThrowAnyException();
+          assertThatThrownBy(() -> schema.validateSync(new JsonObject().put("hello", 0)))
+            .isInstanceOf(ValidationException.class);
+          assertThat(router)
+            .containsCachedSchemasWithXIds("main", "hello_prop", "hello_def");
           });
           testContext.completeNow();
         }));
@@ -104,18 +104,18 @@ public class MutableSchemaTest {
         .isInstanceOf(NoSyncValidationException.class);
 
     router
-        .solveAllSchemaReferences(schema)
-        .setHandler(testContext.succeeding(s -> {
-          testContext.verify(() -> {
-            assertThat(s).isSameAs(schema);
-            assertThat(schema)
-                .isSync();
-            assertThatCode(() -> schema.validateSync(new JsonObject()
-                .put("a", new JsonObject())
-                .put("c", new JsonArray().add(1).add(new JsonObject()))
-                .put("b", new JsonObject().put("sub-a", 1).put("sub-b", new JsonArray().add(1).add(new JsonObject().put("c", new JsonArray().add(1)))))
-            )).doesNotThrowAnyException();
-            assertThatThrownBy(() -> schema.validateSync(new JsonObject()
+      .solveAllSchemaReferences(schema)
+      .onComplete(testContext.succeeding(s -> {
+        testContext.verify(() -> {
+          assertThat(s).isSameAs(schema);
+          assertThat(schema)
+            .isSync();
+          assertThatCode(() -> schema.validateSync(new JsonObject()
+            .put("a", new JsonObject())
+            .put("c", new JsonArray().add(1).add(new JsonObject()))
+            .put("b", new JsonObject().put("sub-a", 1).put("sub-b", new JsonArray().add(1).add(new JsonObject().put("c", new JsonArray().add(1)))))
+          )).doesNotThrowAnyException();
+          assertThatThrownBy(() -> schema.validateSync(new JsonObject()
                 .put("a", new JsonObject())
                 .put("c", new JsonArray().add(1).add(new JsonObject()))
                 .put("b", new JsonObject().put("sub-a", 1).put("sub-b", new JsonArray().add(1).add(new JsonObject().put("c", new JsonArray().addNull()))))

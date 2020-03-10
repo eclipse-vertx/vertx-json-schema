@@ -36,7 +36,7 @@ public class Examples {
   }
 
   public void validateAsync(Schema schema, Object json) {
-    schema.validateAsync(json).setHandler(ar -> {
+    schema.validateAsync(json).onComplete(ar -> {
       if (ar.succeeded()) {
         // Validation succeeded
       } else {
