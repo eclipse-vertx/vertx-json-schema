@@ -122,7 +122,7 @@ public abstract class BaseIntegrationTest {
       parser.getSchemaRouter().solveAllSchemaReferences(schema).onComplete(ar -> {
         context.verify(() -> {
           assertThat(ar.succeeded())
-            .withFailMessage("Failed schema refs resolving with cause {}", ar.cause())
+            .withFailMessage("Failed schema refs resolving with cause %s", ar.cause())
             .isTrue();
           assertThat(schema.isSync())
             .isTrue();
