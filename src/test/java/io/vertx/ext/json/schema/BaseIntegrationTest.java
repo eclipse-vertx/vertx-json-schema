@@ -119,11 +119,11 @@ public abstract class BaseIntegrationTest {
       else if (log.isDebugEnabled())
         log.debug(event.cause().toString());
 
-      ((SchemaRouterImpl) parser.getSchemaRouter()).solveAllSchemaReferences(schema).onComplete(ar -> {
+      parser.getSchemaRouter().solveAllSchemaReferences(schema).onComplete(ar -> {
         context.verify(() -> {
           assertThat(ar.succeeded())
-            .isTrue()
-            .withFailMessage("Failed schema refs resolving with cause {}", ar.cause());
+            .withFailMessage("Failed schema refs resolving with cause {}", ar.cause())
+            .isTrue();
           assertThat(schema.isSync())
             .isTrue();
           assertThatExceptionOfType(ValidationException.class)
