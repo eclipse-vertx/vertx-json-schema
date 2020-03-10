@@ -8,7 +8,6 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.json.schema.common.SchemaRouterImpl;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.AfterAll;
@@ -97,11 +96,11 @@ public abstract class BaseIntegrationTest {
       if (event.failed())
         context.verify(() -> fail(String.format("\"%s\" -> \"%s\" should be valid", testName, testCaseName), event.cause()));
 
-      ((SchemaRouterImpl) parser.getSchemaRouter()).solveAllSchemaReferences(schema).onComplete(ar -> {
+      parser.getSchemaRouter().solveAllSchemaReferences(schema).onComplete(ar -> {
         context.verify(() -> {
           assertThat(ar.succeeded())
-            .isTrue()
-            .withFailMessage("Failed schema refs resolving with cause {}", ar.cause());
+            .withFailMessage("Failed schema refs resolving with cause %s", ar.cause())
+            .isTrue();
           assertThat(schema.isSync())
             .isTrue();
           assertThatCode(() -> schema.validateSync(obj))
@@ -136,7 +135,7 @@ public abstract class BaseIntegrationTest {
     });
   }
 
-  @ParameterizedTest(name = "{0}")
+  @ParameterizedTest(name = "{testFileName}: {testName}")
   @MethodSource("buildParameters")
   public void test(String testName, String testFileName, JsonObject testObj, Vertx vertx, VertxTestContext context) {
     buildSchema(vertx, testObj.getValue("schema"), testName, testFileName)
