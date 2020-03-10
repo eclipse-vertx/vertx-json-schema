@@ -22,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Base64;
@@ -55,7 +56,7 @@ public class SchemaRouterRemoteRefTest {
 
     try {
       // decode the payload
-      String decoded = new String(Base64.getDecoder().decode(parseAuthorization.trim()));
+      String decoded = new String(Base64.getDecoder().decode(parseAuthorization.trim()), StandardCharsets.UTF_8);
 
       int colonIdx = decoded.indexOf(":");
       if (colonIdx != -1) {
@@ -73,7 +74,7 @@ public class SchemaRouterRemoteRefTest {
     return "francesco".equals(suser) && "slinky".equals(spass);
   };
 
-  private void startSchemaServer(Vertx vertx, List<Predicate<HttpServerRequest>> authPredicates, Handler<AsyncResult<Void>> completion) {
+  private Future<Void> startSchemaServer(Vertx vertx, List<Predicate<HttpServerRequest>> authPredicates) {
     Predicate<HttpServerRequest> p = authPredicates.stream().reduce(h -> true, Predicate::and);
 
     schemaServer = vertx.createHttpServer(new HttpServerOptions().setPort(9000))
@@ -89,8 +90,9 @@ public class SchemaRouterRemoteRefTest {
             .putHeader("Content-type", "application/json")
             .sendFile(Paths.get("src/test/resources/remote", path).toString());
         }
-      })
-      .listen(l -> completion.handle(Future.succeededFuture()));
+      });
+
+    return schemaServer.listen().mapEmpty();
   }
 
   private void stopSchemaServer(Handler<AsyncResult<Void>> completion) {
@@ -121,7 +123,7 @@ public class SchemaRouterRemoteRefTest {
     );
     SchemaParserInternal parser = Draft7SchemaParser.create(router);
 
-    startSchemaServer(vertx, authHandlers, v -> {
+    context.assertComplete(startSchemaServer(vertx, authHandlers)).onSuccess(v -> {
       Schema mainSchema = parser.parse(mainSchemaUnparsed, mainSchemaURI);
 
       mainSchema
@@ -151,7 +153,7 @@ public class SchemaRouterRemoteRefTest {
     );
     SchemaParserInternal parser = Draft7SchemaParser.create(router);
 
-    startSchemaServer(vertx, authHandlers, v -> {
+    context.assertComplete(startSchemaServer(vertx, authHandlers)).onSuccess(v -> {
       Schema mainSchema = parser.parse(mainSchemaUnparsed, mainSchemaURI);
 
       mainSchema
