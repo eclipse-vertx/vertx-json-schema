@@ -47,11 +47,12 @@ public class AnyOfValidatorFactory extends BaseCombinatorsValidatorFactory {
     @Override
     public Future<Void> validateAsync(Object in) {
       if (isSync()) return validateSyncAsAsync(in);
-      return FutureUtils.andThen(
-          CompositeFuture.any(Arrays.stream(this.schemas).map(s -> s.validateAsync(in)).collect(Collectors.toList())),
-              res -> Future.succeededFuture(),
-              err -> Future.failedFuture(createException("anyOf subschemas don't match", "anyOf", in, err))
-      );
+      return CompositeFuture
+        .any(Arrays.stream(this.schemas).map(s -> s.validateAsync(in)).collect(Collectors.toList()))
+        .compose(
+          res -> Future.succeededFuture(),
+          err -> Future.failedFuture(createException("anyOf subschemas don't match", "anyOf", in, err))
+        );
     }
 
   }

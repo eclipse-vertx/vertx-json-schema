@@ -43,11 +43,12 @@ public class NotValidatorFactory extends BaseSingleSchemaValidatorFactory {
     @Override
     public Future<Void> validateAsync(Object in) {
       if (isSync()) return validateSyncAsAsync(in);
-      return FutureUtils.andThen(
-          schema.validateAsync(in),
+      return schema
+        .validateAsync(in)
+        .compose(
           res -> Future.failedFuture(createException("input should be invalid", "not", in)),
           err -> Future.succeededFuture()
-      );
+        );
     }
 
   }

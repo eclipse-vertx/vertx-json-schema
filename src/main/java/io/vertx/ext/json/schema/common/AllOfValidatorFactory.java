@@ -9,8 +9,6 @@ import io.vertx.ext.json.schema.ValidationException;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-import static io.vertx.ext.json.schema.ValidationException.createException;
-
 public class AllOfValidatorFactory extends BaseCombinatorsValidatorFactory {
 
   @Override
@@ -38,10 +36,9 @@ public class AllOfValidatorFactory extends BaseCombinatorsValidatorFactory {
     @Override
     public Future<Void> validateAsync(Object in) {
       if (isSync()) return validateSyncAsAsync(in);
-      return FutureUtils.andThen(
-          CompositeFuture.all(Arrays.stream(schemas).map(s -> s.validateAsync(in)).collect(Collectors.toList())),
-          res -> Future.succeededFuture(),
-        Future::failedFuture);
+      return CompositeFuture
+        .all(Arrays.stream(schemas).map(s -> s.validateAsync(in)).collect(Collectors.toList()))
+        .compose(res -> Future.succeededFuture(), Future::failedFuture);
     }
   }
 

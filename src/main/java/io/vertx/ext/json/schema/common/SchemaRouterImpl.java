@@ -4,10 +4,12 @@ import io.netty.handler.codec.http.QueryStringEncoder;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.RequestOptions;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
@@ -160,32 +162,27 @@ public class SchemaRouterImpl implements SchemaRouter {
   }
 
   private Future<String> solveRemoteRef(final URI ref) {
-    Promise<String> promise = Promise.promise();
     String uri = ref.toString();
     if (!options.getAuthQueryParams().isEmpty()) {
       QueryStringEncoder encoder = new QueryStringEncoder(uri);
       options.getAuthQueryParams().forEach(encoder::addParam);
       uri = encoder.toString();
     }
-    HttpClientRequest req = client.getAbs(uri, ar -> {
-      if (ar.failed()) {
-        promise.fail(ar.cause());
-        return;
-      }
-      ar.result().exceptionHandler(promise::fail);
-      if (ar.result().statusCode() == 200) {
-        ar.result().bodyHandler(buf -> {
-          promise.complete(buf.toString());
-        });
-      } else {
-        promise.fail(new IllegalStateException("Wrong status code " + ar.result().statusCode() + " " + ar.result().statusMessage() + " received while resolving remote ref"));
-      }
-    })
+
+    RequestOptions reqOptions = new RequestOptions()
+      .setMethod(HttpMethod.GET)
+      .setAbsoluteURI(uri)
       .setFollowRedirects(true)
-      .putHeader(HttpHeaders.ACCEPT.toString(), "application/json, application/schema+json");
-    options.getAuthHeaders().forEach(req::putHeader);
-    req.end();
-    return promise.future();
+      .addHeader(HttpHeaders.ACCEPT.toString(), "application/json, application/schema+json");
+
+    options.getAuthHeaders().forEach(reqOptions::addHeader);
+
+    return client.get(reqOptions).compose(res -> {
+      if (res.statusCode() == 200) {
+        return res.body().map(Buffer::toString);
+      }
+      return Future.failedFuture(new IllegalStateException("Wrong status " + res.statusCode() + " " + res.statusMessage() + " received while resolving remote ref"));
+    });
   }
 
   private Future<String> solveLocalRef(final URI ref) {

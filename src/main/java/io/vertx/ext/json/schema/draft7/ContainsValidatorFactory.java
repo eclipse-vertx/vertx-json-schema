@@ -3,12 +3,11 @@ package io.vertx.ext.json.schema.draft7;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
-import io.vertx.ext.json.schema.common.MutableStateValidator;
 import io.vertx.ext.json.schema.NoSyncValidationException;
 import io.vertx.ext.json.schema.ValidationException;
 import io.vertx.ext.json.schema.common.BaseSingleSchemaValidator;
 import io.vertx.ext.json.schema.common.BaseSingleSchemaValidatorFactory;
-import io.vertx.ext.json.schema.common.FutureUtils;
+import io.vertx.ext.json.schema.common.MutableStateValidator;
 
 import java.util.stream.Collectors;
 
@@ -35,15 +34,16 @@ public class ContainsValidatorFactory extends BaseSingleSchemaValidatorFactory {
     @Override
     public Future<Void> validateAsync(Object in) {
       if (isSync()) return validateSyncAsAsync(in);
-      if (in instanceof JsonArray){
-        if (((JsonArray)in).isEmpty()) return Future.failedFuture(createException("provided array should not be empty", "contains", in));
-        else return FutureUtils.andThen(
-            CompositeFuture.any(
-              ((JsonArray) in).stream().map(schema::validateAsync).collect(Collectors.toList())
-            ),
+      if (in instanceof JsonArray) {
+        if (((JsonArray) in).isEmpty())
+          return Future.failedFuture(createException("provided array should not be empty", "contains", in));
+        else
+          return CompositeFuture.any(
+            ((JsonArray) in).stream().map(schema::validateAsync).collect(Collectors.toList())
+          ).compose(
             cf -> Future.succeededFuture(),
             err -> Future.failedFuture(createException("provided array doesn't contain an element matching the contains schema", "contains", in, err))
-        );
+          );
       } else return Future.succeededFuture();
     }
 

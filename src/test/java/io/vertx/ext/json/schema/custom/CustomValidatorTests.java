@@ -3,9 +3,12 @@ package io.vertx.ext.json.schema.custom;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.json.schema.*;
-import io.vertx.ext.json.schema.draft7.Draft7SchemaParser;
+import io.vertx.ext.json.schema.Schema;
+import io.vertx.ext.json.schema.SchemaRouter;
+import io.vertx.ext.json.schema.SchemaRouterOptions;
+import io.vertx.ext.json.schema.ValidationException;
 import io.vertx.ext.json.schema.common.SchemaParserInternal;
+import io.vertx.ext.json.schema.draft7.Draft7SchemaParser;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -86,24 +89,24 @@ public class CustomValidatorTests {
     // 6. Re-check if sync state is propagated
 
     schema
-        .validateAsync(validJson)
-        .setHandler(testContext.succeeding(v -> {
-          testContext.verify(() -> {
-            assertThat(schema).isSync();
-            assertThatCode(() -> schema.validateSync(validJson)).doesNotThrowAnyException();
-            assertThatExceptionOfType(ValidationException.class)
-                .isThrownBy(() -> schema.validateSync(invalidJson))
-                .withMessage("Not matching cached async enum")
-                .satisfies(errorKeyword("asyncEnum"));
-          });
-          cp.flag();
+      .validateAsync(validJson)
+      .onComplete(testContext.succeeding(v -> {
+        testContext.verify(() -> {
+          assertThat(schema).isSync();
+          assertThatCode(() -> schema.validateSync(validJson)).doesNotThrowAnyException();
+          assertThatExceptionOfType(ValidationException.class)
+            .isThrownBy(() -> schema.validateSync(invalidJson))
+            .withMessage("Not matching cached async enum")
+            .satisfies(errorKeyword("asyncEnum"));
+        });
+        cp.flag();
 
           // Invalid cache of the validator
           vertx.eventBus().send("names_address_invalidate_cache", new JsonObject());
 
           vertx.setTimer(100, l -> {
             assertThat(schema).isAsync();
-            testContext.assertComplete(schema.validateAsync(validJson)).setHandler(ar -> {
+            testContext.assertComplete(schema.validateAsync(validJson)).onComplete(ar -> {
               testContext.verify(() -> {
                 assertThat(schema).isSync();
               });
@@ -133,18 +136,18 @@ public class CustomValidatorTests {
           .isAsync();
 
       schema.validateAsync(new JsonObject()
-          .put("names", new JsonArray().add("francesco").add("mario"))
-          .put("devices", new JsonArray().add("smartphone").add("tv"))
-      ).setHandler(testContext.succeeding(v -> cp.flag()));
+        .put("names", new JsonArray().add("francesco").add("mario"))
+        .put("devices", new JsonArray().add("smartphone").add("tv"))
+      ).onComplete(testContext.succeeding(v -> cp.flag()));
 
       schema.validateAsync(new JsonObject()
-          .put("names", new JsonArray().add("francesco").add("mario"))
-          .put("devices", new JsonArray().add("francesco").add("tv"))
-      ).setHandler(testContext.failing(c -> {
+        .put("names", new JsonArray().add("francesco").add("mario"))
+        .put("devices", new JsonArray().add("francesco").add("tv"))
+      ).onComplete(testContext.failing(c -> {
         testContext.verify(() ->
-            assertThat(c)
-                .isInstanceOfSatisfying(ValidationException.class, errorKeyword("asyncEnum"))
-                .hasMessage("Not matching async enum")
+          assertThat(c)
+            .isInstanceOfSatisfying(ValidationException.class, errorKeyword("asyncEnum"))
+            .hasMessage("Not matching async enum")
         );
         cp.flag();
       }));

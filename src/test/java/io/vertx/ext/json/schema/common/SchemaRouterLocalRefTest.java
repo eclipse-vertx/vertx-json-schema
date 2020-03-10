@@ -3,7 +3,9 @@ package io.vertx.ext.json.schema.common;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.json.schema.*;
+import io.vertx.ext.json.schema.Schema;
+import io.vertx.ext.json.schema.SchemaRouter;
+import io.vertx.ext.json.schema.SchemaRouterOptions;
 import io.vertx.ext.json.schema.openapi3.OpenAPI3SchemaParser;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxExtension;
@@ -38,7 +40,7 @@ public class SchemaRouterLocalRefTest {
     URI sampleURI = buildBaseUri("ref_test", "sample.json");
     JsonObject mainSchemaUnparsed = new JsonObject().put("$ref", sampleURI.toString());
     Schema mainSchema = parser.parse(mainSchemaUnparsed, buildBaseUri("ref_test", "test_1.json"));
-    mainSchema.validateAsync("").setHandler(context.succeeding(o -> { // Trigger validation to start solve refs
+    mainSchema.validateAsync("").onComplete(context.succeeding(o -> { // Trigger validation to start solve refs
       context.verify(() -> {
         assertThat(router).canResolveSchema(JsonPointer.fromURI(sampleURI), mainSchema.getScope(), parser).hasXIdEqualsTo("main");
         assertThat(router).canResolveSchema(JsonPointer.fromURI(sampleURI).append("definitions").append("sub1"), mainSchema.getScope(), parser).hasXIdEqualsTo("sub1");
@@ -52,7 +54,7 @@ public class SchemaRouterLocalRefTest {
     URI sampleURI = URI.create("./sample.json");
     JsonObject mainSchemaUnparsed = new JsonObject().put("$ref", sampleURI.toString());
     Schema mainSchema = parser.parse(mainSchemaUnparsed, Paths.get(".","src", "test", "resources", "ref_test", "test_2.json").toUri());
-    mainSchema.validateAsync("").setHandler(context.succeeding(o -> { // Trigger validation to start solve refs
+    mainSchema.validateAsync("").onComplete(context.succeeding(o -> { // Trigger validation to start solve refs
       context.verify(() -> {
         assertThat(router).canResolveSchema(JsonPointer.fromURI(sampleURI), mainSchema.getScope(), parser).hasXIdEqualsTo("main");
         assertThat(router).canResolveSchema(JsonPointer.fromURI(sampleURI).append("definitions").append("sub1"), mainSchema.getScope(), parser).hasXIdEqualsTo("sub1");
@@ -66,7 +68,7 @@ public class SchemaRouterLocalRefTest {
     URI sampleURI = getClass().getResource("/ref_test/sample.json").toURI();
     JsonObject mainSchemaUnparsed = new JsonObject().put("$ref", sampleURI.toString());
     Schema mainSchema = parser.parse(mainSchemaUnparsed, sampleURI.resolve("test_1.json"));
-    mainSchema.validateAsync("").setHandler(context.succeeding(o -> { // Trigger validation to start solve refs
+    mainSchema.validateAsync("").onComplete(context.succeeding(o -> { // Trigger validation to start solve refs
       context.verify(() -> {
         assertThat(router).canResolveSchema(JsonPointer.fromURI(sampleURI), mainSchema.getScope(), parser).hasXIdEqualsTo("main");
         assertThat(router).canResolveSchema(JsonPointer.fromURI(sampleURI).append("definitions").append("sub1"), mainSchema.getScope(), parser).hasXIdEqualsTo("sub1");
@@ -96,7 +98,7 @@ public class SchemaRouterLocalRefTest {
     URI sampleURI = getClass().getClassLoader().getResource("sample_in_jar.json").toURI();
     JsonObject mainSchemaUnparsed = new JsonObject().put("$ref", sampleURI.toString());
     Schema mainSchema = parser.parse(mainSchemaUnparsed, URIUtils.resolvePath(sampleURI, "test_1.json"));
-    mainSchema.validateAsync("").setHandler(context.succeeding(o -> { // Trigger validation to start solve refs
+    mainSchema.validateAsync("").onComplete(context.succeeding(o -> { // Trigger validation to start solve refs
       context.verify(() -> {
         assertThat(router).canResolveSchema(JsonPointer.fromURI(sampleURI), mainSchema.getScope(), parser).hasXIdEqualsTo("main");
         assertThat(router).canResolveSchema(JsonPointer.fromURI(sampleURI).append("definitions").append("sub1"), mainSchema.getScope(), parser).hasXIdEqualsTo("sub1");
@@ -121,7 +123,7 @@ public class SchemaRouterLocalRefTest {
         .put("surname", "Guardiani")
         .put("id_card", "XYZ")
       )
-    ).setHandler(context.succeeding(o -> check.flag()));
+    ).onComplete(context.succeeding(o -> check.flag()));
     mainSchema.validateAsync(new JsonObject()
       .put("name", "Francesco")
       .put("surname", "Guardiani")
@@ -130,7 +132,7 @@ public class SchemaRouterLocalRefTest {
         .put("name", "Pietro")
         .put("surname", "Guardiani") // No id card!
       )
-    ).setHandler(context.failing(o -> check.flag()));
+    ).onComplete(context.failing(o -> check.flag()));
   }
 
 }

@@ -3,7 +3,10 @@ package io.vertx.ext.json.schema.draft7;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.json.schema.*;
+import io.vertx.ext.json.schema.NoSyncValidationException;
+import io.vertx.ext.json.schema.Schema;
+import io.vertx.ext.json.schema.SchemaException;
+import io.vertx.ext.json.schema.ValidationException;
 import io.vertx.ext.json.schema.common.*;
 
 import java.util.Map;
@@ -71,10 +74,9 @@ public class IfThenElseValidatorFactory implements ValidatorFactory {
     @Override
     public Future<Void> validateAsync(Object in) {
       if (isSync()) return validateSyncAsAsync(in);
-      return FutureUtils.andThen(
-          this.condition.validateAsync(in),
-          o -> (this.thenBranch != null) ? this.thenBranch.validateAsync(in): Future.succeededFuture(),
-          o -> (this.elseBranch != null) ? this.elseBranch.validateAsync(in) : Future.succeededFuture()
+      return this.condition.validateAsync(in).compose(
+        o -> (this.thenBranch != null) ? this.thenBranch.validateAsync(in) : Future.succeededFuture(),
+        o -> (this.elseBranch != null) ? this.elseBranch.validateAsync(in) : Future.succeededFuture()
       );
     }
 

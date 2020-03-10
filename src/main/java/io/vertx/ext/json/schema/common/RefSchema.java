@@ -1,11 +1,14 @@
 package io.vertx.ext.json.schema.common;
 
 import io.vertx.core.Future;
-import io.vertx.core.json.JsonObject;
-import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.json.schema.*;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.pointer.JsonPointer;
+import io.vertx.ext.json.schema.Schema;
+import io.vertx.ext.json.schema.SchemaException;
+import io.vertx.ext.json.schema.SchemaParser;
+import io.vertx.ext.json.schema.ValidationException;
 
 import java.net.URI;
 
@@ -45,17 +48,20 @@ public class RefSchema extends SchemaImpl {
   public Future<Void> validateAsync(Object in) {
     if (isSync()) return validateSyncAsAsync(in);
     if (cachedSchema == null) {
-      return FutureUtils.andThen(
-          schemaParser.getSchemaRouter().resolveRef(refPointer, this.getScope(), schemaParser),
+      return schemaParser
+        .getSchemaRouter()
+        .resolveRef(refPointer, this.getScope(), schemaParser)
+        .compose(
           s -> {
-            if (s == null) return Future.failedFuture(createException("Cannot resolve reference " + this.refPointer.toURI(), "$ref", in));
+            if (s == null)
+              return Future.failedFuture(createException("Cannot resolve reference " + this.refPointer.toURI(), "$ref", in));
             registerCachedSchema(s);
             if (log.isDebugEnabled()) log.debug(String.format("Solved ref %s as %s", refPointer, s.getScope()));
             if (s instanceof RefSchema) {
               // We need to call solved schema validateAsync to solve upper ref, then we can update sync status
               return s.validateAsync(in).compose(v -> {
-                  this.triggerUpdateIsSync();
-                  return Future.succeededFuture();
+                this.triggerUpdateIsSync();
+                return Future.succeededFuture();
               });
             } else {
               this.triggerUpdateIsSync();
@@ -63,7 +69,7 @@ public class RefSchema extends SchemaImpl {
             }
           },
           err -> Future.failedFuture(createException("Error while resolving reference " + this.refPointer.toURI(), "$ref", in, err))
-          );
+        );
     } else {
       return cachedSchema.validateAsync(in);
     }
@@ -106,10 +112,13 @@ public class RefSchema extends SchemaImpl {
 
   synchronized Future<Schema> trySolveSchema() {
     if (cachedSchema == null) {
-      return FutureUtils.andThen(
-          schemaParser.getSchemaRouter().resolveRef(refPointer, this.getScope(), schemaParser),
+      return schemaParser
+        .getSchemaRouter()
+        .resolveRef(refPointer, this.getScope(), schemaParser)
+        .compose(
           s -> {
-            if (s == null) return Future.failedFuture(createException("Cannot resolve reference " + this.refPointer.toURI(), "$ref", null));
+            if (s == null)
+              return Future.failedFuture(createException("Cannot resolve reference " + this.refPointer.toURI(), "$ref", null));
             registerCachedSchema(s);
             if (log.isDebugEnabled()) log.debug(String.format("Solved ref %s as %s", refPointer, s.getScope()));
             if (s instanceof RefSchema) {
@@ -124,7 +133,7 @@ public class RefSchema extends SchemaImpl {
             }
           },
           err -> Future.failedFuture(createException("Error while resolving reference " + this.refPointer.toURI(), "$ref", null, err))
-      );
+        );
     } else return Future.succeededFuture(cachedSchema);
   }
 
