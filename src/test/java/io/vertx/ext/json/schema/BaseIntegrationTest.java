@@ -31,6 +31,7 @@ import java.util.AbstractMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -52,7 +53,7 @@ public abstract class BaseIntegrationTest {
   private void startSchemaServer(Vertx vertx, Handler<AsyncResult<Void>> completion) {
     schemaServer = vertx.createHttpServer(new HttpServerOptions().setPort(SCHEMA_SERVER_PORT))
       .requestHandler(req -> {
-        String path = req.path();
+        String path = req.path().split(Pattern.quote("#"))[0];
         req.response()
           .putHeader("Content-type", "application/json")
           .sendFile(Paths.get(getRemotesPath().toString(), path).toString());
