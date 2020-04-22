@@ -56,7 +56,7 @@ To parse a schema you first need a schema router and a schema parser matching yo
 
 [source,$lang]
 ----
-{@link examples.Examples#instantiate}
+{@link examples.JsonSchemaExamples#instantiate}
 ----
 
 You can reuse `SchemaRouter` instance for different `SchemaParser`s and you can parse different `Schema`s with same `SchemaParser`.
@@ -65,7 +65,7 @@ Now you can parse the schema:
 
 [source,$lang]
 ----
-{@link examples.Examples#parse}
+{@link examples.JsonSchemaExamples#parse}
 ----
 
 When you parse a schema you must provide the **schema pointer**, a pointer that identifies the location of the schema.
@@ -73,7 +73,7 @@ If you don't have any schema pointer `SchemaParser` will generate one for you:
 
 [source,$lang]
 ----
-{@link examples.Examples#parseNoId}
+{@link examples.JsonSchemaExamples#parseNoId}
 ----
 
 [IMPORTANT]
@@ -94,14 +94,14 @@ To validate a schema in an asynchronous state:
 
 [source,$lang]
 ----
-{@link examples.Examples#validateAsync}
+{@link examples.JsonSchemaExamples#validateAsync}
 ----
 
 To validate a schema in a synchronous state:
 
 [source,$lang]
 ----
-{@link examples.Examples#validateSync}
+{@link examples.JsonSchemaExamples#validateSync}
 ----
 
 To check the schema state you can use method {@link io.vertx.ext.json.schema.Schema#isSync()}.
@@ -120,7 +120,7 @@ You can deeply apply default values to `JsonObject` and `JsonArray`:
 
 [source,$lang]
 ----
-{@link examples.Examples#applyDefaultValues}
+{@link examples.JsonSchemaExamples#applyDefaultValues}
 ----
 
 These methods will mutate the internal state of the provided Json structures.
@@ -131,7 +131,7 @@ You can add custom formats to use with validation keyword `format` before parsin
 
 [source,$lang]
 ----
-{@link examples.Examples#customFormat}
+{@link examples.JsonSchemaExamples#customFormat}
 ----
 
 == Adding custom keywords
@@ -170,7 +170,7 @@ Now we can mount the new validator factory:
 
 [source,$lang]
 ----
-{@link examples.Examples#mountSyncKeyword}
+{@link examples.JsonSchemaExamples#mountSyncKeyword}
 ----
 
 === Asynchronous keywords
@@ -194,7 +194,7 @@ Now we can mount the new validator factory:
 
 [source,$lang]
 ----
-{@link examples.Examples#mountAsyncKeyword}
+{@link examples.JsonSchemaExamples#mountAsyncKeyword}
 ----
 
 == Building your schemas from code
@@ -209,7 +209,7 @@ Inside {@link io.vertx.ext.json.schema.draft7.dsl.Schemas} there are static meth
 
 [source,$lang]
 ----
-{@link examples.DslExamples#createSchema}
+{@link examples.JsonSchemaDslExamples#createSchema}
 ----
 
 === Using the keywords
@@ -219,7 +219,7 @@ depending on the type of the schema:
 
 [source,$lang]
 ----
-{@link examples.DslExamples#keywords}
+{@link examples.JsonSchemaDslExamples#keywords}
 ----
 
 === Defining the schema structure
@@ -230,21 +230,21 @@ To create an object schema with some properties schemas and additional propertie
 
 [source,$lang]
 ----
-{@link examples.DslExamples#createObject}
+{@link examples.JsonSchemaDslExamples#createObject}
 ----
 
 To create an array schema:
 
 [source,$lang]
 ----
-{@link examples.DslExamples#createArray}
+{@link examples.JsonSchemaDslExamples#createArray}
 ----
 
 To create a tuple schema:
 
 [source,$lang]
 ----
-{@link examples.DslExamples#createTuple}
+{@link examples.JsonSchemaDslExamples#createTuple}
 ----
 
 === `$ref` and aliases
@@ -257,7 +257,7 @@ a schema. Then you can refer to a schema with an alias using {@link io.vertx.ext
 
 [source,$lang]
 ----
-{@link examples.DslExamples#alias}
+{@link examples.JsonSchemaDslExamples#alias}
 ----
 
 === Using the schema
@@ -266,5 +266,5 @@ After you defined the schema, you can call {@link io.vertx.ext.json.schema.commo
 
 [source,$lang]
 ----
-{@link examples.DslExamples#parse}
+{@link examples.JsonSchemaDslExamples#parse}
 ----

@@ -11,7 +11,7 @@ import static io.vertx.ext.json.schema.draft7.dsl.Keywords.*;
 import static io.vertx.ext.json.schema.draft7.dsl.Schemas.*;
 
 @Source
-public class DslExamples {
+public class JsonSchemaDslExamples {
 
   public void createSchema() {
     SchemaBuilder intSchemaBuilder = intSchema();

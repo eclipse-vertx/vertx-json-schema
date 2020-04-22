@@ -8,7 +8,7 @@ import io.vertx.docgen.Source;
 import io.vertx.ext.json.schema.*;
 
 @Source
-public class Examples {
+public class JsonSchemaExamples {
 
   public void instantiate(Vertx vertx) {
     SchemaRouter schemaRouter = SchemaRouter.create(vertx, new SchemaRouterOptions());
