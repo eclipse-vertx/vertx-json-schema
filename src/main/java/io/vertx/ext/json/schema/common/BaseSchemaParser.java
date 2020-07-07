@@ -41,7 +41,6 @@ public abstract class BaseSchemaParser implements SchemaParserInternal {
       // 2. $id build the schema using $id (eventually resolved) and addSchema(schema), then addSchema(schema, scope)
       // 2.1 If $id has also a fragment, add it as alias ( <= draft-7)
       // 2.2 If $anchor, add it as alias ( >= draft2019-09)
-
       Map.Entry<Optional<JsonPointer>, Optional<String>> e = resolveIdAndAlias(json, scope.getURIWithoutFragment());
 
       SchemaImpl s = e
@@ -66,7 +65,7 @@ public abstract class BaseSchemaParser implements SchemaParserInternal {
       return s;
     } else if (jsonSchema instanceof Boolean) {
       Schema s = ((Boolean) jsonSchema) ? TrueSchema.getInstance() : FalseSchema.getInstance();
-      router.addSchema(s);
+      router.addSchemaWithScope(s, scope);
       return s;
     } else
       throw new SchemaException(jsonSchema, "Schema must be a JsonObject or a Boolean");

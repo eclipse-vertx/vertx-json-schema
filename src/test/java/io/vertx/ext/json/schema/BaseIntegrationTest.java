@@ -115,9 +115,9 @@ public abstract class BaseIntegrationTest {
 
       parser.getSchemaRouter().solveAllSchemaReferences(schema).onComplete(ar -> {
         context.verify(() -> {
-          assertThat(ar.succeeded())
-            .withFailMessage("Failed schema refs resolving with cause %s", ar.cause())
-            .isTrue();
+          if (ar.failed()) {
+            fail("Failed schema refs resolving with cause", ar.cause());
+          }
           assertThat(schema.isSync())
             .isTrue();
           assertThatCode(() -> schema.validateSync(obj))
@@ -138,9 +138,9 @@ public abstract class BaseIntegrationTest {
 
       parser.getSchemaRouter().solveAllSchemaReferences(schema).onComplete(ar -> {
         context.verify(() -> {
-          assertThat(ar.succeeded())
-            .withFailMessage("Failed schema refs resolving with cause %s", ar.cause())
-            .isTrue();
+          if (ar.failed()) {
+            fail("Failed schema refs resolving with cause", ar.cause());
+          }
           assertThat(schema.isSync())
             .isTrue();
           assertThatExceptionOfType(ValidationException.class)

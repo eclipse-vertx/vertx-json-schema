@@ -96,28 +96,14 @@ public class SchemaRouterImpl implements SchemaRouter {
     return this;
   }
 
-  public void insertSchema(JsonPointer pointer, RouterNode initialNode, Schema schema) {
-    if (pointer.isRootPointer())
-      initialNode.setSchema(schema);
-    else
-      pointer.write(
-        initialNode,
-        RouterNodeJsonPointerIterator.INSTANCE,
-        schema,
-        true
-      );
-  }
-
-  public void insertRouterNode(JsonPointer pointer, RouterNode nodeToWrite) {
-    if (pointer.isRootPointer())
-      absolutePaths.put(pointer.getURIWithoutFragment(), nodeToWrite);
-    else
-      pointer.write(
-        absolutePaths.computeIfAbsent(pointer.getURIWithoutFragment(), k -> new RouterNode()),
-        RouterNodeJsonPointerIterator.INSTANCE,
-        nodeToWrite,
-        true
-      );
+  @Override
+  public SchemaRouter addSchemaWithScope(Schema schema, JsonPointer scope) {
+    if (!scope.getURIWithoutFragment().isAbsolute()) {
+      throw new IllegalStateException("Schema scope MUST be a pointer with an absolute URI. Actual: " + scope.getURIWithoutFragment());
+    }
+    RouterNode parentNode = absolutePaths.computeIfAbsent(scope.getURIWithoutFragment(), k -> new RouterNode());
+    insertSchema(scope, parentNode, schema);
+    return this;
   }
 
   @Override
@@ -149,6 +135,10 @@ public class SchemaRouterImpl implements SchemaRouter {
         .trySolveSchema()
         .compose(s -> (s != schema) ? solveAllSchemaReferences(s).map(schema) : Future.succeededFuture(schema));
     } else {
+      // If not absolute, then there is nothing to resolve
+      if (!schema.getScope().getURIWithoutFragment().isAbsolute()) {
+        return Future.succeededFuture(schema);
+      }
       RouterNode node = absolutePaths.get(schema.getScope().getURIWithoutFragment());
       node = (RouterNode) schema.getScope().query(node, RouterNodeJsonPointerIterator.INSTANCE);
       return CompositeFuture.all(
@@ -306,71 +296,27 @@ public class SchemaRouterImpl implements SchemaRouter {
     return cl;
   }
 
-  private void handleAddSchemaIdKeyword(RouterNode parentNode, JsonObject unparsedSchema, Schema parsedSchema) {
-    if (unparsedSchema.containsKey("$id")) {
-      RouterNode wroteNode = (RouterNode) parsedSchema.getScope().query(parentNode, RouterNodeJsonPointerIterator.INSTANCE);
-      try {
-        String unparsedId = ((SchemaImpl) parsedSchema).getJson().getString("$id");
-        URI id = URI.create(unparsedId);
-        JsonPointer idPointer = URIUtils.createJsonPointerFromURI(id);
-        // Create parent node aliases if needed
-        if (id.isAbsolute()) { // Absolute id
-          absolutePaths.putIfAbsent(URIUtils.removeFragment(id), wroteNode); // id and inferredScope can match!
-        } else if (id.getPath() != null && !id.getPath().isEmpty()) {
-          // If a path is relative you should solve the path/paths.
-          // The paths will be solved against aliases of base node of inferred scope
-          List<URI> paths = absolutePaths
-            .entrySet()
-            .stream()
-            .filter(e -> e.getValue().equals(parentNode))
-            .map(e -> URIUtils.resolvePath(e.getKey(), id.getPath()))
-            .collect(Collectors.toList());
-          paths.forEach(u -> absolutePaths.put(u, wroteNode));
-        }
-        // Write the alias down the tree
-        if (!idPointer.isRootPointer())
-          idPointer.write(parentNode, RouterNodeJsonPointerIterator.INSTANCE, wroteNode, true);
-      } catch (IllegalArgumentException e) {
-        throw new SchemaException(parsedSchema, "$id keyword should be a valid URI", e);
-      }
-    }
+  public void insertSchema(JsonPointer pointer, RouterNode initialNode, Schema schema) {
+    if (pointer.isRootPointer())
+      initialNode.setSchema(schema);
+    else
+      pointer.write(
+        initialNode,
+        RouterNodeJsonPointerIterator.INSTANCE,
+        schema,
+        true
+      );
   }
 
-  private void handleAddSchemaIdKeywordForDraft201909(RouterNode parentNode, JsonObject unparsedSchema, Schema parsedSchema) {
-    RouterNode wroteNode = (RouterNode) parsedSchema.getScope().query(parentNode, RouterNodeJsonPointerIterator.INSTANCE);
-    if (unparsedSchema.containsKey("$id")) {
-      try {
-        String unparsedId = unparsedSchema.getString("$id");
-        URI id = URI.create(unparsedId);
-        if (id.getFragment() != null && !id.getFragment().isEmpty()) {
-          throw ValidationException.createException("URI must not contain a fragment", "$id", unparsedId);
-        }
-        // Create parent node aliases if needed
-        if (id.isAbsolute()) { // Absolute id
-          absolutePaths.putIfAbsent(URIUtils.removeFragment(id), wroteNode); // id and inferredScope can match!
-        } else if (id.getPath() != null && !id.getPath().isEmpty()) {
-          // If a path is relative you should solve the path/paths.
-          // The paths will be solved against aliases of base node of inferred scope
-          List<URI> paths = absolutePaths
-            .entrySet()
-            .stream()
-            .filter(e -> e.getValue().equals(parentNode))
-            .map(e -> URIUtils.resolvePath(e.getKey(), id.getPath()))
-            .collect(Collectors.toList());
-          paths.forEach(u -> absolutePaths.put(u, wroteNode));
-        } else {
-          throw ValidationException.createException("$id cannot be resolved", "$id", unparsedId);
-        }
-      } catch (IllegalArgumentException e) {
-        throw new SchemaException(parsedSchema, "$id keyword should be a valid URI", e);
-      }
-    }
-    if (unparsedSchema.containsKey("$anchor")) {
-      String unparsedAnchor = unparsedSchema.getString("$anchor");
-      // Write the alias down the tree
-      JsonPointer idPointer = URIUtils.createJsonPointerFromURI(URI.create("#" + unparsedAnchor));
-      if (!idPointer.isRootPointer())
-        idPointer.write(parentNode, RouterNodeJsonPointerIterator.INSTANCE, wroteNode, true);
-    }
+  public void insertRouterNode(JsonPointer pointer, RouterNode nodeToWrite) {
+    if (pointer.isRootPointer())
+      absolutePaths.put(pointer.getURIWithoutFragment(), nodeToWrite);
+    else
+      pointer.write(
+        absolutePaths.computeIfAbsent(pointer.getURIWithoutFragment(), k -> new RouterNode()),
+        RouterNodeJsonPointerIterator.INSTANCE,
+        nodeToWrite,
+        true
+      );
   }
 }

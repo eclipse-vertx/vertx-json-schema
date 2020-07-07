@@ -65,6 +65,18 @@ public interface SchemaRouter {
   SchemaRouter addSchema(Schema schema, JsonPointer... aliasScopes);
 
   /**
+   * Add a parsed schema to this router. When a schema is added to the cache, a new entry is created for the provided scope,
+   * but NOT for {@link Schema#getScope()}. This may be useful to register links to singleton schemas.
+   * This method is automatically called by {@link SchemaParser} when a new schema is parsed
+   *
+   * @param schema schema to add
+   * @return a reference to this
+   * @throws IllegalStateException if the provided scope contains a relative {@link URI}
+   */
+  @Fluent
+  SchemaRouter addSchemaWithScope(Schema schema, JsonPointer scope);
+
+  /**
    * Add an alias to a schema already registered in this router (this alias can be solved only from schema scope).
    *
    * @param schema schema to add
