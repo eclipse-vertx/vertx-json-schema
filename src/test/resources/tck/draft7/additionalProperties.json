@@ -103,15 +103,49 @@
             }
         ]
     },
-    {
-        "description": "additionalProperties are allowed by default",
-        "schema": {"properties": {"foo": {}, "bar": {}}},
-        "tests": [
-            {
-                "description": "additional properties are allowed",
-                "data": {"foo": 1, "bar": 2, "quux": true},
-                "valid": true
-            }
-        ]
-    }
+  {
+    "description": "additionalProperties are allowed by default",
+    "schema": {
+      "properties": {
+        "foo": {},
+        "bar": {}
+      }
+    },
+    "tests": [
+      {
+        "description": "additional properties are allowed",
+        "data": {
+          "foo": 1,
+          "bar": 2,
+          "quux": true
+        },
+        "valid": true
+      }
+    ]
+  },
+  {
+    "description": "additionalProperties should not look in applicators",
+    "schema": {
+      "allOf": [
+        {
+          "properties": {
+            "foo": {}
+          }
+        }
+      ],
+      "additionalProperties": {
+        "type": "boolean"
+      }
+    },
+    "tests": [
+      {
+        "description": "properties defined in allOf are not examined",
+        "data": {
+          "foo": 1,
+          "bar": true
+        },
+        "valid": false
+      }
+    ]
+  }
 ]

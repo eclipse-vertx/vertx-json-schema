@@ -39,18 +39,37 @@
             "additionalItems": false
         },
         "tests": [
-            {
-                "description": "fewer number of items present",
-                "data": [ 1, 2 ],
-                "valid": true
-            },
-            {
-                "description": "equal number of items present",
-                "data": [ 1, 2, 3 ],
-                "valid": true
-            },
-            {
-                "description": "additional items are not permitted",
+          {
+            "description": "empty array",
+            "data": [],
+            "valid": true
+          },
+          {
+            "description": "fewer number of items present (1)",
+            "data": [
+              1
+            ],
+            "valid": true
+          },
+          {
+            "description": "fewer number of items present (2)",
+            "data": [
+              1,
+              2
+            ],
+            "valid": true
+          },
+          {
+            "description": "equal number of items present",
+            "data": [
+              1,
+              2,
+              3
+            ],
+            "valid": true
+          },
+          {
+            "description": "additional items are not permitted",
                 "data": [ 1, 2, 3, 4 ],
                 "valid": false
             }
@@ -73,15 +92,87 @@
             }
         ]
     },
-    {
-        "description": "additionalItems are allowed by default",
-        "schema": {"items": [{"type": "integer"}]},
-        "tests": [
+  {
+    "description": "additionalItems are allowed by default",
+    "schema": {
+      "items": [
+        {
+          "type": "integer"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "description": "only the first item is validated",
+        "data": [
+          1,
+          "foo",
+          false
+        ],
+        "valid": true
+      }
+    ]
+  },
+  {
+    "description": "additionalItems should not look in applicators, valid case",
+    "schema": {
+      "allOf": [
+        {
+          "items": [
             {
-                "description": "only the first item is validated",
-                "data": [1, "foo", false],
-                "valid": true
+              "type": "integer"
             }
-        ]
-    }
+          ]
+        }
+      ],
+      "additionalItems": {
+        "type": "boolean"
+      }
+    },
+    "tests": [
+      {
+        "description": "items defined in allOf are not examined",
+        "data": [
+          1,
+          null
+        ],
+        "valid": true
+      }
+    ]
+  },
+  {
+    "description": "additionalItems should not look in applicators, invalid case",
+    "schema": {
+      "allOf": [
+        {
+          "items": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "items": [
+        {
+          "type": "integer"
+        }
+      ],
+      "additionalItems": {
+        "type": "boolean"
+      }
+    },
+    "tests": [
+      {
+        "description": "items defined in allOf are not examined",
+        "data": [
+          1,
+          "hello"
+        ],
+        "valid": false
+      }
+    ]
+  }
 ]

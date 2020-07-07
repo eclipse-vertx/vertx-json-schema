@@ -5,6 +5,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.json.schema.common.SchemaParserInternal;
+import io.vertx.ext.json.schema.common.SchemaRouterImpl;
 import io.vertx.ext.json.schema.draft7.Draft7SchemaParser;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -87,7 +88,7 @@ public class DefaultValuesApplyTest {
   public void ref(Vertx vertx, VertxTestContext testContext) throws IOException {
     URI u = buildBaseUri("default_test", "ref.json");
     JsonObject obj = loadJson(u);
-    SchemaRouter router = SchemaRouter.create(vertx, new SchemaRouterOptions());
+    SchemaRouterImpl router = (SchemaRouterImpl) SchemaRouter.create(vertx, new SchemaRouterOptions());
     SchemaParserInternal parser = Draft7SchemaParser.create(router);
     Schema schema = parser.parse(obj, u);
 
@@ -112,7 +113,7 @@ public class DefaultValuesApplyTest {
   public void circularRef(Vertx vertx, VertxTestContext testContext) throws IOException {
     URI u = buildBaseUri("default_test", "circular_ref.json");
     JsonObject obj = loadJson(u);
-    SchemaRouter router = SchemaRouter.create(vertx, new SchemaRouterOptions());
+    SchemaRouterImpl router = (SchemaRouterImpl) SchemaRouter.create(vertx, new SchemaRouterOptions());
     SchemaParserInternal parser = Draft7SchemaParser.create(router);
     Schema schema = parser.parse(obj, u);
 

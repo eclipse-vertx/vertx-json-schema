@@ -8,6 +8,7 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.json.schema.common.SchemaRouterImpl;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -113,7 +114,7 @@ public abstract class BaseIntegrationTest {
       if (event.failed())
         context.verify(() -> fail(String.format("\"%s\" -> \"%s\" should be valid", testName, testCaseName), event.cause()));
 
-      parser.getSchemaRouter().solveAllSchemaReferences(schema).onComplete(ar -> {
+      ((SchemaRouterImpl) parser.getSchemaRouter()).solveAllSchemaReferences(schema).onComplete(ar -> {
         context.verify(() -> {
           if (ar.failed()) {
             fail("Failed schema refs resolving with cause", ar.cause());
@@ -136,7 +137,7 @@ public abstract class BaseIntegrationTest {
       else if (log.isDebugEnabled())
         log.debug(event.cause().toString());
 
-      parser.getSchemaRouter().solveAllSchemaReferences(schema).onComplete(ar -> {
+      ((SchemaRouterImpl) parser.getSchemaRouter()).solveAllSchemaReferences(schema).onComplete(ar -> {
         context.verify(() -> {
           if (ar.failed()) {
             fail("Failed schema refs resolving with cause", ar.cause());

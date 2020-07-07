@@ -172,17 +172,65 @@
                 }
             ]
         },
-        "tests": [
-            {
-                "description": "valid, but woud have been invalid through then",
-                "data": -100,
-                "valid": true
-            },
-            {
-                "description": "valid, but would have been invalid through else",
-                "data": 3,
-                "valid": true
-            }
-        ]
-    }
+      "tests": [
+        {
+          "description": "valid, but would have been invalid through then",
+          "data": -100,
+          "valid": true
+        },
+        {
+          "description": "valid, but would have been invalid through else",
+          "data": 3,
+          "valid": true
+        }
+      ]
+    },
+  {
+    "description": "if with boolean schema true",
+    "schema": {
+      "if": true,
+      "then": {
+        "const": "then"
+      },
+      "else": {
+        "const": "else"
+      }
+    },
+    "tests": [
+      {
+        "description": "boolean schema true in if always chooses the then path (valid)",
+        "data": "then",
+        "valid": true
+      },
+      {
+        "description": "boolean schema true in if always chooses the then path (invalid)",
+        "data": "else",
+        "valid": false
+      }
+    ]
+  },
+  {
+    "description": "if with boolean schema false",
+    "schema": {
+      "if": false,
+      "then": {
+        "const": "then"
+      },
+      "else": {
+        "const": "else"
+      }
+    },
+    "tests": [
+      {
+        "description": "boolean schema false in if always chooses the else path (invalid)",
+        "data": "then",
+        "valid": false
+      },
+      {
+        "description": "boolean schema false in if always chooses the else path (valid)",
+        "data": "else",
+        "valid": true
+      }
+    ]
+  }
 ]

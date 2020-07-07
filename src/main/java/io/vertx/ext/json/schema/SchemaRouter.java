@@ -121,15 +121,6 @@ public interface SchemaRouter {
   List<Schema> registeredSchemas();
 
   /**
-   * Deeply resolve all references of the provided {@code schema}
-   *
-   * @param schema
-   * @return returns a succeeded future with same instance of provided schema, or a failed schema if something went wrong
-   */
-  @GenIgnore //TODO waiting for codegen future update
-  Future<Schema> solveAllSchemaReferences(Schema schema);
-
-  /**
    * Create a new {@link SchemaRouter}
    *
    * @param vertx

@@ -128,7 +128,12 @@ public class SchemaRouterImpl implements SchemaRouter {
     return this;
   }
 
-  @Override
+  /**
+   * Deeply resolve all references of the provided {@code schema}
+   *
+   * @param schema
+   * @return returns a succeeded future with same instance of provided schema, or a failed schema if something went wrong
+   */
   public Future<Schema> solveAllSchemaReferences(Schema schema) {
     if (schema instanceof RefSchema) {
       return ((RefSchema) schema)

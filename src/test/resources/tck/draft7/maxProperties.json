@@ -24,15 +24,35 @@
                 "valid": true
             },
             {
-                "description": "ignores strings",
-                "data": "foobar",
-                "valid": true
+              "description": "ignores strings",
+              "data": "foobar",
+              "valid": true
             },
-            {
-                "description": "ignores other non-objects",
-                "data": 12,
-                "valid": true
-            }
+          {
+            "description": "ignores other non-objects",
+            "data": 12,
+            "valid": true
+          }
         ]
-    }
+    },
+  {
+    "description": "maxProperties = 0 means the object is empty",
+    "schema": {
+      "maxProperties": 0
+    },
+    "tests": [
+      {
+        "description": "no properties is valid",
+        "data": {},
+        "valid": true
+      },
+      {
+        "description": "one property is invalid",
+        "data": {
+          "foo": 1
+        },
+        "valid": false
+      }
+    ]
+  }
 ]
