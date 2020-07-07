@@ -8,6 +8,7 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.AfterAll;
@@ -22,14 +23,14 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.AbstractMap;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -91,6 +92,22 @@ public abstract class BaseIntegrationTest {
     }
   }
 
+  @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("buildParameters")
+  public void test(String testName, String testFileName, JsonObject testObj, Vertx vertx, VertxTestContext context) {
+    buildSchema(vertx, testObj.getValue("schema"), testName, testFileName)
+      .ifPresent(t -> {
+        for (Object tc : testObj.getJsonArray("tests").stream().collect(Collectors.toList())) {
+          JsonObject testCase = (JsonObject) tc;
+          if (testCase.getBoolean("valid"))
+            validateSuccess(t.getValue(), t.getKey(), testCase.getValue("data"), testName, testCase.getString("description"), context);
+          else
+            validateFailure(t.getValue(), t.getKey(), testCase.getValue("data"), testName, testCase.getString("description"), context);
+        }
+      });
+  }
+
   private void validateSuccess(Schema schema, SchemaParser parser, Object obj, String testName, String testCaseName, VertxTestContext context) {
     schema.validateAsync(obj).onComplete(event -> {
       if (event.failed())
@@ -135,35 +152,19 @@ public abstract class BaseIntegrationTest {
     });
   }
 
-  @ParameterizedTest(name = "{testFileName}: {testName}")
-  @MethodSource("buildParameters")
-  public void test(String testName, String testFileName, JsonObject testObj, Vertx vertx, VertxTestContext context) {
-    buildSchema(vertx, testObj.getValue("schema"), testName, testFileName)
-        .ifPresent(t -> {
-          for (Object tc : testObj.getJsonArray("tests").stream().collect(Collectors.toList())) {
-            JsonObject testCase = (JsonObject) tc;
-            if (testCase.getBoolean("valid"))
-              validateSuccess(t.getValue(), t.getKey(), testCase.getValue("data"), testName, testCase.getString("description"), context);
-            else
-              validateFailure(t.getValue(), t.getKey(), testCase.getValue("data"), testName, testCase.getString("description"), context);
-          }
-        });
-  }
-
   public Stream<Arguments> buildParameters() {
     return getTestFiles()
-        .map(f -> new AbstractMap.SimpleImmutableEntry<>(f, getTckPath().resolve(f + ".json")))
-        .map(p -> {
-          try {
-            return new AbstractMap.SimpleImmutableEntry<>(p.getKey(), Files.readAllLines(p.getValue(), Charset.forName("UTF8")));
-          } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-          }
-        })
-        .filter(Objects::nonNull)
-        .map(strings -> new AbstractMap.SimpleImmutableEntry<>(strings.getKey(), String.join("", strings.getValue())))
-        .map(string -> new AbstractMap.SimpleImmutableEntry<>(string.getKey(), new JsonArray(string.getValue())))
+      .map(f -> new SimpleImmutableEntry<>(f, getTckPath().resolve(f + ".json")))
+      .map(p -> {
+        try {
+          return new SimpleImmutableEntry<>(p.getKey(), Files.readAllLines(p.getValue(), StandardCharsets.UTF_8));
+        } catch (IOException e) {
+          e.printStackTrace();
+          throw new RuntimeException(e);
+        }
+      })
+      .map(strings -> new SimpleImmutableEntry<>(strings.getKey(), String.join("", strings.getValue())))
+      .map(string -> new SimpleImmutableEntry<>(string.getKey(), new JsonArray(string.getValue())))
         .flatMap(t -> t.getValue()
             .stream()
             .map(JsonObject.class::cast)

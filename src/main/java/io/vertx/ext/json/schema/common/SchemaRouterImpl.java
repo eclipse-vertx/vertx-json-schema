@@ -76,48 +76,63 @@ public class SchemaRouterImpl implements SchemaRouter {
   }
 
   @Override
-  public SchemaRouter addSchema(Schema schema) {
-    URI schemaScopeWithoutFragment = schema.getScope().getURIWithoutFragment();
-    absolutePaths.putIfAbsent(schemaScopeWithoutFragment, new RouterNode());
-
-    RouterNode parentNode = absolutePaths.get(schemaScopeWithoutFragment);
-    if (schema.getScope().isRootPointer()) {
-      parentNode.setSchema(schema);
-    } else
-      schema.getScope().write(
-              parentNode,
-              RouterNodeJsonPointerIterator.INSTANCE,
-              schema,
-              true
-      );
-
-    // Handle $id keyword
-    if (schema instanceof SchemaImpl && ((SchemaImpl) schema).getJson().containsKey("$id")) {
-      RouterNode wroteNode = (RouterNode) schema.getScope().query(parentNode, RouterNodeJsonPointerIterator.INSTANCE);
-      try {
-        String unparsedId = ((SchemaImpl) schema).getJson().getString("$id");
-        URI id = URI.create(unparsedId);
-        JsonPointer idPointer = URIUtils.createJsonPointerFromURI(id);
-        // Create parent node aliases if needed
-        if (id.isAbsolute()) { // Absolute id
-          absolutePaths.putIfAbsent(URIUtils.removeFragment(id), wroteNode); // id and inferredScope can match!
-        } else if (id.getPath() != null && !id.getPath().isEmpty()) {
-          // If a path is relative you should solve the path/paths. The paths will be solved against aliases of base node of inferred scope
-          List<URI> paths = absolutePaths
-              .entrySet()
-              .stream()
-              .filter(e -> e.getValue().equals(parentNode))
-              .map(e -> URIUtils.resolvePath(e.getKey(), id.getPath()))
-              .collect(Collectors.toList());
-          paths.forEach(u -> absolutePaths.put(u, wroteNode));
-        }
-        // Write the alias down the tree
-        if (!idPointer.isRootPointer())
-          idPointer.write(parentNode, RouterNodeJsonPointerIterator.INSTANCE, wroteNode, true);
-      } catch (IllegalArgumentException e) {
-        throw new SchemaException(schema, "$id keyword should be a valid URI", e);
-      }
+  public SchemaRouter addSchema(Schema schema, JsonPointer... aliasScope) {
+    JsonPointer pointer = schema.getScope();
+    if (!pointer.getURIWithoutFragment().isAbsolute()) {
+      throw new IllegalStateException("Schema scope MUST be a pointer with an absolute URI. Actual: " + pointer.getURIWithoutFragment());
     }
+    RouterNode parentNode = absolutePaths.computeIfAbsent(pointer.getURIWithoutFragment(), k -> new RouterNode());
+    insertSchema(pointer, parentNode, schema);
+    RouterNode insertedNode = (RouterNode) pointer.query(parentNode, RouterNodeJsonPointerIterator.INSTANCE);
+
+    for (JsonPointer alias : aliasScope) {
+      if (!alias.getURIWithoutFragment().isAbsolute()) {
+        throw new IllegalStateException("Schema scope MUST be a pointer with an absolute URI. Actual: " + alias.getURIWithoutFragment());
+      }
+
+      insertRouterNode(alias, insertedNode);
+    }
+
+    return this;
+  }
+
+  public void insertSchema(JsonPointer pointer, RouterNode initialNode, Schema schema) {
+    if (pointer.isRootPointer())
+      initialNode.setSchema(schema);
+    else
+      pointer.write(
+        initialNode,
+        RouterNodeJsonPointerIterator.INSTANCE,
+        schema,
+        true
+      );
+  }
+
+  public void insertRouterNode(JsonPointer pointer, RouterNode nodeToWrite) {
+    if (pointer.isRootPointer())
+      absolutePaths.put(pointer.getURIWithoutFragment(), nodeToWrite);
+    else
+      pointer.write(
+        absolutePaths.computeIfAbsent(pointer.getURIWithoutFragment(), k -> new RouterNode()),
+        RouterNodeJsonPointerIterator.INSTANCE,
+        nodeToWrite,
+        true
+      );
+  }
+
+  @Override
+  public SchemaRouter addSchemaAlias(Schema schema, String alias) {
+    RouterNode parentNode = absolutePaths.get(schema.getScope().getURIWithoutFragment());
+    if (parentNode == null) {
+      throw new IllegalStateException("Schema parent node does not exists: " + schema.getScope().getURIWithoutFragment());
+    }
+    RouterNode schemaNode = (RouterNode) schema.getScope().query(parentNode, RouterNodeJsonPointerIterator.INSTANCE);
+    if (schemaNode == null) {
+      throw new IllegalStateException("Schema node does not exists: " + schema.getScope().toURI());
+    }
+    parentNode
+      .getChilds()
+      .put(alias, schemaNode);
     return this;
   }
 
@@ -127,12 +142,38 @@ public class SchemaRouterImpl implements SchemaRouter {
     return this;
   }
 
+  @Override
+  public Future<Schema> solveAllSchemaReferences(Schema schema) {
+    if (schema instanceof RefSchema) {
+      return ((RefSchema) schema)
+        .trySolveSchema()
+        .compose(s -> (s != schema) ? solveAllSchemaReferences(s).map(schema) : Future.succeededFuture(schema));
+    } else {
+      RouterNode node = absolutePaths.get(schema.getScope().getURIWithoutFragment());
+      node = (RouterNode) schema.getScope().query(node, RouterNodeJsonPointerIterator.INSTANCE);
+      return CompositeFuture.all(
+        node
+          .reverseFlattened()
+          .collect(Collectors.toList())// Must create a collection to avoid ConcurrentModificationException
+          .stream()
+          .map(RouterNode::getSchema)
+          .filter(Objects::nonNull)
+          .filter(s -> s instanceof RefSchema)
+          .map(s -> (RefSchema) s)
+          .map(RefSchema::trySolveSchema)
+          .collect(Collectors.toList())
+      ).map(schema);
+    }
+  }
+
   // The idea is to traverse from base to actual scope all tree and find aliases
   private Stream<URI> getScopeParentAliases(JsonPointer scope) {
     Stream.Builder<URI> uriStreamBuilder = Stream.builder();
     RouterNode startingNode = absolutePaths.get(scope.getURIWithoutFragment());
     scope.tracedQuery(startingNode, RouterNodeJsonPointerIterator.INSTANCE)
-            .forEach((node) -> absolutePaths.forEach((uri, n) -> { if (n == node) uriStreamBuilder.accept(uri); }));
+      .forEach((node) -> absolutePaths.forEach((uri, n) -> {
+        if (n == node) uriStreamBuilder.accept(uri);
+      }));
     return uriStreamBuilder.build();
   }
 
@@ -265,28 +306,71 @@ public class SchemaRouterImpl implements SchemaRouter {
     return cl;
   }
 
-  @Override
-  public Future<Schema> solveAllSchemaReferences(Schema schema) {
-    if (schema instanceof RefSchema) {
-      return ((RefSchema) schema)
-          .trySolveSchema()
-          .compose(s -> (s != schema) ? solveAllSchemaReferences(s).map(schema) : Future.succeededFuture(schema));
-    } else {
-      RouterNode node = absolutePaths.get(schema.getScope().getURIWithoutFragment());
-      node = (RouterNode) schema.getScope().query(node, RouterNodeJsonPointerIterator.INSTANCE);
-      return CompositeFuture.all(
-          node
-              .reverseFlattened()
-              .collect(Collectors.toList())// Must create a collection to avoid ConcurrentModificationException
-              .stream()
-              .map(RouterNode::getSchema)
-              .filter(Objects::nonNull)
-              .filter(s -> s instanceof RefSchema)
-              .map(s -> (RefSchema)s)
-              .map(RefSchema::trySolveSchema)
-              .collect(Collectors.toList())
-      ).map(schema);
+  private void handleAddSchemaIdKeyword(RouterNode parentNode, JsonObject unparsedSchema, Schema parsedSchema) {
+    if (unparsedSchema.containsKey("$id")) {
+      RouterNode wroteNode = (RouterNode) parsedSchema.getScope().query(parentNode, RouterNodeJsonPointerIterator.INSTANCE);
+      try {
+        String unparsedId = ((SchemaImpl) parsedSchema).getJson().getString("$id");
+        URI id = URI.create(unparsedId);
+        JsonPointer idPointer = URIUtils.createJsonPointerFromURI(id);
+        // Create parent node aliases if needed
+        if (id.isAbsolute()) { // Absolute id
+          absolutePaths.putIfAbsent(URIUtils.removeFragment(id), wroteNode); // id and inferredScope can match!
+        } else if (id.getPath() != null && !id.getPath().isEmpty()) {
+          // If a path is relative you should solve the path/paths.
+          // The paths will be solved against aliases of base node of inferred scope
+          List<URI> paths = absolutePaths
+            .entrySet()
+            .stream()
+            .filter(e -> e.getValue().equals(parentNode))
+            .map(e -> URIUtils.resolvePath(e.getKey(), id.getPath()))
+            .collect(Collectors.toList());
+          paths.forEach(u -> absolutePaths.put(u, wroteNode));
+        }
+        // Write the alias down the tree
+        if (!idPointer.isRootPointer())
+          idPointer.write(parentNode, RouterNodeJsonPointerIterator.INSTANCE, wroteNode, true);
+      } catch (IllegalArgumentException e) {
+        throw new SchemaException(parsedSchema, "$id keyword should be a valid URI", e);
+      }
     }
   }
 
+  private void handleAddSchemaIdKeywordForDraft201909(RouterNode parentNode, JsonObject unparsedSchema, Schema parsedSchema) {
+    RouterNode wroteNode = (RouterNode) parsedSchema.getScope().query(parentNode, RouterNodeJsonPointerIterator.INSTANCE);
+    if (unparsedSchema.containsKey("$id")) {
+      try {
+        String unparsedId = unparsedSchema.getString("$id");
+        URI id = URI.create(unparsedId);
+        if (id.getFragment() != null && !id.getFragment().isEmpty()) {
+          throw ValidationException.createException("URI must not contain a fragment", "$id", unparsedId);
+        }
+        // Create parent node aliases if needed
+        if (id.isAbsolute()) { // Absolute id
+          absolutePaths.putIfAbsent(URIUtils.removeFragment(id), wroteNode); // id and inferredScope can match!
+        } else if (id.getPath() != null && !id.getPath().isEmpty()) {
+          // If a path is relative you should solve the path/paths.
+          // The paths will be solved against aliases of base node of inferred scope
+          List<URI> paths = absolutePaths
+            .entrySet()
+            .stream()
+            .filter(e -> e.getValue().equals(parentNode))
+            .map(e -> URIUtils.resolvePath(e.getKey(), id.getPath()))
+            .collect(Collectors.toList());
+          paths.forEach(u -> absolutePaths.put(u, wroteNode));
+        } else {
+          throw ValidationException.createException("$id cannot be resolved", "$id", unparsedId);
+        }
+      } catch (IllegalArgumentException e) {
+        throw new SchemaException(parsedSchema, "$id keyword should be a valid URI", e);
+      }
+    }
+    if (unparsedSchema.containsKey("$anchor")) {
+      String unparsedAnchor = unparsedSchema.getString("$anchor");
+      // Write the alias down the tree
+      JsonPointer idPointer = URIUtils.createJsonPointerFromURI(URI.create("#" + unparsedAnchor));
+      if (!idPointer.isRootPointer())
+        idPointer.write(parentNode, RouterNodeJsonPointerIterator.INSTANCE, wroteNode, true);
+    }
+  }
 }

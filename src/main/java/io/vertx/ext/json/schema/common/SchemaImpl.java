@@ -2,12 +2,14 @@ package io.vertx.ext.json.schema.common;
 
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
-import io.vertx.ext.json.schema.*;
+import io.vertx.ext.json.schema.NoSyncValidationException;
+import io.vertx.ext.json.schema.Schema;
+import io.vertx.ext.json.schema.ValidationException;
 
 import java.util.*;
 
@@ -146,10 +148,10 @@ public class SchemaImpl extends BaseMutableStateValidator implements Schema {
 
   void registerReferredSchema(RefSchema ref) {
       referringSchemas.add(ref);
-      if (log.isDebugEnabled()) {
-        log.trace(String.format("Ref schema %s reefers to schema %s",  ref, this));
-        log.trace(String.format("Ref schemas that refeers to %s: %s", this, this.referringSchemas.size()));
-      }
+    if (log.isTraceEnabled()) {
+      log.trace(String.format("Ref schema %s reefers to schema %s", ref, this));
+      log.trace(String.format("Ref schemas that refeers to %s: %s", this, this.referringSchemas.size()));
+    }
       // This is a trick to solve the circular references.
       // 1. for each ref that reefers to this schema we propagate isSync = true to the upper levels.
       //    If this schema isSync = false only because its childs contains refs to itself, after the pre propagation

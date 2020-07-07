@@ -53,13 +53,26 @@ public interface SchemaRouter {
   Future<Schema> resolveRef(JsonPointer pointer, JsonPointer scope, SchemaParser schemaParser);
 
   /**
-   * Add a parsed schema to local cache. This method is automatically called by {@link SchemaParser} when a new schema is parsed
+   * Add a parsed schema to this router. When a schema is added to the cache, a new entry is created for {@link Schema#getScope()} and,
+   * if you provide additional aliasScopes, this method register links to this schema with these scopes.
+   * This method is automatically called by {@link SchemaParser} when a new schema is parsed
    *
-   * @param schema
+   * @param schema schema to add
+   * @return a reference to this
+   * @throws IllegalStateException if the schema contains a scope with a relative {@link URI} or one of the aliasScopes has a relative {@link URI}
+   */
+  @Fluent
+  SchemaRouter addSchema(Schema schema, JsonPointer... aliasScopes);
+
+  /**
+   * Add an alias to a schema already registered in this router (this alias can be solved only from schema scope).
+   *
+   * @param schema schema to add
+   * @param alias  the schema alias
    * @return a reference to this
    */
   @Fluent
-  SchemaRouter addSchema(Schema schema);
+  SchemaRouter addSchemaAlias(Schema schema, String alias);
 
   /**
    * Add one or more json documents including schemas on top or inner levels. This method doesn't trigger the schema parsing<br/>

@@ -1,11 +1,15 @@
 package io.vertx.ext.json.schema.asserts;
 
 import io.vertx.core.json.pointer.JsonPointer;
+import io.vertx.ext.json.schema.Schema;
 import io.vertx.ext.json.schema.SchemaParser;
 import io.vertx.ext.json.schema.SchemaRouter;
 import io.vertx.ext.json.schema.common.SchemaImpl;
+import io.vertx.ext.json.schema.common.URIUtils;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Condition;
+
+import java.net.URI;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -16,15 +20,27 @@ public class SchemaRouterAssert extends AbstractAssert<SchemaRouterAssert, Schem
     super(actual, SchemaRouterAssert.class);
   }
 
+  public SchemaAssert canResolveSchema(String uri, JsonPointer scope, SchemaParser parser) {
+    return canResolveSchema(URIUtils.createJsonPointerFromURI(URI.create(uri)), scope, parser);
+  }
+
   public SchemaAssert canResolveSchema(JsonPointer jp, JsonPointer scope, SchemaParser parser) {
     isNotNull();
 
     try {
+      Schema s = actual.resolveCachedSchema(jp, scope, parser);
+      assertThat(s)
+        .withFailMessage("Cannot resolve schema with pointer '%s' from scope '%s'", jp.toURI(), scope.toURI())
+        .isNotNull();
       return new SchemaAssert(actual.resolveCachedSchema(jp, scope, parser));
     } catch (Exception e) {
-      fail("Cannot resolve schema", e);
+      fail(String.format("Cannot resolve schema with pointer '%s' from scope '%s'", jp.toURI(), scope.toURI()), e);
       return new SchemaAssert(null);
     }
+  }
+
+  public SchemaRouterAssert cannotResolveSchema(String uri, JsonPointer scope, SchemaParser parser) {
+    return cannotResolveSchema(URIUtils.createJsonPointerFromURI(URI.create(uri)), scope, parser);
   }
 
   public SchemaRouterAssert cannotResolveSchema(JsonPointer jp, JsonPointer scope, SchemaParser parser) {

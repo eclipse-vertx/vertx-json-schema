@@ -62,12 +62,24 @@ public class SchemaRouterIdTest {
     JsonObject baseSchemaJson = loadJson(baseURI);
     parser.parse(baseSchemaJson, baseURI);
 
-    assertThat(schemaRouter).canResolveSchema(basePointer.copy().append("properties").append("prop_1"), basePointer, parser).hasXIdEqualsTo("prop_1");
-    assertThat(schemaRouter).canResolveSchema(createJsonPointerFromURI(URI.create("urn:uuid:590e34ae-8e3d-4bdf-a748-beff72654d0e")), basePointer, parser).hasXIdEqualsTo("prop_1");
-    assertThat(schemaRouter).canResolveSchema(basePointer.copy().append("properties").append("prop_2"), basePointer, parser).hasXIdEqualsTo("prop_2");
-    assertThat(schemaRouter).canResolveSchema(createJsonPointerFromURI(URI.create("urn:uuid:77ed19ca-1127-42dd-8194-3e48661ce672")), basePointer, parser).hasXIdEqualsTo("prop_2");
-    assertThat(schemaRouter).canResolveSchema(basePointer.copy().append("properties").append("prop_2").append("not"), basePointer, parser).hasXIdEqualsTo("not");
-    assertThat(schemaRouter).canResolveSchema(createJsonPointerFromURI(URI.create("urn:uuid:77ed19ca-1127-42dd-8194-3e48661ce672")).append("not"), basePointer, parser).hasXIdEqualsTo("not");
+    assertThat(schemaRouter)
+      .canResolveSchema(basePointer.copy().append("properties").append("prop_1"), basePointer, parser)
+      .hasXIdEqualsTo("prop_1");
+    assertThat(schemaRouter)
+      .canResolveSchema("urn:uuid:590e34ae-8e3d-4bdf-a748-beff72654d0e", basePointer, parser)
+      .hasXIdEqualsTo("prop_1");
+    assertThat(schemaRouter)
+      .canResolveSchema(basePointer.copy().append("properties").append("prop_2"), basePointer, parser)
+      .hasXIdEqualsTo("prop_2");
+    assertThat(schemaRouter)
+      .canResolveSchema("urn:uuid:77ed19ca-1127-42dd-8194-3e48661ce672", basePointer, parser)
+      .hasXIdEqualsTo("prop_2");
+    assertThat(schemaRouter)
+      .canResolveSchema(basePointer.copy().append("properties").append("prop_2").append("not"), basePointer, parser)
+      .hasXIdEqualsTo("not");
+    assertThat(schemaRouter)
+      .canResolveSchema(createJsonPointerFromURI(URI.create("urn:uuid:77ed19ca-1127-42dd-8194-3e48661ce672")).append("not"), basePointer, parser)
+      .hasXIdEqualsTo("not");
   }
 
   @Test
@@ -119,38 +131,78 @@ public class SchemaRouterIdTest {
     JsonObject baseSchemaJson = loadJson(baseURI);
     parser.parse(baseSchemaJson, baseURI);
 
-    assertThat(schemaRouter).canResolveSchema(JsonPointer.create(), basePointer, parser).hasXIdEqualsTo("main");
+    assertThat(schemaRouter)
+      .canResolveSchema(JsonPointer.create(), basePointer, parser)
+      .hasXIdEqualsTo("main");
 
-    assertThat(schemaRouter).canResolveSchema(JsonPointer.create().append("properties").append("A"), basePointer, parser).hasXIdEqualsTo("A");
-    assertThat(schemaRouter).canResolveSchema(createJsonPointerFromURI(URI.create("#foo")), basePointer, parser).hasXIdEqualsTo("A");
+    assertThat(schemaRouter)
+      .canResolveSchema(JsonPointer.create().append("properties").append("A"), basePointer, parser)
+      .hasXIdEqualsTo("A");
+    assertThat(schemaRouter)
+      .canResolveSchema("#foo", basePointer, parser)
+      .hasXIdEqualsTo("A");
 
-    assertThat(schemaRouter).canResolveSchema(JsonPointer.create().append("properties").append("B"), basePointer, parser).hasXIdEqualsTo("B");
-    assertThat(schemaRouter).canResolveSchema(createJsonPointerFromURI(URI.create("http://example.com/other.json")), basePointer, parser).hasXIdEqualsTo("B");
+    assertThat(schemaRouter)
+      .canResolveSchema(JsonPointer.create().append("properties").append("B"), basePointer, parser)
+      .hasXIdEqualsTo("B");
+    assertThat(schemaRouter)
+      .canResolveSchema("http://example.com/other.json", basePointer, parser)
+      .hasXIdEqualsTo("B");
+    assertThat(schemaRouter)
+      .canResolveSchema(JsonPointer.create(), JsonPointer.fromURI(URI.create("http://example.com/other.json")), parser)
+      .hasXIdEqualsTo("B");
 
-    assertThat(schemaRouter).canResolveSchema(JsonPointer.create().append("properties").append("B").append("properties").append("X"), basePointer, parser).hasXIdEqualsTo("X");
-    assertThat(schemaRouter).canResolveSchema(createJsonPointerFromURI(URI.create("#bar")), basePointer, parser).hasXIdEqualsTo("X");
+    assertThat(schemaRouter)
+      .canResolveSchema(JsonPointer.create().append("properties").append("B").append("properties").append("X"), basePointer, parser)
+      .hasXIdEqualsTo("X");
+    assertThat(schemaRouter)
+      .cannotResolveSchema("#bar", basePointer, parser);
+    assertThat(schemaRouter)
+      .canResolveSchema("http://example.com/other.json#bar", basePointer, parser)
+      .hasXIdEqualsTo("X");
+    assertThat(schemaRouter)
+      .canResolveSchema("#bar", JsonPointer.fromURI(URI.create("http://example.com/other.json")), parser)
+      .hasXIdEqualsTo("X");
 
-    assertThat(schemaRouter).canResolveSchema(JsonPointer.create().append("properties").append("B").append("properties").append("Y"), basePointer, parser).hasXIdEqualsTo("Y");
-    assertThat(schemaRouter).canResolveSchema(createJsonPointerFromURI(URI.create("http://example.com/t/inner.json")), basePointer, parser).hasXIdEqualsTo("Y");
-    assertThat(schemaRouter).canResolveSchema(createJsonPointerFromURI(URI.create("http://example.com/other.json")).append("properties").append("Y"), basePointer, parser).hasXIdEqualsTo("Y");
+    assertThat(schemaRouter)
+      .canResolveSchema(JsonPointer.create().append("properties").append("B").append("properties").append("Y"), basePointer, parser)
+      .hasXIdEqualsTo("Y");
+    assertThat(schemaRouter)
+      .canResolveSchema("http://example.com/t/inner.json", basePointer, parser)
+      .hasXIdEqualsTo("Y");
+    assertThat(schemaRouter)
+      .canResolveSchema(createJsonPointerFromURI(URI.create("http://example.com/other.json")).append("properties").append("Y"), basePointer, parser)
+      .hasXIdEqualsTo("Y");
 
-    assertThat(schemaRouter).canResolveSchema(JsonPointer.create().append("properties").append("C"), basePointer, parser).hasXIdEqualsTo("C");
-    assertThat(schemaRouter).canResolveSchema(createJsonPointerFromURI(URI.create("http://example.com/root.json")).append("properties").append("C"), basePointer, parser).hasXIdEqualsTo("C");
-    assertThat(schemaRouter).canResolveSchema(createJsonPointerFromURI(URI.create("urn:uuid:ee564b8a-7a87-4125-8c96-e9f123d6766f")), basePointer, parser).hasXIdEqualsTo("C");
+    assertThat(schemaRouter)
+      .canResolveSchema(JsonPointer.create().append("properties").append("C"), basePointer, parser)
+      .hasXIdEqualsTo("C");
+    assertThat(schemaRouter)
+      .canResolveSchema(createJsonPointerFromURI(URI.create("http://example.com/root.json")).append("properties").append("C"), basePointer, parser)
+      .hasXIdEqualsTo("C");
+    assertThat(schemaRouter)
+      .canResolveSchema("urn:uuid:ee564b8a-7a87-4125-8c96-e9f123d6766f", basePointer, parser)
+      .hasXIdEqualsTo("C");
 
   }
 
   @Test
   public void testRFCIDKeywordFromInnerScope() throws Exception {
     URI baseURI = buildBaseUri("id_test", "rfc_id_keyword.json");
-    JsonPointer basePointer = JsonPointer.fromURI(baseURI);
     JsonObject baseSchemaJson = loadJson(baseURI);
     parser.parse(baseSchemaJson, baseURI);
-    JsonPointer scope = schemaRouter.resolveCachedSchema(createJsonPointerFromURI(URI.create("http://example.com/other.json")), basePointer, parser).getScope();
+    JsonPointer scope = JsonPointer.fromURI(URI.create("http://example.com/other.json"));
 
-    assertThat(schemaRouter).canResolveSchema(createJsonPointerFromURI(URI.create("#foo")), scope, parser).hasXIdEqualsTo("A");
-    assertThat(schemaRouter).canResolveSchema(createJsonPointerFromURI(URI.create("#bar")), scope, parser).hasXIdEqualsTo("X");
-    assertThat(schemaRouter).canResolveSchema(JsonPointer.create().append("properties").append("B").append("properties").append("Y"), scope, parser).hasXIdEqualsTo("Y");
+    assertThat(schemaRouter)
+      .cannotResolveSchema("#foo", scope, parser);
+    assertThat(schemaRouter)
+      .canResolveSchema("#bar", scope, parser).hasXIdEqualsTo("X");
+    assertThat(schemaRouter)
+      .canResolveSchema(JsonPointer.create().append("properties").append("Y"), scope, parser)
+      .hasXIdEqualsTo("Y");
+    assertThat(schemaRouter)
+      .canResolveSchema("t/inner.json", scope, parser)
+      .hasXIdEqualsTo("Y");
   }
 
 }
