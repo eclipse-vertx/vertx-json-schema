@@ -27,7 +27,7 @@ public class FormatValidatorFactory extends BaseFormatValidatorFactory {
     predicates.put("uri-template", createPredicateFromPattern(RegularExpressions.URI_TEMPLATE));
     predicates.put("time", createPredicateFromPattern(RegularExpressions.TIME));
     predicates.put("idn-hostname", IDN_HOSTNAME_VALIDATOR);
-    predicates.put("idn-email", IDN_HOSTNAME_VALIDATOR);
+    predicates.put("idn-email", IDN_EMAIL_VALIDATOR);
     predicates.put("iri", URI_VALIDATOR);
     predicates.put("iri-reference", URI_REFERENCE_VALIDATOR);
     return predicates;
