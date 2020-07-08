@@ -61,6 +61,7 @@ public interface SchemaRouter {
    * @return a reference to this
    * @throws IllegalStateException if the schema contains a scope with a relative {@link URI} or one of the aliasScopes has a relative {@link URI}
    */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   @Fluent
   SchemaRouter addSchema(Schema schema, JsonPointer... aliasScopes);
 
