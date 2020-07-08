@@ -28,14 +28,14 @@ public class AllOfValidatorFactory extends BaseCombinatorsValidatorFactory {
     }
 
     @Override
-    public void validateSync(Object in) throws ValidationException, NoSyncValidationException {
+    public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
       for (Schema s : schemas) s.validateSync(in);
     }
 
     @Override
-    public Future<Void> validateAsync(Object in) {
-      if (isSync()) return validateSyncAsAsync(in);
+    public Future<Void> validateAsync(ValidatorContext context, Object in) {
+      if (isSync()) return validateSyncAsAsync(context, in);
       return CompositeFuture
         .all(Arrays.stream(schemas).map(s -> s.validateAsync(in)).collect(Collectors.toList()))
         .compose(res -> Future.succeededFuture(), Future::failedFuture);

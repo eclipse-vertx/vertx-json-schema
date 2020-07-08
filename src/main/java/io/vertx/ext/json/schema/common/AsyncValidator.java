@@ -8,9 +8,10 @@ public interface AsyncValidator extends Validator {
   /**
    * Return a Future that succeed when the validation succeed, while fail with a {@link ValidationException} when validation fails
    *
+   * @param context
    * @param in
    * @return
    */
-  Future<Void> validateAsync(Object in);
+  Future<Void> validateAsync(ValidatorContext context, Object in);
 
 }

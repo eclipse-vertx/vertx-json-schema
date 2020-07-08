@@ -8,20 +8,20 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.json.schema.NoSyncValidationException;
-import io.vertx.ext.json.schema.Schema;
 import io.vertx.ext.json.schema.ValidationException;
 
 import java.util.*;
 
 import static io.vertx.ext.json.schema.ValidationException.createException;
 
-public class SchemaImpl extends BaseMutableStateValidator implements Schema {
+public class SchemaImpl extends BaseMutableStateValidator implements SchemaInternal {
 
   private static final Logger log = LoggerFactory.getLogger(SchemaImpl.class);
 
   private final JsonObject schema;
   private final JsonPointer scope;
   private Validator[] validators;
+  private boolean shouldRecordContext;
 
   private final Set<RefSchema> referringSchemas;
 
@@ -29,7 +29,18 @@ public class SchemaImpl extends BaseMutableStateValidator implements Schema {
     super(parent);
     this.schema = schema;
     this.scope = scope;
+    this.shouldRecordContext = false;
     referringSchemas = new HashSet<>();
+  }
+
+  @Override
+  public Future<Void> validateAsync(Object json) {
+    return this.validateAsync(NoopValidatorContext.getInstance(), json);
+  }
+
+  @Override
+  public void validateSync(Object json) throws ValidationException, NoSyncValidationException {
+    this.validateSync(NoopValidatorContext.getInstance(), json);
   }
 
   @Override
@@ -65,8 +76,8 @@ public class SchemaImpl extends BaseMutableStateValidator implements Schema {
 
   public void doApplyDefaultValues(Object obj) {
     for (Validator v : validators) {
-      if (v instanceof ValidatorWithDefaultApply) {
-        ((ValidatorWithDefaultApply) v).applyDefaultValue(obj);
+      if (v instanceof DefaultApplier) {
+        ((DefaultApplier) v).applyDefaultValue(obj);
       }
     }
   }
@@ -85,18 +96,20 @@ public class SchemaImpl extends BaseMutableStateValidator implements Schema {
   }
 
   @Override
-  public Future<Void> validateAsync(Object in) {
-    if (isSync()) return validateSyncAsAsync(in);
-    if (log.isDebugEnabled()) log.trace(String.format("Starting async validation for schema %s and input %s", schema, in));
+  public Future<Void> validateAsync(ValidatorContext context, Object in) {
+    if (isSync()) return validateSyncAsAsync(context, in);
+    if (log.isTraceEnabled())
+      log.trace(String.format("Starting async validation for schema %s and input %s", schema, in));
 
+    context = shouldRecordContext ? context.startRecording() : context;
     List<Future> futures = new ArrayList<>();
     for (Validator validator : validators) {
       if (!validator.isSync()) {
-        Future<Void> asyncValidate = ((AsyncValidator)validator).validateAsync(in);
+        Future<Void> asyncValidate = ((AsyncValidator) validator).validateAsync(context, in);
         asyncValidate = asyncValidate.recover(t -> fillException(t, in));
         futures.add(asyncValidate);
       } else try {
-        ((SyncValidator)validator).validateSync(in);
+        ((SyncValidator) validator).validateSync(context, in);
       } catch (ValidationException e) {
         e.setSchema(this);
         e.setScope(this.scope);
@@ -111,11 +124,12 @@ public class SchemaImpl extends BaseMutableStateValidator implements Schema {
   }
 
   @Override
-  public void validateSync(Object in) throws ValidationException, NoSyncValidationException {
+  public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
     this.checkSync();
+    context = shouldRecordContext ? context.startRecording() : context;
     for (Validator validator : validators) {
       try {
-        ((SyncValidator)validator).validateSync(in);
+        ((SyncValidator) validator).validateSync(context, in);
       } catch (ValidationException e) {
         e.setSchema(this);
         e.setScope(this.scope);
@@ -130,6 +144,10 @@ public class SchemaImpl extends BaseMutableStateValidator implements Schema {
   }
 
   void setValidators(Set<Validator> validators) {
+    this.shouldRecordContext = validators
+      .stream()
+      .map(Validator::getPriority)
+      .anyMatch(p -> p == ValidatorPriority.CONTEXTUAL_VALIDATOR);
     this.validators = validators.toArray(new Validator[0]);
     Arrays.sort(this.validators, ValidatorPriority.VALIDATOR_COMPARATOR);
     this.initializeIsSync();

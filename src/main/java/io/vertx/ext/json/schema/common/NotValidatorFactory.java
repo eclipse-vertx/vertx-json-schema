@@ -24,9 +24,9 @@ public class NotValidatorFactory extends BaseSingleSchemaValidatorFactory {
       super(parent);
     }
 
-    private boolean isValidSync(Object in) {
+    private boolean isValidSync(ValidatorContext context, Object in) {
       try {
-        schema.validateSync(in);
+        schema.validateSync(context, in);
         return true;
       } catch (ValidationException e) {
         return false;
@@ -34,17 +34,16 @@ public class NotValidatorFactory extends BaseSingleSchemaValidatorFactory {
     }
 
     @Override
-    public void validateSync(Object in) throws ValidationException, NoSyncValidationException {
+    public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
-      if (isValidSync(in)) throw createException("input should be invalid", "not", in);
+      if (isValidSync(context, in)) throw createException("input should be invalid", "not", in);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public Future<Void> validateAsync(Object in) {
-      if (isSync()) return validateSyncAsAsync(in);
+    public Future<Void> validateAsync(ValidatorContext context, Object in) {
+      if (isSync()) return validateSyncAsAsync(context, in);
       return schema
-        .validateAsync(in)
+        .validateAsync(context, in)
         .compose(
           res -> Future.failedFuture(createException("input should be invalid", "not", in)),
           err -> Future.succeededFuture()

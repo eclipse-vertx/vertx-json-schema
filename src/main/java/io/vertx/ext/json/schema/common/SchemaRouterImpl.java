@@ -303,7 +303,7 @@ public class SchemaRouterImpl implements SchemaRouter {
 
   public void insertSchema(JsonPointer pointer, RouterNode initialNode, Schema schema) {
     if (pointer.isRootPointer())
-      initialNode.setSchema(schema);
+      initialNode.setSchema((SchemaInternal) schema);
     else
       pointer.write(
         initialNode,

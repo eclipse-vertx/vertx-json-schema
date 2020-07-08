@@ -4,11 +4,12 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.json.schema.*;
+import io.vertx.ext.json.schema.NoSyncValidationException;
+import io.vertx.ext.json.schema.ValidationException;
 
 import static io.vertx.ext.json.schema.ValidationException.createException;
 
-public class FalseSchema implements Schema {
+public class FalseSchema implements SchemaInternal {
 
   private static class FalseSchemaHolder {
     static final FalseSchema INSTANCE = new FalseSchema(null);
@@ -30,6 +31,11 @@ public class FalseSchema implements Schema {
   }
 
   @Override
+  public ValidatorPriority getPriority() {
+    return ValidatorPriority.MAX_PRIORITY;
+  }
+
+  @Override
   public void validateSync(Object in) throws ValidationException, NoSyncValidationException {
     throw createException("False schema always fail validation", null, in);
   }
@@ -37,6 +43,16 @@ public class FalseSchema implements Schema {
   @Override
   public Future<Void> validateAsync(Object in) {
     return Future.failedFuture(createException("False schema always fail validation", null, in));
+  }
+
+  @Override
+  public Future<Void> validateAsync(ValidatorContext context, Object in) {
+    return this.validateAsync(in);
+  }
+
+  @Override
+  public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
+    this.validateSync(in);
   }
 
   @Override

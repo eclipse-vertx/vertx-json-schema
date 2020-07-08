@@ -2,7 +2,8 @@ package io.vertx.ext.json.schema.common;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.json.schema.*;
+import io.vertx.ext.json.schema.SchemaException;
+import io.vertx.ext.json.schema.ValidationException;
 
 import static io.vertx.ext.json.schema.ValidationException.createException;
 
@@ -35,7 +36,7 @@ public class MinPropertiesValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public void validateSync(Object in) throws ValidationException {
+    public void validateSync(ValidatorContext context, Object in) throws ValidationException {
       if (in instanceof JsonObject) {
         if (((JsonObject) in).size() < minimum) {
           throw createException("provided object should have size >= " + minimum, "minProperties", in);

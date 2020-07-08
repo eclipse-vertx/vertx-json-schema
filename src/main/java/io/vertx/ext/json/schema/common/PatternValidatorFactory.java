@@ -2,7 +2,8 @@ package io.vertx.ext.json.schema.common;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.json.schema.*;
+import io.vertx.ext.json.schema.SchemaException;
+import io.vertx.ext.json.schema.ValidationException;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,7 +40,7 @@ public class PatternValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public void validateSync(Object in) throws ValidationException {
+    public void validateSync(ValidatorContext context, Object in) throws ValidationException {
       if (in instanceof String) {
         Matcher m = pattern.matcher((String) in);
         if (!(m.matches() || m.lookingAt() || m.find())) {

@@ -5,7 +5,6 @@ import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.json.schema.Schema;
 import io.vertx.ext.json.schema.SchemaException;
 import io.vertx.ext.json.schema.SchemaParser;
 import io.vertx.ext.json.schema.ValidationException;
@@ -20,7 +19,7 @@ public class RefSchema extends SchemaImpl {
 
   private final JsonPointer refPointer;
   private final SchemaParser schemaParser;
-  private Schema cachedSchema;
+  private SchemaInternal cachedSchema;
 
   RefSchema(JsonObject schema, JsonPointer scope, SchemaParser schemaParser, MutableStateValidator parent) {
     super(schema, scope, parent);
@@ -38,15 +37,15 @@ public class RefSchema extends SchemaImpl {
     }
   }
 
-  private void registerCachedSchema(Schema s) {
+  private void registerCachedSchema(SchemaInternal s) {
     this.cachedSchema = s;
     if (s instanceof SchemaImpl)
-      ((SchemaImpl)s).registerReferredSchema(this);
+      ((SchemaImpl) s).registerReferredSchema(this);
   }
 
   @Override
-  public Future<Void> validateAsync(Object in) {
-    if (isSync()) return validateSyncAsAsync(in);
+  public Future<Void> validateAsync(ValidatorContext context, Object in) {
+    if (isSync()) return validateSyncAsAsync(context, in);
     if (cachedSchema == null) {
       return schemaParser
         .getSchemaRouter()
@@ -55,31 +54,32 @@ public class RefSchema extends SchemaImpl {
           s -> {
             if (s == null)
               return Future.failedFuture(createException("Cannot resolve reference " + this.refPointer.toURI(), "$ref", in));
-            registerCachedSchema(s);
+            SchemaInternal solvedSchema = (SchemaInternal) s;
+            registerCachedSchema(solvedSchema);
             if (log.isDebugEnabled()) log.debug(String.format("Solved ref %s as %s", refPointer, s.getScope()));
-            if (s instanceof RefSchema) {
+            if (solvedSchema instanceof RefSchema) {
               // We need to call solved schema validateAsync to solve upper ref, then we can update sync status
-              return s.validateAsync(in).compose(v -> {
+              return solvedSchema.validateAsync(context, in).compose(v -> {
                 this.triggerUpdateIsSync();
                 return Future.succeededFuture();
               });
             } else {
               this.triggerUpdateIsSync();
-              return s.validateAsync(in);
+              return solvedSchema.validateAsync(context, in);
             }
           },
           err -> Future.failedFuture(createException("Error while resolving reference " + this.refPointer.toURI(), "$ref", in, err))
         );
     } else {
-      return cachedSchema.validateAsync(in);
+      return cachedSchema.validateAsync(context, in);
     }
   }
 
   @Override
-  public void validateSync(Object in) throws ValidationException {
+  public void validateSync(ValidatorContext context, Object in) throws ValidationException {
     this.checkSync();
     // validateSync in RefSchema asserts that a cached schema exists
-    cachedSchema.validateSync(in);
+    cachedSchema.validateSync(context, in);
   }
 
   @Override
@@ -110,7 +110,7 @@ public class RefSchema extends SchemaImpl {
     ((SchemaImpl)cachedSchema).doApplyDefaultValues(obj);
   }
 
-  synchronized Future<Schema> trySolveSchema() {
+  synchronized Future<SchemaInternal> trySolveSchema() {
     if (cachedSchema == null) {
       return schemaParser
         .getSchemaRouter()
@@ -119,7 +119,7 @@ public class RefSchema extends SchemaImpl {
           s -> {
             if (s == null)
               return Future.failedFuture(createException("Cannot resolve reference " + this.refPointer.toURI(), "$ref", null));
-            registerCachedSchema(s);
+            registerCachedSchema((SchemaInternal) s);
             if (log.isDebugEnabled()) log.debug(String.format("Solved ref %s as %s", refPointer, s.getScope()));
             if (s instanceof RefSchema) {
               // We need to call solved schema validateAsync to solve upper ref, then we can update sync status

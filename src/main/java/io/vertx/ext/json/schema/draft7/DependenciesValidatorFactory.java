@@ -4,7 +4,10 @@ import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.json.schema.*;
+import io.vertx.ext.json.schema.NoSyncValidationException;
+import io.vertx.ext.json.schema.Schema;
+import io.vertx.ext.json.schema.SchemaException;
+import io.vertx.ext.json.schema.ValidationException;
 import io.vertx.ext.json.schema.common.*;
 
 import java.util.HashMap;
@@ -22,7 +25,7 @@ public class DependenciesValidatorFactory implements ValidatorFactory {
       JsonObject dependencies = schema.getJsonObject("dependencies");
       JsonPointer baseScope = scope.copy().append("dependencies");
       Map<String, Set<String>> keyDeps = new HashMap<>();
-      Map<String, Schema> keySchemaDeps = new HashMap<>();
+      Map<String, SchemaInternal> keySchemaDeps = new HashMap<>();
 
       DependenciesValidator validator = new DependenciesValidator(parent);
 
@@ -51,13 +54,13 @@ public class DependenciesValidatorFactory implements ValidatorFactory {
   class DependenciesValidator extends BaseMutableStateValidator {
 
     Map<String, Set<String>> keyDeps;
-    Map<String, Schema> keySchemaDeps;
+    Map<String, SchemaInternal> keySchemaDeps;
 
     public DependenciesValidator(MutableStateValidator parent) {
       super(parent);
     }
 
-    private void configure(Map<String, Set<String>> keyDeps, Map<String, Schema> keySchemaDeps) {
+    private void configure(Map<String, Set<String>> keyDeps, Map<String, SchemaInternal> keySchemaDeps) {
       this.keyDeps = keyDeps;
       this.keySchemaDeps = keySchemaDeps;
       initializeIsSync();
@@ -72,8 +75,8 @@ public class DependenciesValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public Future<Void> validateAsync(Object in) {
-      if (isSync()) return validateSyncAsAsync(in);
+    public Future<Void> validateAsync(ValidatorContext context, Object in) {
+      if (isSync()) return validateSyncAsAsync(context, in);
       if (in instanceof JsonObject) {
         JsonObject obj = (JsonObject) in;
         try {
@@ -81,19 +84,28 @@ public class DependenciesValidatorFactory implements ValidatorFactory {
         } catch (ValidationException e) {
           return Future.failedFuture(e);
         }
-        List<Future> futs = keySchemaDeps.entrySet().stream().filter(e -> obj.containsKey(e.getKey())).map(e -> e.getValue().validateAsync(in)).collect(Collectors.toList());
+        List<Future> futs = keySchemaDeps
+          .entrySet()
+          .stream()
+          .filter(e -> obj.containsKey(e.getKey()))
+          .map(e -> e.getValue().validateAsync(context, in))
+          .collect(Collectors.toList());
         if (futs.isEmpty()) return Future.succeededFuture();
-        else return CompositeFuture.all(futs).compose(cf -> Future.succeededFuture());
+        else return CompositeFuture.all(futs).mapEmpty();
       } else return Future.succeededFuture();
     }
 
     @Override
-    public void validateSync(Object in) throws ValidationException, NoSyncValidationException {
+    public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
       if (in instanceof JsonObject) {
         JsonObject obj = (JsonObject) in;
         checkKeyDeps(obj);
-        keySchemaDeps.entrySet().stream().filter(e -> obj.containsKey(e.getKey())).forEach(e -> e.getValue().validateSync(in));
+        keySchemaDeps
+          .entrySet()
+          .stream()
+          .filter(e -> obj.containsKey(e.getKey()))
+          .forEach(e -> e.getValue().validateSync(context, in));
       }
     }
 

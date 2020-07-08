@@ -2,7 +2,8 @@ package io.vertx.ext.json.schema.common;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.json.schema.*;
+import io.vertx.ext.json.schema.SchemaException;
+import io.vertx.ext.json.schema.ValidationException;
 
 import static io.vertx.ext.json.schema.ValidationException.createException;
 
@@ -33,7 +34,7 @@ public class MultipleOfValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public void validateSync(Object in) throws ValidationException {
+    public void validateSync(ValidatorContext context, Object in) throws ValidationException {
       if (in instanceof Number) {
         if (((Number) in).doubleValue() % multipleOf != 0) {
           throw createException("provided number should be multiple of " + multipleOf, "multipleOf", in);

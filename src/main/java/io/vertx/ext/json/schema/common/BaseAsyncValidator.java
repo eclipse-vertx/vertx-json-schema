@@ -9,7 +9,7 @@ public abstract class BaseAsyncValidator implements AsyncValidator {
 
   @Override
   public ValidatorPriority getPriority() {
-    return ValidatorPriority.MIN_PRIORITY;
+    return ValidatorPriority.NORMAL_PRIORITY;
   }
 
 }

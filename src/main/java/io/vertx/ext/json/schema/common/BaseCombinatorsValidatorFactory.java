@@ -3,7 +3,7 @@ package io.vertx.ext.json.schema.common;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.json.schema.*;
+import io.vertx.ext.json.schema.SchemaException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +16,7 @@ public abstract class BaseCombinatorsValidatorFactory implements ValidatorFactor
       if (allOfSchemas.size() == 0)
         throw new SchemaException(schema, getKeyword() + " must have at least one element");
       JsonPointer basePointer = scope.append(getKeyword());
-      List<Schema> parsedSchemas = new ArrayList<>();
+      List<SchemaInternal> parsedSchemas = new ArrayList<>();
 
       BaseCombinatorsValidator validator = instantiate(parent);
       for (int i = 0; i < allOfSchemas.size(); i++) {
@@ -37,5 +37,6 @@ public abstract class BaseCombinatorsValidatorFactory implements ValidatorFactor
   }
 
   abstract BaseCombinatorsValidator instantiate(MutableStateValidator parent);
+
   abstract String getKeyword();
 }

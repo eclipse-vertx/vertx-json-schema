@@ -3,7 +3,8 @@ package io.vertx.ext.json.schema.draft7;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.json.schema.*;
+import io.vertx.ext.json.schema.SchemaException;
+import io.vertx.ext.json.schema.ValidationException;
 import io.vertx.ext.json.schema.common.*;
 
 import java.util.ArrayList;
@@ -77,11 +78,12 @@ public class TypeValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public void validateSync(Object in) throws ValidationException {
+    public void validateSync(ValidatorContext context, Object in) throws ValidationException {
       if (in != null) {
         for (JsonSchemaType type : types) if (type.checkInstance(in)) return;
         throw createException("input don't match any of types " + Arrays.deepToString(types), "type", in);
-      } else if (!nullIsValid) throw createException("input don't match any of types " + Arrays.deepToString(types), "type", in);
+      } else if (!nullIsValid)
+        throw createException("input don't match any of types " + Arrays.deepToString(types), "type", in);
     }
   }
 }

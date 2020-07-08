@@ -2,7 +2,9 @@ package io.vertx.ext.json.schema.custom;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.json.schema.*;
+import io.vertx.ext.json.schema.NoSyncValidationException;
+import io.vertx.ext.json.schema.SchemaException;
+import io.vertx.ext.json.schema.ValidationException;
 import io.vertx.ext.json.schema.common.*;
 
 import static io.vertx.ext.json.schema.ValidationException.createException;
@@ -34,9 +36,9 @@ public class PropertiesMultipleOfValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public void validateSync(Object in) throws ValidationException, NoSyncValidationException {
+    public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       if (in instanceof JsonObject) {
-        if (((JsonObject)in).size() % multipleOf != 0)
+        if (((JsonObject) in).size() % multipleOf != 0)
           throw createException("The provided object size is not a multiple of " + multipleOf, "propertiesMultipleOf", in);
       }
     }

@@ -3,7 +3,8 @@ package io.vertx.ext.json.schema.common;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.json.schema.*;
+import io.vertx.ext.json.schema.SchemaException;
+import io.vertx.ext.json.schema.ValidationException;
 
 import java.util.List;
 import java.util.Map;
@@ -52,7 +53,7 @@ public class EnumValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public void validateSync(Object in) throws ValidationException {
+    public void validateSync(ValidatorContext context, Object in) throws ValidationException {
       for (int i = 0; i < allowedValues.length; i++) {
         if (ComparisonUtils.equalsNumberSafe(allowedValues[i], in))
           return;

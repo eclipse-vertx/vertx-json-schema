@@ -2,7 +2,6 @@ package io.vertx.ext.json.schema.common;
 
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.json.pointer.JsonPointerIterator;
-import io.vertx.ext.json.schema.Schema;
 
 class RouterNodeJsonPointerIterator implements JsonPointerIterator {
 
@@ -51,13 +50,13 @@ class RouterNodeJsonPointerIterator implements JsonPointerIterator {
 
   @Override
   public boolean writeObjectParameter(Object value, String key, Object newElement) {
-    if (newElement instanceof Schema) {
+    if (newElement instanceof SchemaInternal) {
       value = this.getObjectParameter(value, key, true);
       if (value != null)
-        ((RouterNode)value).setSchema((Schema) newElement);
+        ((RouterNode) value).setSchema((SchemaInternal) newElement);
       return true;
     } else if (newElement instanceof RouterNode) {
-      ((RouterNode)value).getChilds().put(key, (RouterNode) newElement);
+      ((RouterNode) value).getChilds().put(key, (RouterNode) newElement);
       return true;
     }
     return false;

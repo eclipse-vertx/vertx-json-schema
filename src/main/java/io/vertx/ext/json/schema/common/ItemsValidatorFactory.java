@@ -21,29 +21,33 @@ public class ItemsValidatorFactory extends BaseSingleSchemaValidatorFactory {
     return "items";
   }
 
-  class ItemsValidator extends BaseSingleSchemaValidator implements ValidatorWithDefaultApply {
+  class ItemsValidator extends BaseSingleSchemaValidator implements DefaultApplier {
 
     public ItemsValidator(MutableStateValidator parent) {
       super(parent);
     }
 
     @Override
-    public void validateSync(Object in) throws ValidationException, NoSyncValidationException {
+    public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
       if (in instanceof JsonArray) {
         JsonArray arr = (JsonArray) in;
-        arr.forEach(schema::validateSync);
+        for (int i = 0; i < arr.size(); i++) {
+          context.markEvaluatedItem(i);
+          schema.validateSync(context.lowerLevelContext(), arr.getValue(i));
+        }
       }
     }
 
     @Override
-    public Future<Void> validateAsync(Object in) {
-      if (isSync()) return validateSyncAsAsync(in);
+    public Future<Void> validateAsync(ValidatorContext context, Object in) {
+      if (isSync()) return validateSyncAsAsync(context, in);
       if (in instanceof JsonArray) {
         JsonArray arr = (JsonArray) in;
         List<Future> futs = new ArrayList<>();
-        for (Object v : arr) {
-          Future<Void> f = schema.validateAsync(v);
+        for (int i = 0; i < arr.size(); i++) {
+          context.markEvaluatedItem(i);
+          Future<Void> f = schema.validateAsync(context.lowerLevelContext(), arr.getValue(i));
           if (f.isComplete()) {
             if (f.failed()) return Future.failedFuture(f.cause());
           } else {

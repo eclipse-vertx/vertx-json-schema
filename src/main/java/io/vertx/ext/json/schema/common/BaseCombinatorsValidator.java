@@ -7,9 +7,9 @@ import io.vertx.ext.json.schema.Schema;
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class BaseCombinatorsValidator extends BaseMutableStateValidator implements ValidatorWithDefaultApply {
+public abstract class BaseCombinatorsValidator extends BaseMutableStateValidator implements DefaultApplier {
 
-  protected Schema[] schemas;
+  protected SchemaInternal[] schemas;
 
   public BaseCombinatorsValidator(MutableStateValidator parent) {
     super(parent);
@@ -20,8 +20,8 @@ public abstract class BaseCombinatorsValidator extends BaseMutableStateValidator
     return Arrays.stream(schemas).map(Schema::isSync).reduce(true, Boolean::logicalAnd);
   }
 
-  void setSchemas(List<Schema> schemas) {
-    this.schemas = schemas.toArray(new Schema[schemas.size()]);
+  void setSchemas(List<SchemaInternal> schemas) {
+    this.schemas = schemas.toArray(new SchemaInternal[schemas.size()]);
     this.initializeIsSync();
   }
 
@@ -29,7 +29,7 @@ public abstract class BaseCombinatorsValidator extends BaseMutableStateValidator
   public void applyDefaultValue(Object obj) {
     if (!(obj instanceof JsonObject || obj instanceof JsonArray)) return;
     for (Schema s : schemas) {
-      ((SchemaImpl)s).doApplyDefaultValues(obj);
+      ((SchemaImpl) s).doApplyDefaultValues(obj);
     }
   }
 }

@@ -5,7 +5,10 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.json.schema.*;
+import io.vertx.ext.json.schema.NoSyncValidationException;
+import io.vertx.ext.json.schema.Schema;
+import io.vertx.ext.json.schema.SchemaException;
+import io.vertx.ext.json.schema.ValidationException;
 import io.vertx.ext.json.schema.common.*;
 
 import java.util.ArrayList;
@@ -21,16 +24,16 @@ public class ItemsValidatorFactory extends io.vertx.ext.json.schema.common.Items
       try {
         JsonPointer baseScope = scope.copy().append("items");
         JsonArray itemsList = (JsonArray) itemsSchema;
-        List<Schema> parsedSchemas = new ArrayList<>();
+        List<SchemaInternal> parsedSchemas = new ArrayList<>();
 
         ItemByItemValidator validator = new ItemByItemValidator(parent);
         for (int i = 0; i < itemsList.size(); i++) {
           parsedSchemas.add(i, parser.parse(itemsList.getValue(i), baseScope.copy().append(Integer.toString(i)), validator));
         }
         if (schema.containsKey("additionalItems"))
-          validator.configure(parsedSchemas.toArray(new Schema[parsedSchemas.size()]), parser.parse(schema.getValue("additionalItems"), scope.copy().append("additionalItems"), validator));
+          validator.configure(parsedSchemas.toArray(new SchemaInternal[parsedSchemas.size()]), parser.parse(schema.getValue("additionalItems"), scope.copy().append("additionalItems"), validator));
         else
-          validator.configure(parsedSchemas.toArray(new Schema[parsedSchemas.size()]), null);
+          validator.configure(parsedSchemas.toArray(new SchemaInternal[parsedSchemas.size()]), null);
         return validator;
       } catch (NullPointerException e) {
         throw new SchemaException(schema, "Null items keyword", e);
@@ -40,49 +43,57 @@ public class ItemsValidatorFactory extends io.vertx.ext.json.schema.common.Items
     }
   }
 
-  class ItemByItemValidator extends BaseMutableStateValidator implements ValidatorWithDefaultApply {
+  class ItemByItemValidator extends BaseMutableStateValidator implements DefaultApplier {
 
-    Schema[] schemas;
-    Schema additionalItems;
+    SchemaInternal[] schemas;
+    SchemaInternal additionalItems;
 
     public ItemByItemValidator(MutableStateValidator parent) {
       super(parent);
     }
 
-    private void configure(Schema[] schemas, Schema additionalItems) {
+    private void configure(SchemaInternal[] schemas, SchemaInternal additionalItems) {
       this.schemas = schemas;
       this.additionalItems = additionalItems;
       initializeIsSync();
     }
 
     @Override
-    public void validateSync(Object in) throws ValidationException, NoSyncValidationException {
+    public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
       if (in instanceof JsonArray) {
         JsonArray arr = (JsonArray) in;
         for (int i = 0; i < arr.size(); i++) {
           if (i >= schemas.length) {
-            if (additionalItems != null)
-              additionalItems.validateSync(arr.getValue(i));
-          } else
-            schemas[i].validateSync(arr.getValue(i));
+            if (additionalItems != null) {
+              context.markEvaluatedItem(i);
+              additionalItems.validateSync(context.lowerLevelContext(), arr.getValue(i));
+            }
+          } else {
+            context.markEvaluatedItem(i);
+            schemas[i].validateSync(context.lowerLevelContext(), arr.getValue(i));
+          }
         }
       }
     }
 
     @Override
-    public Future<Void> validateAsync(Object in) {
-      if (isSync()) return validateSyncAsAsync(in);
+    public Future<Void> validateAsync(ValidatorContext context, Object in) {
+      if (isSync()) return validateSyncAsAsync(context, in);
       if (in instanceof JsonArray) {
         List<Future> futures = new ArrayList<>();
         JsonArray arr = (JsonArray) in;
         for (int i = 0; i < arr.size(); i++) {
           Future<Void> fut;
           if (i >= schemas.length) {
-            if (additionalItems != null)
-              fut = additionalItems.validateAsync(arr.getValue(i));
-            else continue;
-          } else fut = schemas[i].validateAsync(arr.getValue(i));
+            if (additionalItems != null) {
+              context.markEvaluatedItem(i);
+              fut = additionalItems.validateAsync(context.lowerLevelContext(), arr.getValue(i));
+            } else continue;
+          } else {
+            context.markEvaluatedItem(i);
+            fut = schemas[i].validateAsync(context.lowerLevelContext(), arr.getValue(i));
+          }
           if (fut.isComplete()) {
             if (fut.failed()) return Future.failedFuture(fut.cause());
           } else {
