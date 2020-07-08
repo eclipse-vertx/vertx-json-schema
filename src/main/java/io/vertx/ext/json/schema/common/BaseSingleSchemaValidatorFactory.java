@@ -2,7 +2,7 @@ package io.vertx.ext.json.schema.common;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.json.schema.*;
+import io.vertx.ext.json.schema.SchemaException;
 
 public abstract class BaseSingleSchemaValidatorFactory implements ValidatorFactory {
   @Override
@@ -25,5 +25,6 @@ public abstract class BaseSingleSchemaValidatorFactory implements ValidatorFacto
   }
 
   protected abstract BaseSingleSchemaValidator instantiate(MutableStateValidator parent);
+
   protected abstract String getKeyword();
 }

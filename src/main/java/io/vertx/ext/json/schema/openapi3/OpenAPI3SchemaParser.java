@@ -2,7 +2,9 @@ package io.vertx.ext.json.schema.openapi3;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.json.schema.*;
+import io.vertx.ext.json.schema.Schema;
+import io.vertx.ext.json.schema.SchemaRouter;
+import io.vertx.ext.json.schema.SchemaRouterOptions;
 import io.vertx.ext.json.schema.common.*;
 
 import java.net.URI;
@@ -18,7 +20,7 @@ public class OpenAPI3SchemaParser extends BaseSchemaParser {
   @Override
   protected List<ValidatorFactory> initValidatorFactories() {
     List<ValidatorFactory> factories = new LinkedList<>();
-    factories.add(new DefinitionsValidatorFactory());
+    factories.add(new DefinitionsValidatorFactory("definitions"));
     factories.add(new FormatValidatorFactory());
     factories.add(new MaximumValidatorFactory());
     factories.add(new MinimumValidatorFactory());

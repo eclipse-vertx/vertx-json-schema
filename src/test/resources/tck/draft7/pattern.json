@@ -8,16 +8,41 @@
                 "data": "aaa",
                 "valid": true
             },
-            {
-                "description": "a non-matching pattern is invalid",
-                "data": "abc",
-                "valid": false
-            },
-            {
-                "description": "ignores non-strings",
-                "data": true,
-                "valid": true
-            }
+          {
+            "description": "a non-matching pattern is invalid",
+            "data": "abc",
+            "valid": false
+          },
+          {
+            "description": "ignores booleans",
+            "data": true,
+            "valid": true
+          },
+          {
+            "description": "ignores integers",
+            "data": 123,
+            "valid": true
+          },
+          {
+            "description": "ignores floats",
+            "data": 1.0,
+            "valid": true
+          },
+          {
+            "description": "ignores objects",
+            "data": {},
+            "valid": true
+          },
+          {
+            "description": "ignores arrays",
+            "data": [],
+            "valid": true
+          },
+          {
+            "description": "ignores null",
+            "data": null,
+            "valid": true
+          }
         ]
     },
     {

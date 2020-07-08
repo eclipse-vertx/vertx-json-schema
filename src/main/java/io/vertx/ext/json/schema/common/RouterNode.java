@@ -2,8 +2,7 @@ package io.vertx.ext.json.schema.common;
 
 import io.vertx.ext.json.schema.Schema;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 class RouterNode {
@@ -27,25 +26,33 @@ class RouterNode {
     return schema;
   }
 
-  public boolean hasSchema() {
-    return schema != null;
-  }
-
   public Map<String, RouterNode> getChilds() {
     return childs;
   }
 
   public Stream<RouterNode> flattened() {
-    return Stream.concat(
-        (schema == null) ? Stream.empty() : Stream.of(this),
-        childs.values().stream().flatMap(RouterNode::flattened)
-    );
+    return flattenedList().stream();
   }
 
   public Stream<RouterNode> reverseFlattened() {
-    return Stream.concat(
-        childs.values().stream().flatMap(RouterNode::reverseFlattened),
-        (schema == null) ? Stream.empty() : Stream.of(this)
-    );
+    List<RouterNode> output = flattenedList();
+    Collections.reverse(output);
+    return output.stream();
+  }
+
+  private List<RouterNode> flattenedList() {
+    Stack<RouterNode> nodesToScan = new Stack<>();
+    nodesToScan.push(this);
+    List<RouterNode> output = new ArrayList<>();
+
+    while (!nodesToScan.isEmpty()) {
+      RouterNode next = nodesToScan.pop();
+      if (!output.contains(next)) {
+        next.childs.values().forEach(nodesToScan::push);
+        output.add(next);
+      }
+    }
+
+    return output;
   }
 }

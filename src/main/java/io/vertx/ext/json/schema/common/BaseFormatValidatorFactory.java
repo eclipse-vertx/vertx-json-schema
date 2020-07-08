@@ -2,8 +2,10 @@ package io.vertx.ext.json.schema.common;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.json.schema.*;
+import io.vertx.ext.json.schema.SchemaException;
+import io.vertx.ext.json.schema.ValidationException;
 
+import java.net.IDN;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
@@ -42,8 +44,30 @@ public abstract class BaseFormatValidatorFactory implements ValidatorFactory {
     }
   };
 
+  protected final static Predicate<String> IDN_HOSTNAME_VALIDATOR = in -> {
+    try {
+      IDN.toASCII(in);
+      return true;
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
+  };
+
   protected final static Predicate<String> IDN_EMAIL_VALIDATOR = in -> {
-    return true;
+    try {
+      int atIndex = in.indexOf('@');
+      if (atIndex < 0) {
+        return false;
+      }
+      String localPart = in.substring(0, atIndex);
+      if (!RegularExpressions.EMAIL_LOCAL.matcher(localPart).matches()) {
+        return false;
+      }
+      IDN.toASCII(in.substring(atIndex + 1));
+      return true;
+    } catch (IllegalArgumentException | StringIndexOutOfBoundsException e) {
+      return false;
+    }
   };
 
   class FormatValidator extends BaseSyncValidator {
