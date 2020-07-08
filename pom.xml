@@ -20,17 +20,17 @@
   <parent>
     <groupId>io.vertx</groupId>
     <artifactId>vertx-ext-parent</artifactId>
-    <version>35</version>
+    <version>15</version>
   </parent>
 
-  <artifactId>vertx-json-schema</artifactId>
-  <version>4.0.0-SNAPSHOT</version>
+  <artifactId>net.scaleplan</artifactId>
+  <version>3.9.1-SNAPSHOT</version>
 
   <name>Vert.x JSON Schema</name>
 
   <properties>
-    <stack.version>4.0.0-SNAPSHOT</stack.version>
-    <junit5.version>5.6.0</junit5.version>
+    <stack.version>3.9.1</stack.version>
+    <junit5.version>5.5.2</junit5.version>
     <mockito.version>3.3.0</mockito.version>
     <assertj.version>3.15.0</assertj.version>
     <doc.skip>false</doc.skip>
@@ -73,7 +73,7 @@
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
+      <artifactId>junit-jupiter</artifactId>
       <version>${junit5.version}</version>
       <scope>test</scope>
     </dependency>
@@ -137,6 +137,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.0.0-M4</version>
         <configuration>
+          <argLine>-Xmx1024m</argLine>
           <trimStackTrace>false</trimStackTrace>
           <additionalClasspathElements>
             <additionalClasspathElement>${basedir}/src/test/resources/ref_test/schemas.jar</additionalClasspathElement>

@@ -6,11 +6,10 @@ import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 
 /**
- * Converter and mapper for {@link io.vertx.ext.json.schema.SchemaRouterOptions}.
+ * Converter for {@link io.vertx.ext.json.schema.SchemaRouterOptions}.
  * NOTE: This class has been automatically generated from the {@link io.vertx.ext.json.schema.SchemaRouterOptions} original class using Vert.x codegen.
  */
 public class SchemaRouterOptionsConverter {
-
 
   public static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, SchemaRouterOptions obj) {
     for (java.util.Map.Entry<String, Object> member : json) {

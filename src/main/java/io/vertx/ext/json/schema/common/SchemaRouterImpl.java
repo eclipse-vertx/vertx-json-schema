@@ -4,11 +4,10 @@ import io.netty.handler.codec.http.QueryStringEncoder;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
@@ -205,20 +204,38 @@ public class SchemaRouterImpl implements SchemaRouter {
       uri = encoder.toString();
     }
 
+    URI newRef = URI.create(uri);
+
     RequestOptions reqOptions = new RequestOptions()
-      .setMethod(HttpMethod.GET)
-      .setAbsoluteURI(uri)
-      .setFollowRedirects(true)
-      .addHeader(HttpHeaders.ACCEPT.toString(), "application/json, application/schema+json");
+        .setHost(newRef.getHost())
+        .setPort(resolvePort(newRef))
+        .setURI(String.format("%s?%s", newRef.getPath(), newRef.getQuery()))
+        .addHeader(HttpHeaders.ACCEPT.toString(), "application/json, application/schema+json");
 
     options.getAuthHeaders().forEach(reqOptions::addHeader);
 
-    return client.get(reqOptions).compose(res -> {
+    Promise<String> promise = Promise.promise();
+    // XXX: the response body is read in full.
+    HttpClientRequest req = client.get(reqOptions, res -> {
       if (res.statusCode() == 200) {
-        return res.body().map(Buffer::toString);
+        res.bodyHandler(buf -> promise.complete(buf.toString()));
+      } else {
+        promise.fail(new IllegalStateException("Wrong status " + res.statusCode() + " " + res.statusMessage() + " received while resolving remote ref"));
       }
-      return Future.failedFuture(new IllegalStateException("Wrong status " + res.statusCode() + " " + res.statusMessage() + " received while resolving remote ref"));
     });
+    req.setFollowRedirects(true).end();
+
+    return promise.future();
+  }
+
+  private static int resolvePort(URI uri) {
+    if (uri.getPort() > 0) {
+      return uri.getPort();
+    } else if (uri.getScheme().equals("https")) {
+      return 443;
+    } else {
+      return 80;
+    }
   }
 
   private Future<String> solveLocalRef(final URI ref) {

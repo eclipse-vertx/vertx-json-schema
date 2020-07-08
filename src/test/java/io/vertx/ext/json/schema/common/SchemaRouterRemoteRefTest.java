@@ -1,9 +1,6 @@
 package io.vertx.ext.json.schema.common;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerRequest;
@@ -92,7 +89,14 @@ public class SchemaRouterRemoteRefTest {
         }
       });
 
-    return schemaServer.listen().mapEmpty();
+    Promise<Void> promise = Promise.promise();
+
+    schemaServer.listen(res -> {
+      if (res.succeeded()) promise.complete();
+      else promise.fail(res.cause());
+    });
+
+    return promise.future();
   }
 
   private void stopSchemaServer(Handler<AsyncResult<Void>> completion) {
