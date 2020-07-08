@@ -1,6 +1,6 @@
 ## Vert.x JSON Schema
 
-[![Build Status](https://travis-ci.org/eclipse-vertx/vertx-json-schema.svg?branch=master)](https://travis-ci.org/eclipse-vertx/vertx-json-schema)
+This repo contains backport of Vert.x JSON Schema from v4 to v3.9.x.
 
 ## Architecture
 
