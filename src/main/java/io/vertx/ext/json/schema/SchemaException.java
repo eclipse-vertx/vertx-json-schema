@@ -1,6 +1,5 @@
 package io.vertx.ext.json.schema;
 
-import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.VertxException;
 
 /**
@@ -34,8 +33,8 @@ public class SchemaException extends VertxException {
   @Override
   public String toString() {
     return "SchemaException{" +
-        "message=\'" + getMessage() + "\'" +
-        ", schema=" + schema +
-        '}';
+      "message=\'" + getMessage() + "\'" +
+      ", schema=" + schema +
+      '}';
   }
 }

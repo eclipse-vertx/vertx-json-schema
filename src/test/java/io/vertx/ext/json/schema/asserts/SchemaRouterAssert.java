@@ -53,13 +53,13 @@ public class SchemaRouterAssert extends AbstractAssert<SchemaRouterAssert, Schem
     isNotNull();
 
     assertThat(actual.registeredSchemas())
-        .isNotNull();
+      .isNotNull();
 
     assertThat(actual.registeredSchemas())
-        .filteredOn(s -> s instanceof SchemaImpl)
-        .extracting(s -> ((SchemaImpl)s).getJson())
-        .extracting(j -> j.getString("x-id"))
-        .areExactly(1, new Condition<>(expectedXId::equals, "Expected id {}", expectedXId));
+      .filteredOn(s -> s instanceof SchemaImpl)
+      .extracting(s -> ((SchemaImpl) s).getJson())
+      .extracting(j -> j.getString("x-id"))
+      .areExactly(1, new Condition<>(expectedXId::equals, "Expected id {}", expectedXId));
 
 
     return this;

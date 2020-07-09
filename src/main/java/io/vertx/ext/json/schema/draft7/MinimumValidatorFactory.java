@@ -2,7 +2,7 @@ package io.vertx.ext.json.schema.draft7;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.json.schema.*;
+import io.vertx.ext.json.schema.SchemaException;
 import io.vertx.ext.json.schema.common.*;
 
 public class MinimumValidatorFactory implements ValidatorFactory {

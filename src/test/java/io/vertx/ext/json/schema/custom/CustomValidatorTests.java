@@ -39,19 +39,19 @@ public class CustomValidatorTests {
     JsonObject obj = loadJson(u);
     SchemaRouter router = SchemaRouter.create(vertx, new SchemaRouterOptions());
     SchemaParserInternal parser = Draft7SchemaParser
-        .create(router)
-        .withValidatorFactory(new PropertiesMultipleOfValidatorFactory());
+      .create(router)
+      .withValidatorFactory(new PropertiesMultipleOfValidatorFactory());
     Schema schema = parser.parse(obj, u);
 
     assertThat(schema)
-        .isSync();
+      .isSync();
     assertThatCode(() -> schema.validateSync(
-        new JsonObject().putNull("a").putNull("b").putNull("c")
+      new JsonObject().putNull("a").putNull("b").putNull("c")
     )).doesNotThrowAnyException();
     assertThatExceptionOfType(ValidationException.class)
-        .isThrownBy(() -> schema.validateSync(new JsonObject().putNull("a").putNull("b").putNull("c").putNull("d")))
-        .withMessage("The provided object size is not a multiple of 3")
-        .satisfies(errorKeyword("propertiesMultipleOf"));
+      .isThrownBy(() -> schema.validateSync(new JsonObject().putNull("a").putNull("b").putNull("c").putNull("d")))
+      .withMessage("The provided object size is not a multiple of 3")
+      .satisfies(errorKeyword("propertiesMultipleOf"));
   }
 
   @Test
@@ -61,25 +61,25 @@ public class CustomValidatorTests {
     vertx.eventBus().consumer("devices_address", m -> m.reply(new JsonArray().add("smartphone").add("tv").add("laptop")));
 
     JsonObject validJson = new JsonObject()
-        .put("names", new JsonArray().add("francesco").add("mario"))
-        .put("devices", new JsonArray().add("smartphone").add("tv"));
+      .put("names", new JsonArray().add("francesco").add("mario"))
+      .put("devices", new JsonArray().add("smartphone").add("tv"));
 
     JsonObject invalidJson = new JsonObject()
-        .put("names", new JsonArray().add("francesco").add("mario"))
-        .put("devices", new JsonArray().add("francesco").add("tv"));
+      .put("names", new JsonArray().add("francesco").add("mario"))
+      .put("devices", new JsonArray().add("francesco").add("tv"));
 
     URI u = buildBaseUri("custom", "async_with_ref.json");
     JsonObject obj = loadJson(u);
     SchemaRouter router = SchemaRouter.create(vertx, new SchemaRouterOptions());
     SchemaParserInternal parser = Draft7SchemaParser
-        .create(router)
-        .withValidatorFactory(new CachedAsyncEnumValidatorFactory(vertx));
+      .create(router)
+      .withValidatorFactory(new CachedAsyncEnumValidatorFactory(vertx));
     Schema schema = parser.parse(obj, u);
 
     Checkpoint cp = testContext.checkpoint(2);
 
     assertThat(schema)
-        .isAsync();
+      .isAsync();
 
     // 1. Validate async
     // 2. Check if sync state is propagated
@@ -101,56 +101,56 @@ public class CustomValidatorTests {
         });
         cp.flag();
 
-          // Invalid cache of the validator
-          vertx.eventBus().send("names_address_invalidate_cache", new JsonObject());
+        // Invalid cache of the validator
+        vertx.eventBus().send("names_address_invalidate_cache", new JsonObject());
 
-          vertx.setTimer(100, l -> {
-            assertThat(schema).isAsync();
-            testContext.assertComplete(schema.validateAsync(validJson)).onComplete(ar -> {
-              testContext.verify(() -> {
-                assertThat(schema).isSync();
-              });
-              cp.flag();
+        vertx.setTimer(100, l -> {
+          assertThat(schema).isAsync();
+          testContext.assertComplete(schema.validateAsync(validJson)).onComplete(ar -> {
+            testContext.verify(() -> {
+              assertThat(schema).isSync();
             });
+            cp.flag();
           });
-        }));
+        });
+      }));
   }
 
-    @Test
-    public void asyncEnum(Vertx vertx, VertxTestContext testContext) throws IOException {
-      // Set eb message consumers
-      vertx.eventBus().consumer("names_address", m -> m.reply(new JsonArray().add("francesco").add("mario").add("luigi")));
-      vertx.eventBus().consumer("devices_address", m -> m.reply(new JsonArray().add("smartphone").add("tv").add("laptop")));
+  @Test
+  public void asyncEnum(Vertx vertx, VertxTestContext testContext) throws IOException {
+    // Set eb message consumers
+    vertx.eventBus().consumer("names_address", m -> m.reply(new JsonArray().add("francesco").add("mario").add("luigi")));
+    vertx.eventBus().consumer("devices_address", m -> m.reply(new JsonArray().add("smartphone").add("tv").add("laptop")));
 
-      URI u = buildBaseUri("custom", "async_with_ref.json");
-      JsonObject obj = loadJson(u);
-      SchemaRouter router = SchemaRouter.create(vertx, new SchemaRouterOptions());
-      SchemaParserInternal parser = Draft7SchemaParser
-          .create(router)
-          .withValidatorFactory(new AsyncEnumValidatorFactory(vertx));
-      Schema schema = parser.parse(obj, u);
+    URI u = buildBaseUri("custom", "async_with_ref.json");
+    JsonObject obj = loadJson(u);
+    SchemaRouter router = SchemaRouter.create(vertx, new SchemaRouterOptions());
+    SchemaParserInternal parser = Draft7SchemaParser
+      .create(router)
+      .withValidatorFactory(new AsyncEnumValidatorFactory(vertx));
+    Schema schema = parser.parse(obj, u);
 
-      Checkpoint cp = testContext.checkpoint(2);
+    Checkpoint cp = testContext.checkpoint(2);
 
-      assertThat(schema)
-          .isAsync();
+    assertThat(schema)
+      .isAsync();
 
-      schema.validateAsync(new JsonObject()
-        .put("names", new JsonArray().add("francesco").add("mario"))
-        .put("devices", new JsonArray().add("smartphone").add("tv"))
-      ).onComplete(testContext.succeeding(v -> cp.flag()));
+    schema.validateAsync(new JsonObject()
+      .put("names", new JsonArray().add("francesco").add("mario"))
+      .put("devices", new JsonArray().add("smartphone").add("tv"))
+    ).onComplete(testContext.succeeding(v -> cp.flag()));
 
-      schema.validateAsync(new JsonObject()
-        .put("names", new JsonArray().add("francesco").add("mario"))
-        .put("devices", new JsonArray().add("francesco").add("tv"))
-      ).onComplete(testContext.failing(c -> {
-        testContext.verify(() ->
-          assertThat(c)
-            .isInstanceOfSatisfying(ValidationException.class, errorKeyword("asyncEnum"))
-            .hasMessage("Not matching async enum")
-        );
-        cp.flag();
-      }));
-    }
+    schema.validateAsync(new JsonObject()
+      .put("names", new JsonArray().add("francesco").add("mario"))
+      .put("devices", new JsonArray().add("francesco").add("tv"))
+    ).onComplete(testContext.failing(c -> {
+      testContext.verify(() ->
+        assertThat(c)
+          .isInstanceOfSatisfying(ValidationException.class, errorKeyword("asyncEnum"))
+          .hasMessage("Not matching async enum")
+      );
+      cp.flag();
+    }));
+  }
 
 }

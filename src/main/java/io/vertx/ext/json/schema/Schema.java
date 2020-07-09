@@ -8,24 +8,23 @@ import io.vertx.core.json.pointer.JsonPointer;
 
 /**
  * Interface representing a <a href="https://json-schema.org/">Json Schema</a> <br/>
- *
+ * <p>
  * A schema could have two states: <br/>
  * <ul>
  *   <li>Synchronous: The validators tree can provide a synchronous validation, so you can validate your json both using {@link this#validateSync(Object)} and {@link this#validateAsync(Object)}</li>
  *   <li>Asynchronous: One or more branches of the validator tree requires an asynchronous validation, so you must use {@link this#validateAsync(Object)} to validate your json. If you use {@link this#validateSync(Object)} it will throw a {@link NoSyncValidationException}</li>
  * </ul>
- *
+ * <p>
  * To check the schema state you can use method {@link this#isSync()} <br/>
  * The schema can mutate the state in time, e.g. if you have a schema that is asynchronous because of a {@code $ref},
  * after the first validation the external schema is cached inside {@link SchemaRouter} and this schema will switch to synchronous state<br/>
- *
  */
 @VertxGen
 public interface Schema {
 
   /**
    * Validate the json performing an asynchronous validation. Returns a failed future with {@link ValidationException} if json doesn't match the schema.<br/>
-   *
+   * <p>
    * Note: If the schema is synchronous, this method will call internally {@link this#validateSync(Object)}
    *
    * @param json

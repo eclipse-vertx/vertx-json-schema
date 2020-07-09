@@ -71,19 +71,19 @@ public final class ObjectSchemaBuilder extends SchemaBuilder<ObjectSchemaBuilder
   public JsonObject toJson() {
     if (!properties.isEmpty())
       this.keywords.put("properties", () ->
-          properties
-              .entrySet()
-              .stream()
-              .collect(JsonObject::new, (jo, e) -> jo.put(e.getKey(), e.getValue().toJson()), JsonObject::mergeIn)
+        properties
+          .entrySet()
+          .stream()
+          .collect(JsonObject::new, (jo, e) -> jo.put(e.getKey(), e.getValue().toJson()), JsonObject::mergeIn)
       );
     if (!requiredProperties.isEmpty())
       this.keywords.put("required", () -> new JsonArray(new ArrayList<>(requiredProperties)));
     if (!patternProperties.isEmpty())
       this.keywords.put("patternProperties", () ->
-          patternProperties
-              .entrySet()
-              .stream()
-              .collect(JsonObject::new, (jo, e) -> jo.put(e.getKey().toString(), e.getValue().toJson()), JsonObject::mergeIn)
+        patternProperties
+          .entrySet()
+          .stream()
+          .collect(JsonObject::new, (jo, e) -> jo.put(e.getKey().toString(), e.getValue().toJson()), JsonObject::mergeIn)
       );
     return super.toJson();
   }

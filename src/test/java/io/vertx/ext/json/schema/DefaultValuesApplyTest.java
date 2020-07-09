@@ -31,15 +31,15 @@ public class DefaultValuesApplyTest {
     Schema schema = Draft7SchemaParser.parse(vertx, obj, u);
 
     assertThat(schema)
-        .isSync();
+      .isSync();
     assertThatCode(() -> schema.validateSync(new JsonObject().put("a", "francesco")))
-        .doesNotThrowAnyException();
+      .doesNotThrowAnyException();
 
     JsonObject objToApplyDefaults = new JsonObject();
     assertThatCode(() -> schema.applyDefaultValues(objToApplyDefaults)).doesNotThrowAnyException();
     assertThatJson(objToApplyDefaults)
-        .extracting(JsonPointer.create().append("a"))
-        .isEqualTo("hello");
+      .extracting(JsonPointer.create().append("a"))
+      .isEqualTo("hello");
   }
 
   @Test
@@ -49,18 +49,18 @@ public class DefaultValuesApplyTest {
     Schema schema = Draft7SchemaParser.parse(vertx, obj, u);
 
     assertThat(schema)
-        .isSync();
+      .isSync();
     assertThatCode(() -> schema.validateSync(new JsonObject().put("a", new JsonObject())))
-        .doesNotThrowAnyException();
+      .doesNotThrowAnyException();
 
     JsonObject objToApplyDefaults = new JsonObject().put("a", new JsonObject());
     assertThatCode(() -> schema.applyDefaultValues(objToApplyDefaults)).doesNotThrowAnyException();
     assertThatJson(objToApplyDefaults)
-        .extracting(JsonPointer.create().append("b"))
-        .isEqualTo("b_default");
+      .extracting(JsonPointer.create().append("b"))
+      .isEqualTo("b_default");
     assertThatJson(objToApplyDefaults)
-        .extracting(JsonPointer.create().append("a").append("c"))
-        .isEqualTo(0);
+      .extracting(JsonPointer.create().append("a").append("c"))
+      .isEqualTo(0);
   }
 
   @Test
@@ -70,18 +70,18 @@ public class DefaultValuesApplyTest {
     Schema schema = Draft7SchemaParser.parse(vertx, obj, u);
 
     assertThat(schema)
-        .isSync();
+      .isSync();
     assertThatCode(() -> schema.validateSync(new JsonObject().put("a", new JsonArray().add(new JsonObject().put("inner", 1)))))
-        .doesNotThrowAnyException();
+      .doesNotThrowAnyException();
 
     JsonObject objToApplyDefaults = new JsonObject().put("a", new JsonArray().add(new JsonObject()).add(new JsonObject()));
     assertThatCode(() -> schema.applyDefaultValues(objToApplyDefaults)).doesNotThrowAnyException();
     assertThatJson(objToApplyDefaults)
-        .extracting(JsonPointer.create().append("a").append("0").append("inner"))
-        .isEqualTo(0);
+      .extracting(JsonPointer.create().append("a").append("0").append("inner"))
+      .isEqualTo(0);
     assertThatJson(objToApplyDefaults)
-        .extracting(JsonPointer.create().append("a").append("1").append("inner"))
-        .isEqualTo(0);
+      .extracting(JsonPointer.create().append("a").append("1").append("inner"))
+      .isEqualTo(0);
   }
 
   @Test
@@ -105,8 +105,8 @@ public class DefaultValuesApplyTest {
             .extracting(JsonPointer.create().append("hello"))
             .isEqualTo("world");
         });
-          testContext.completeNow();
-        }));
+        testContext.completeNow();
+      }));
   }
 
   @Test
@@ -130,11 +130,11 @@ public class DefaultValuesApplyTest {
             .extracting(JsonPointer.create().append("hello").append("name"))
             .isEqualTo("world");
           assertThatJson(objToApplyDefaults)
-                .extracting(JsonPointer.create().append("hello").append("and"))
-                .isEqualTo(new JsonObject().put("hello", new JsonObject().put("name", "francesco")));
-          });
-          testContext.completeNow();
-        }));
+            .extracting(JsonPointer.create().append("hello").append("and"))
+            .isEqualTo(new JsonObject().put("hello", new JsonObject().put("name", "francesco")));
+        });
+        testContext.completeNow();
+      }));
   }
 
 }

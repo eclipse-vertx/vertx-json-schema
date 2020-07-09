@@ -1,7 +1,6 @@
 package io.vertx.ext.json.schema.common.dsl;
 
 import io.vertx.codegen.annotations.Fluent;
-import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
@@ -22,32 +21,32 @@ import java.util.function.Supplier;
  */
 public abstract class SchemaBuilder<T extends SchemaBuilder<?, ?>, K extends Keyword> {
 
-    protected SchemaType type;
-    protected Map<String, Supplier<Object>> keywords;
-    protected URI id;
-    T self;
+  protected SchemaType type;
+  protected Map<String, Supplier<Object>> keywords;
+  protected URI id;
+  T self;
 
-    @SuppressWarnings("unchecked")
-    public SchemaBuilder(SchemaType type) {
-        this.type = type;
-        this.keywords = new HashMap<>();
-        this.id = new SchemaURNId().toURI();
-        this.self = (T)this;
-        if (type != null)
-            type(type);
-    }
+  @SuppressWarnings("unchecked")
+  public SchemaBuilder(SchemaType type) {
+    this.type = type;
+    this.keywords = new HashMap<>();
+    this.id = new SchemaURNId().toURI();
+    this.self = (T) this;
+    if (type != null)
+      type(type);
+  }
 
-    @Fluent
-    public T alias(String alias) {
-        this.id = new SchemaURNId(alias).toURI();
-        return self;
-    }
+  @Fluent
+  public T alias(String alias) {
+    this.id = new SchemaURNId(alias).toURI();
+    return self;
+  }
 
-    @Fluent
-    public T id(JsonPointer id) {
-        this.id = id.toURI();
-        return self;
-    }
+  @Fluent
+  public T id(JsonPointer id) {
+    this.id = id.toURI();
+    return self;
+  }
 
   @Fluent
   public T with(K keyword) {
@@ -55,60 +54,60 @@ public abstract class SchemaBuilder<T extends SchemaBuilder<?, ?>, K extends Key
     return self;
   }
 
-    @Fluent
-    public T with(K... keywords) {
-        for (Keyword k: keywords) {
-            this.keywords.put(k.getKeyword(), k.getValueSupplier());
-        }
-        return self;
+  @Fluent
+  public T with(K... keywords) {
+    for (Keyword k : keywords) {
+      this.keywords.put(k.getKeyword(), k.getValueSupplier());
     }
+    return self;
+  }
 
-    @Fluent
-    public T withKeyword(String key, Object value) {
-        this.keywords.put(key, () -> value);
-        return self;
-    }
+  @Fluent
+  public T withKeyword(String key, Object value) {
+    this.keywords.put(key, () -> value);
+    return self;
+  }
 
-    @Fluent
-    public T defaultValue(Object defaultValue) {
-        keywords.put("default", () -> defaultValue);
-        return self;
-    }
+  @Fluent
+  public T defaultValue(Object defaultValue) {
+    keywords.put("default", () -> defaultValue);
+    return self;
+  }
 
-    @Fluent
-    public T fromJson(JsonObject object) {
-        object.forEach(e -> keywords.put(e.getKey(), e::getValue));
-        return self;
-    }
+  @Fluent
+  public T fromJson(JsonObject object) {
+    object.forEach(e -> keywords.put(e.getKey(), e::getValue));
+    return self;
+  }
 
-    @Fluent
-    public T nullable() {
-        keywords.put("type", () -> new JsonArray().add(type.getName()).add("null"));
-        return self;
-    }
+  @Fluent
+  public T nullable() {
+    keywords.put("type", () -> new JsonArray().add(type.getName()).add("null"));
+    return self;
+  }
 
-    @Fluent
-    public T type(SchemaType type) {
-        this.type = type;
-        keywords.put("type", type::getName);
-        return self;
-    }
+  @Fluent
+  public T type(SchemaType type) {
+    this.type = type;
+    keywords.put("type", type::getName);
+    return self;
+  }
 
-    public SchemaType getType() {
-        return type;
-    }
+  public SchemaType getType() {
+    return type;
+  }
 
-    public JsonObject toJson() {
-        JsonObject res = keywords
-                .entrySet()
-                .stream()
-                .collect(JsonObject::new, (jo, e) -> jo.put(e.getKey(), e.getValue().get()), JsonObject::mergeIn);
-        res.put("$id", id.toString());
-        return res;
-    }
+  public JsonObject toJson() {
+    JsonObject res = keywords
+      .entrySet()
+      .stream()
+      .collect(JsonObject::new, (jo, e) -> jo.put(e.getKey(), e.getValue().get()), JsonObject::mergeIn);
+    res.put("$id", id.toString());
+    return res;
+  }
 
-    public final Schema build(SchemaParser parser) {
-        return parser.parse(toJson(), JsonPointer.fromURI(id));
-    }
+  public final Schema build(SchemaParser parser) {
+    return parser.parse(toJson(), JsonPointer.fromURI(id));
+  }
 
 }

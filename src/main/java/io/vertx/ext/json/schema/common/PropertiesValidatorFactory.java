@@ -133,8 +133,8 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
       Stream<Boolean> patternProps = (patternProperties != null) ? patternProperties.values().stream().map(Schema::isSync) : Stream.empty();
       Stream<Boolean> additionalProps = (additionalPropertiesSchema != null) ? Stream.of(additionalPropertiesSchema.isSync()) : Stream.empty();
       return Stream.concat(
-          props,
-          Stream.concat(patternProps, additionalProps)
+        props,
+        Stream.concat(patternProps, additionalProps)
       ).reduce(true, Boolean::logicalAnd);
     }
 

@@ -13,7 +13,7 @@ public abstract class BaseSingleSchemaValidatorFactory implements ValidatorFacto
       validator.setSchema(parser.parse(itemsSchema, scope.append(getKeyword()), validator));
       return validator;
     } catch (ClassCastException e) {
-      throw new SchemaException(schema, "Wrong type for " + getKeyword() + " keyword",  e);
+      throw new SchemaException(schema, "Wrong type for " + getKeyword() + " keyword", e);
     } catch (NullPointerException e) {
       throw new SchemaException(schema, "Null " + getKeyword() + " keyword", e);
     }

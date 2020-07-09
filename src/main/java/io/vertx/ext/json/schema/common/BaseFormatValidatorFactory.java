@@ -108,10 +108,10 @@ public abstract class BaseFormatValidatorFactory implements ValidatorFactory {
 
   protected List<String> initIgnoringFormats() {
     return Arrays.asList(
-        "int32",
-        "int64",
-        "float",
-        "double"
+      "int32",
+      "int64",
+      "float",
+      "double"
     );
   }
 

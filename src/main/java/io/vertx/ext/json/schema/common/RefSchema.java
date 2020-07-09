@@ -125,7 +125,7 @@ public class RefSchema extends SchemaImpl {
   @Override
   public void doApplyDefaultValues(Object obj) {
     this.checkSync();
-    ((SchemaImpl)cachedSchema).doApplyDefaultValues(obj);
+    ((SchemaImpl) cachedSchema).doApplyDefaultValues(obj);
   }
 
   synchronized Future<SchemaInternal> trySolveSchema() {

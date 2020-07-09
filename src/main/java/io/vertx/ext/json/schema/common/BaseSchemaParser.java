@@ -111,10 +111,10 @@ public abstract class BaseSchemaParser implements SchemaParserInternal {
   @Override
   public BaseSchemaParser withStringFormatValidator(String formatName, Predicate<String> predicate) {
     BaseFormatValidatorFactory f = (BaseFormatValidatorFactory) validatorFactories
-        .stream()
-        .filter(factory -> factory instanceof BaseFormatValidatorFactory)
-        .findFirst()
-        .orElseThrow(() -> new IllegalStateException("This json schema version doesn't support format keyword"));
+      .stream()
+      .filter(factory -> factory instanceof BaseFormatValidatorFactory)
+      .findFirst()
+      .orElseThrow(() -> new IllegalStateException("This json schema version doesn't support format keyword"));
     f.addStringFormatValidator(formatName, predicate);
     return this;
   }

@@ -4,9 +4,10 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.json.schema.SchemaException;
-import io.vertx.ext.json.schema.common.*;
-
-import static io.vertx.ext.json.schema.ValidationException.createException;
+import io.vertx.ext.json.schema.common.MutableStateValidator;
+import io.vertx.ext.json.schema.common.SchemaParserInternal;
+import io.vertx.ext.json.schema.common.Validator;
+import io.vertx.ext.json.schema.common.ValidatorFactory;
 
 public class AsyncEnumValidatorFactory implements ValidatorFactory {
 

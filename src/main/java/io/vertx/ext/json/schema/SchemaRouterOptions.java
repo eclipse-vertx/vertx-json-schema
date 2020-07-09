@@ -2,7 +2,6 @@ package io.vertx.ext.json.schema;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.Fluent;
-import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.json.JsonObject;
 
 import java.util.HashMap;
@@ -10,7 +9,6 @@ import java.util.Map;
 
 /**
  * Represents the options to resolve external schemas. You can configure auth options to access to external services
- *
  */
 @DataObject(generateConverter = true)
 public class SchemaRouterOptions {

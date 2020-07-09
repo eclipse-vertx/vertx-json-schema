@@ -14,7 +14,6 @@ import java.util.function.Predicate;
 
 /**
  * Parse a Json Schema. The parser can be extended to support custom keywords using {@link this#withValidatorFactory(ValidatorFactory)}
- *
  */
 @VertxGen
 public interface SchemaParser {
@@ -25,18 +24,18 @@ public interface SchemaParser {
    * @param jsonSchema JSON representing the schema
    * @return the schema instance
    * @throws IllegalArgumentException If scope is relative
-   * @throws SchemaException If schema is invalid
+   * @throws SchemaException          If schema is invalid
    */
   Schema parse(JsonObject jsonSchema);
 
   /**
    * Build a schema from provided json. This method registers the parsed schema (and relative subschemas) to the schema router
    *
-   * @param jsonSchema JSON representing the schema
+   * @param jsonSchema    JSON representing the schema
    * @param schemaPointer Scope of schema. Must be a JSONPointer with absolute URI
    * @return the schema instance
    * @throws IllegalArgumentException If scope is relative
-   * @throws SchemaException If schema is invalid
+   * @throws SchemaException          If schema is invalid
    */
   Schema parse(JsonObject jsonSchema, JsonPointer schemaPointer);
 
@@ -46,18 +45,18 @@ public interface SchemaParser {
    * @param jsonSchema JSON representing the schema
    * @return the schema instance
    * @throws IllegalArgumentException If scope is relative
-   * @throws SchemaException If schema is invalid
+   * @throws SchemaException          If schema is invalid
    */
   Schema parse(Boolean jsonSchema);
 
   /**
    * Builds a true of false schema
    *
-   * @param jsonSchema JSON representing the schema
+   * @param jsonSchema    JSON representing the schema
    * @param schemaPointer Scope of schema. Must be a JSONPointer with absolute URI
    * @return the schema instance
    * @throws IllegalArgumentException If scope is relative
-   * @throws SchemaException If schema is invalid
+   * @throws SchemaException          If schema is invalid
    */
   Schema parse(Boolean jsonSchema, JsonPointer schemaPointer);
 
@@ -67,18 +66,18 @@ public interface SchemaParser {
    * @param unparsedJson Unparsed JSON representing the schema.
    * @return the schema instance
    * @throws IllegalArgumentException If scope is relative
-   * @throws SchemaException If schema is invalid
+   * @throws SchemaException          If schema is invalid
    */
   Schema parseFromString(String unparsedJson);
 
   /**
    * Build a schema from provided unparsed json. This method registers the parsed schema (and relative subschemas) to the schema router
    *
-   * @param unparsedJson Unparsed JSON representing the schema.
+   * @param unparsedJson  Unparsed JSON representing the schema.
    * @param schemaPointer Scope of schema. Must be a JSONPointer with absolute URI
    * @return the schema instance
    * @throws IllegalArgumentException If scope is relative
-   * @throws SchemaException If schema is invalid
+   * @throws SchemaException          If schema is invalid
    */
   Schema parseFromString(String unparsedJson, JsonPointer schemaPointer);
 
@@ -103,7 +102,7 @@ public interface SchemaParser {
    * Add a custom format validator
    *
    * @param formatName format name
-   * @param predicate predicate for the new format
+   * @param predicate  predicate for the new format
    * @return a reference to this
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)

@@ -36,9 +36,8 @@ public class URIUtils {
         String[] splittedJarURI = oldURI.getSchemeSpecificPart().split("!");
         String newInternalJarPath = URI.create(splittedJarURI[1]).resolve(path).toString();
         return new URI(oldURI.getScheme(), splittedJarURI[0] + "!" + newInternalJarPath, oldURI.getFragment());
-      } else
-        if (path.isEmpty()) return oldURI;
-        else return oldURI.resolve(path);
+      } else if (path.isEmpty()) return oldURI;
+      else return oldURI.resolve(path);
     } catch (URISyntaxException e) {
       e.printStackTrace();
       return null;
@@ -47,6 +46,7 @@ public class URIUtils {
 
   /**
    * This function converts eventual "#a" to valid json pointer "#/a"
+   *
    * @param original
    * @return
    */

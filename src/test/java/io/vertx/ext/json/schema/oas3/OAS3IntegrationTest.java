@@ -1,7 +1,10 @@
 package io.vertx.ext.json.schema.oas3;
 
 import io.vertx.core.Vertx;
-import io.vertx.ext.json.schema.*;
+import io.vertx.ext.json.schema.BaseIntegrationTest;
+import io.vertx.ext.json.schema.Schema;
+import io.vertx.ext.json.schema.SchemaParser;
+import io.vertx.ext.json.schema.SchemaRouterOptions;
 import io.vertx.ext.json.schema.common.SchemaRouterImpl;
 import io.vertx.ext.json.schema.openapi3.OpenAPI3SchemaParser;
 
@@ -26,34 +29,34 @@ public class OAS3IntegrationTest extends BaseIntegrationTest {
   @Override
   public Stream<String> getTestFiles() {
     return Stream.of(
-        "additionalProperties",
-        "allOf",
-        "anyOf",
+      "additionalProperties",
+      "allOf",
+      "anyOf",
 //        "discriminator",
-        "enum",
-        "exclusiveMaximum",
-        "exclusiveMinimum",
-        "format",
-        "items",
-        "maximum",
-        "maxItems",
-        "maxLength",
-        "maxProperties",
-        "minimum",
-        "minItems",
-        "minLength",
-        "minProperties",
-        "multipleOf",
-        "not",
-        "nullable",
-        "oneOf",
-        "pattern",
-        "properties",
-        "ref",
-        "refRemote",
-        "required",
-        "type",
-        "uniqueItems"
+      "enum",
+      "exclusiveMaximum",
+      "exclusiveMinimum",
+      "format",
+      "items",
+      "maximum",
+      "maxItems",
+      "maxLength",
+      "maxProperties",
+      "minimum",
+      "minItems",
+      "minLength",
+      "minProperties",
+      "multipleOf",
+      "not",
+      "nullable",
+      "oneOf",
+      "pattern",
+      "properties",
+      "ref",
+      "refRemote",
+      "required",
+      "type",
+      "uniqueItems"
     );
   }
 

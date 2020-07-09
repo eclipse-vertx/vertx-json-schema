@@ -1,7 +1,6 @@
 package io.vertx.ext.json.schema;
 
 import io.vertx.codegen.annotations.Nullable;
-import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.VertxException;
 import io.vertx.core.json.pointer.JsonPointer;
 
@@ -30,7 +29,7 @@ public class ValidationException extends VertxException {
   }
 
   public static ValidationException createException(String message, String keyword, Object input, Throwable cause) {
-    return new ValidationException(message, cause, keyword,  input);
+    return new ValidationException(message, cause, keyword, input);
   }
 
   public static ValidationException createException(String message, String keyword, Object input) {
@@ -42,7 +41,8 @@ public class ValidationException extends VertxException {
    *
    * @return
    */
-  @Nullable public String keyword() {
+  @Nullable
+  public String keyword() {
     return keyword;
   }
 
@@ -84,11 +84,11 @@ public class ValidationException extends VertxException {
   @Override
   public String toString() {
     return "ValidationException{" +
-        "message='" + getMessage() + '\'' +
-        ", keyword='" + keyword + '\'' +
-        ", input=" + input +
-        ", schema=" + schema +
-        ((scope != null) ? ", scope=" + scope.toURI() : "") +
-        '}';
+      "message='" + getMessage() + '\'' +
+      ", keyword='" + keyword + '\'' +
+      ", input=" + input +
+      ", schema=" + schema +
+      ((scope != null) ? ", scope=" + scope.toURI() : "") +
+      '}';
   }
 }

@@ -65,9 +65,9 @@ public class Draft7SchemaParser extends BaseSchemaParser {
   /**
    * Parse a draft-7 schema
    *
-   * @param vertx this vertx instance
+   * @param vertx  this vertx instance
    * @param schema parsed json schema
-   * @param scope scope of json schema
+   * @param scope  scope of json schema
    * @return a new instance of Draft7SchemaParser
    * @throws io.vertx.ext.json.schema.SchemaException if schema is invalid
    */

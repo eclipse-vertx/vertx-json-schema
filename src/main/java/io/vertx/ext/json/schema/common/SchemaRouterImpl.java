@@ -48,7 +48,7 @@ public class SchemaRouterImpl implements SchemaRouter {
       .flatMap(RouterNode::flattened)
       .map(RouterNode::getSchema)
       .filter(Objects::nonNull)
-        .collect(Collectors.toList());
+      .collect(Collectors.toList());
   }
 
   @Override
@@ -59,7 +59,7 @@ public class SchemaRouterImpl implements SchemaRouter {
         return resultNode.map(RouterNode::getSchema);
       if (parentNode.getSchema() instanceof SchemaImpl) // Maybe the schema that we are searching was not parsed yet!
         return Optional.ofNullable(refPointer.queryJson(parentNode.getSchema().getJson()))
-          .map(queryResult -> ((SchemaParserInternal)parser).parse(queryResult, URIUtils.replaceFragment(parentNode.getSchema().getScope().getURIWithoutFragment(), refPointer.toString())));
+          .map(queryResult -> ((SchemaParserInternal) parser).parse(queryResult, URIUtils.replaceFragment(parentNode.getSchema().getScope().getURIWithoutFragment(), refPointer.toString())));
       return Optional.empty();
     }).orElse(null);
   }
@@ -275,7 +275,7 @@ public class SchemaRouterImpl implements SchemaRouter {
 
       if (rootJsons.containsKey(uriToSolve)) { // Cached!
         Object realLocation = pointer.queryJson(rootJsons.get(uriToSolve));
-        ((SchemaParserInternal)schemaParser).parse(
+        ((SchemaParserInternal) schemaParser).parse(
           realLocation,
           JsonPointer.fromURI(URIUtils.replaceFragment(uriToSolve, pointer.toString()))
         );
@@ -287,7 +287,7 @@ public class SchemaRouterImpl implements SchemaRouter {
             Object root = Json.decodeValue(s.trim());
             this.rootJsons.put(uriToSolve, root);
             Object realSchema = pointer.queryJson(root);
-            ((SchemaParserInternal)schemaParser).parse(
+            ((SchemaParserInternal) schemaParser).parse(
               realSchema,
               JsonPointer.fromURI(URIUtils.replaceFragment(uriToSolve, pointer.toString()))
             );

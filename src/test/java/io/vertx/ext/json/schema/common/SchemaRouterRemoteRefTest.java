@@ -174,52 +174,52 @@ public class SchemaRouterRemoteRefTest {
   @Test
   public void queryAuthRef(Vertx vertx, VertxTestContext context) throws IOException {
     testValid(
-        vertx,
-        context,
-        new SchemaRouterOptions().putAuthQueryParam("francesco", "slinky"),
-        Collections.singletonList(queryParamAuthMock)
+      vertx,
+      context,
+      new SchemaRouterOptions().putAuthQueryParam("francesco", "slinky"),
+      Collections.singletonList(queryParamAuthMock)
     );
   }
 
   @Test
   public void queryAuthRefInvalid(Vertx vertx, VertxTestContext context) throws IOException {
     testInvalid(
-        vertx,
-        context,
-        new SchemaRouterOptions().putAuthQueryParam("francesco", "bla"),
-        Collections.singletonList(queryParamAuthMock)
+      vertx,
+      context,
+      new SchemaRouterOptions().putAuthQueryParam("francesco", "bla"),
+      Collections.singletonList(queryParamAuthMock)
     );
   }
 
   @Test
   public void headerAuthRef(Vertx vertx, VertxTestContext context) throws IOException {
     testValid(
-        vertx,
-        context,
-        new SchemaRouterOptions().putAuthHeader("Authorization", "Basic ZnJhbmNlc2NvOnNsaW5reQ=="),
-        Collections.singletonList(headerAuthMock)
+      vertx,
+      context,
+      new SchemaRouterOptions().putAuthHeader("Authorization", "Basic ZnJhbmNlc2NvOnNsaW5reQ=="),
+      Collections.singletonList(headerAuthMock)
     );
   }
 
   @Test
   public void headerAuthRefInvalid(Vertx vertx, VertxTestContext context) throws IOException {
     testInvalid(
-        vertx,
-        context,
-        new SchemaRouterOptions().putAuthHeader("Authorization", "Basic ZnJhbmNlc2NvOmJsYQ=="),
-        Collections.singletonList(headerAuthMock)
+      vertx,
+      context,
+      new SchemaRouterOptions().putAuthHeader("Authorization", "Basic ZnJhbmNlc2NvOmJsYQ=="),
+      Collections.singletonList(headerAuthMock)
     );
   }
 
   @Test
   public void bothAuthRef(Vertx vertx, VertxTestContext context) throws IOException {
     testValid(
-        vertx,
-        context,
-        new SchemaRouterOptions()
-            .putAuthQueryParam("francesco", "slinky")
-            .putAuthHeader("Authorization", "Basic ZnJhbmNlc2NvOnNsaW5reQ=="),
-        Arrays.asList(queryParamAuthMock, headerAuthMock)
+      vertx,
+      context,
+      new SchemaRouterOptions()
+        .putAuthQueryParam("francesco", "slinky")
+        .putAuthHeader("Authorization", "Basic ZnJhbmNlc2NvOnNsaW5reQ=="),
+      Arrays.asList(queryParamAuthMock, headerAuthMock)
     );
   }
 

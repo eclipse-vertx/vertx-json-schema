@@ -12,19 +12,19 @@ import static io.vertx.ext.json.schema.draft7.dsl.Schemas.stringSchema;
 public class StringSchemaBuilderTest {
 
   @Test
-  public void testKeywords(){
+  public void testKeywords() {
     assertThat(
-        stringSchema()
-          .with(maxLength(10), minLength(1), pattern(Pattern.compile("[a-zA-Z]*")), format(StringFormat.REGEX))
+      stringSchema()
+        .with(maxLength(10), minLength(1), pattern(Pattern.compile("[a-zA-Z]*")), format(StringFormat.REGEX))
         .toJson()
-    )   .removingEntry("$id")
-        .containsAllAndOnlyEntries(
-            entry("type", "string"),
-            entry("maxLength", 10),
-            entry("minLength", 1),
-            entry("pattern", Pattern.compile("[a-zA-Z]*").toString()),
-            entry("format", "regex")
-        );
+    ).removingEntry("$id")
+      .containsAllAndOnlyEntries(
+        entry("type", "string"),
+        entry("maxLength", 10),
+        entry("minLength", 1),
+        entry("pattern", Pattern.compile("[a-zA-Z]*").toString()),
+        entry("format", "regex")
+      );
   }
 
 }

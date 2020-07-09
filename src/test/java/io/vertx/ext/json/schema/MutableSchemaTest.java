@@ -31,9 +31,9 @@ public class MutableSchemaTest {
 
     assertThat(schema).isSync();
     assertThatCode(() -> schema.validateSync(new JsonObject().put("hello", "francesco")))
-        .doesNotThrowAnyException();
+      .doesNotThrowAnyException();
     assertThatThrownBy(() -> schema.validateSync(new JsonObject().put("hello", 0)))
-        .isInstanceOf(ValidationException.class);
+      .isInstanceOf(ValidationException.class);
   }
 
   @Test
@@ -45,7 +45,7 @@ public class MutableSchemaTest {
     assertThat(schema).isAsync();
 
     assertThatThrownBy(() -> schema.validateSync(new JsonObject().put("hello", "francesco")))
-        .isInstanceOf(NoSyncValidationException.class);
+      .isInstanceOf(NoSyncValidationException.class);
 
     schema
       .validateAsync(new JsonObject().put("hello", "a"))
@@ -71,7 +71,7 @@ public class MutableSchemaTest {
     assertThat(schema).isAsync();
 
     assertThatThrownBy(() -> schema.validateSync(new JsonObject().put("hello", "francesco")))
-        .isInstanceOf(NoSyncValidationException.class);
+      .isInstanceOf(NoSyncValidationException.class);
 
     router
       .solveAllSchemaReferences(schema)
@@ -86,9 +86,9 @@ public class MutableSchemaTest {
             .isInstanceOf(ValidationException.class);
           assertThat(router)
             .containsCachedSchemasWithXIds("main", "hello_prop", "hello_def");
-          });
-          testContext.completeNow();
-        }));
+        });
+        testContext.completeNow();
+      }));
   }
 
   @Test
@@ -102,7 +102,7 @@ public class MutableSchemaTest {
     assertThat(schema).isAsync();
 
     assertThatThrownBy(() -> schema.validateSync(new JsonObject()))
-        .isInstanceOf(NoSyncValidationException.class);
+      .isInstanceOf(NoSyncValidationException.class);
 
     router
       .solveAllSchemaReferences(schema)
@@ -117,15 +117,15 @@ public class MutableSchemaTest {
             .put("b", new JsonObject().put("sub-a", 1).put("sub-b", new JsonArray().add(1).add(new JsonObject().put("c", new JsonArray().add(1)))))
           )).doesNotThrowAnyException();
           assertThatThrownBy(() -> schema.validateSync(new JsonObject()
-                .put("a", new JsonObject())
-                .put("c", new JsonArray().add(1).add(new JsonObject()))
-                .put("b", new JsonObject().put("sub-a", 1).put("sub-b", new JsonArray().add(1).add(new JsonObject().put("c", new JsonArray().addNull()))))
-            )).isInstanceOf(ValidationException.class);
-            assertThat(router)
-                .containsCachedSchemasWithXIds("main", "a", "b", "c", "c-items", "sub", "sub-a", "sub-b", "sub-b-items");
-          });
-          testContext.completeNow();
-        }));
+            .put("a", new JsonObject())
+            .put("c", new JsonArray().add(1).add(new JsonObject()))
+            .put("b", new JsonObject().put("sub-a", 1).put("sub-b", new JsonArray().add(1).add(new JsonObject().put("c", new JsonArray().addNull()))))
+          )).isInstanceOf(ValidationException.class);
+          assertThat(router)
+            .containsCachedSchemasWithXIds("main", "a", "b", "c", "c-items", "sub", "sub-a", "sub-b", "sub-b-items");
+        });
+        testContext.completeNow();
+      }));
   }
 
 }
