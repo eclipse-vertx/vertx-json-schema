@@ -3,7 +3,6 @@ package io.vertx.ext.json.schema.common;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.json.schema.Schema;
 import io.vertx.ext.json.schema.SchemaException;
 import io.vertx.ext.json.schema.SchemaRouter;
 
@@ -31,7 +30,7 @@ public abstract class BaseSchemaParser implements SchemaParserInternal {
   }
 
   @Override
-  public Schema parse(Object jsonSchema, final JsonPointer scope, MutableStateValidator parent) {
+  public SchemaInternal parse(Object jsonSchema, final JsonPointer scope, MutableStateValidator parent) {
     if (jsonSchema instanceof Map) jsonSchema = new JsonObject((Map<String, Object>) jsonSchema);
     if (jsonSchema instanceof JsonObject) {
       JsonObject json = (JsonObject) jsonSchema;
@@ -64,7 +63,7 @@ public abstract class BaseSchemaParser implements SchemaParserInternal {
       s.setValidators(validators);
       return s;
     } else if (jsonSchema instanceof Boolean) {
-      Schema s = ((Boolean) jsonSchema) ? TrueSchema.getInstance() : FalseSchema.getInstance();
+      SchemaInternal s = ((Boolean) jsonSchema) ? TrueSchema.getInstance() : FalseSchema.getInstance();
       router.addSchemaWithScope(s, scope);
       return s;
     } else
@@ -72,8 +71,10 @@ public abstract class BaseSchemaParser implements SchemaParserInternal {
   }
 
   protected SchemaImpl createSchema(JsonObject schema, JsonPointer scope, MutableStateValidator parent) {
-    if (schema.containsKey("$ref")) return new RefSchema(schema, scope, this, parent);
-    else return new SchemaImpl(schema, scope, parent);
+    if (schema.containsKey("$ref"))
+      return new RefSchema(schema, scope, this, parent, false);
+    else
+      return new SchemaImpl(schema, scope, parent);
   }
 
   protected abstract List<ValidatorFactory> initValidatorFactories();
@@ -119,7 +120,7 @@ public abstract class BaseSchemaParser implements SchemaParserInternal {
   }
 
   @Override
-  public Schema parseFromString(String unparsedJson, JsonPointer scope, MutableStateValidator parent) {
+  public SchemaInternal parseFromString(String unparsedJson, JsonPointer scope, MutableStateValidator parent) {
     return this.parse(Json.decodeValue(unparsedJson.trim()), scope, parent);
   }
 }

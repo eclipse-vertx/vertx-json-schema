@@ -4,7 +4,6 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.json.schema.NoSyncValidationException;
-import io.vertx.ext.json.schema.Schema;
 import io.vertx.ext.json.schema.SchemaException;
 import io.vertx.ext.json.schema.ValidationException;
 import io.vertx.ext.json.schema.common.*;
@@ -17,11 +16,11 @@ public class IfThenElseValidatorFactory implements ValidatorFactory {
     try {
       IfThenElseValidator validator = new IfThenElseValidator(parent);
       Object conditionSchemaUnparsed = schema.getValue("if");
-      Schema conditionSchema = parser.parse((conditionSchemaUnparsed instanceof Map) ? new JsonObject((Map<String, Object>) conditionSchemaUnparsed) : conditionSchemaUnparsed, scope.copy().append("if"), validator);
+      SchemaInternal conditionSchema = parser.parse((conditionSchemaUnparsed instanceof Map) ? new JsonObject((Map<String, Object>) conditionSchemaUnparsed) : conditionSchemaUnparsed, scope.copy().append("if"), validator);
       Object thenSchemaUnparsed = schema.getValue("then");
-      Schema thenSchema = (thenSchemaUnparsed == null) ? null : parser.parse((thenSchemaUnparsed instanceof Map) ? new JsonObject((Map<String, Object>) thenSchemaUnparsed) : thenSchemaUnparsed, scope.copy().append("if"), validator);
+      SchemaInternal thenSchema = (thenSchemaUnparsed == null) ? null : parser.parse((thenSchemaUnparsed instanceof Map) ? new JsonObject((Map<String, Object>) thenSchemaUnparsed) : thenSchemaUnparsed, scope.copy().append("if"), validator);
       Object elseSchemaUnparsed = schema.getValue("else");
-      Schema elseSchema = (elseSchemaUnparsed == null) ? null : parser.parse((elseSchemaUnparsed instanceof Map) ? new JsonObject((Map<String, Object>) elseSchemaUnparsed) : elseSchemaUnparsed, scope.copy().append("if"), validator);
+      SchemaInternal elseSchema = (elseSchemaUnparsed == null) ? null : parser.parse((elseSchemaUnparsed instanceof Map) ? new JsonObject((Map<String, Object>) elseSchemaUnparsed) : elseSchemaUnparsed, scope.copy().append("if"), validator);
       validator.configure(conditionSchema, thenSchema, elseSchema);
       return validator;
     } catch (ClassCastException e) {
@@ -38,15 +37,15 @@ public class IfThenElseValidatorFactory implements ValidatorFactory {
 
   class IfThenElseValidator extends BaseMutableStateValidator {
 
-    private Schema condition;
-    private Schema thenBranch;
-    private Schema elseBranch;
+    private SchemaInternal condition;
+    private SchemaInternal thenBranch;
+    private SchemaInternal elseBranch;
 
     public IfThenElseValidator(MutableStateValidator parent) {
       super(parent);
     }
 
-    private void configure(final Schema condition, final Schema thenBranch, final Schema elseBranch) {
+    private void configure(final SchemaInternal condition, final SchemaInternal thenBranch, final SchemaInternal elseBranch) {
       this.condition = condition;
       this.thenBranch = thenBranch;
       this.elseBranch = elseBranch;
@@ -54,29 +53,29 @@ public class IfThenElseValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public void validateSync(Object in) throws ValidationException, NoSyncValidationException {
+    public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
       boolean conditionResult;
       try {
-        condition.validateSync(in);
+        condition.validateSync(context, in);
         conditionResult = true;
       } catch (ValidationException e) {
         conditionResult = false;
       }
 
       if (conditionResult) {
-        if (thenBranch != null) this.thenBranch.validateSync(in);
+        if (thenBranch != null) this.thenBranch.validateSync(context, in);
       } else {
-        if (elseBranch != null) this.elseBranch.validateSync(in);
+        if (elseBranch != null) this.elseBranch.validateSync(context, in);
       }
     }
 
     @Override
-    public Future<Void> validateAsync(Object in) {
-      if (isSync()) return validateSyncAsAsync(in);
-      return this.condition.validateAsync(in).compose(
-        o -> (this.thenBranch != null) ? this.thenBranch.validateAsync(in) : Future.succeededFuture(),
-        o -> (this.elseBranch != null) ? this.elseBranch.validateAsync(in) : Future.succeededFuture()
+    public Future<Void> validateAsync(ValidatorContext context, Object in) {
+      if (isSync()) return validateSyncAsAsync(context, in);
+      return this.condition.validateAsync(context, in).compose(
+        o -> (this.thenBranch != null) ? this.thenBranch.validateAsync(context, in) : Future.succeededFuture(),
+        o -> (this.elseBranch != null) ? this.elseBranch.validateAsync(context, in) : Future.succeededFuture()
       );
     }
 

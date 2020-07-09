@@ -6,7 +6,9 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.json.schema.*;
+import io.vertx.ext.json.schema.NoSyncValidationException;
+import io.vertx.ext.json.schema.SchemaException;
+import io.vertx.ext.json.schema.ValidationException;
 import io.vertx.ext.json.schema.common.*;
 
 import java.util.Optional;
@@ -57,14 +59,15 @@ public class CachedAsyncEnumValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public void validateSync(Object in) throws ValidationException, NoSyncValidationException {
+    public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
-      if (!this.cache.get().get().contains(in)) throw createException("Not matching cached async enum", "asyncEnum", in);
+      if (!this.cache.get().get().contains(in))
+        throw createException("Not matching cached async enum", "asyncEnum", in);
     }
 
     @Override
-    public Future<Void> validateAsync(Object in) {
-      if (isSync()) return validateSyncAsAsync(in);
+    public Future<Void> validateAsync(ValidatorContext context, Object in) {
+      if (isSync()) return validateSyncAsAsync(context, in);
       Promise<Void> promise = Promise.promise();
       vertx.eventBus().request(address, new JsonObject(), ar -> {
         JsonArray enumValues = (JsonArray) ar.result().body();

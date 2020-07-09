@@ -2,7 +2,6 @@ package io.vertx.ext.json.schema.common;
 
 import io.vertx.core.Future;
 import io.vertx.ext.json.schema.NoSyncValidationException;
-import io.vertx.ext.json.schema.Schema;
 import io.vertx.ext.json.schema.ValidationException;
 
 import java.util.Arrays;
@@ -28,9 +27,9 @@ public class OneOfValidatorFactory extends BaseCombinatorsValidatorFactory {
       super(parent);
     }
 
-    private boolean isValidSync(Schema schema, Object in) {
+    private boolean isValidSync(SchemaInternal schema, ValidatorContext context, Object in) {
       try {
-        schema.validateSync(in);
+        schema.validateSync(context, in);
         return true;
       } catch (ValidationException e) {
         return false;
@@ -38,19 +37,19 @@ public class OneOfValidatorFactory extends BaseCombinatorsValidatorFactory {
     }
 
     @Override
-    public void validateSync(Object in) throws ValidationException, NoSyncValidationException {
+    public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
-      long validCount = Arrays.stream(schemas).map(s -> isValidSync(s, in)).filter(b -> b.equals(true)).count();
+      long validCount = Arrays.stream(schemas).map(s -> isValidSync(s, context, in)).filter(b -> b.equals(true)).count();
       if (validCount > 1) throw createException("More than one schema valid", "oneOf", in);
       else if (validCount == 0) throw createException("No schema matches", "oneOf", in);
     }
 
     @Override
-    public Future<Void> validateAsync(Object in) {
-      if (isSync()) return validateSyncAsAsync(in);
+    public Future<Void> validateAsync(ValidatorContext context, Object in) {
+      if (isSync()) return validateSyncAsAsync(context, in);
       return FutureUtils
-          .oneOf(Arrays.stream(schemas).map(s -> s.validateAsync(in)).collect(Collectors.toList()))
-          .recover(err -> Future.failedFuture(createException("No schema matches", "oneOf", in, err)));
+        .oneOf(Arrays.stream(schemas).map(s -> s.validateAsync(context, in)).collect(Collectors.toList()))
+        .recover(err -> Future.failedFuture(createException("No schema matches", "oneOf", in, err)));
     }
   }
 

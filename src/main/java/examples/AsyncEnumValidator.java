@@ -6,6 +6,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.json.schema.common.BaseAsyncValidator;
+import io.vertx.ext.json.schema.common.ValidatorContext;
 
 import static io.vertx.ext.json.schema.ValidationException.createException;
 
@@ -20,7 +21,7 @@ class AsyncEnumValidator extends BaseAsyncValidator {
   }
 
   @Override
-  public Future<Void> validateAsync(Object in) {
+  public Future<Void> validateAsync(ValidatorContext context, Object in) {
     Promise<Void> promise = Promise.promise();
     // Retrieve the valid values from the event bus
     vertx.eventBus().request(address, new JsonObject(), ar -> {

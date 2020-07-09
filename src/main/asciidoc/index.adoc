@@ -4,6 +4,7 @@
 Vert.x Json Schema provides an extendable and asynchronous implementation for https://json-schema.org/[Json Schema] specification.
 You can use Json Schemas to validate every json structure. This module provides:
 
+* Implementation of https://tools.ietf.org/html/draft-handrews-json-schema-validation-02[Json Schema draft2019-09]
 * Implementation of https://tools.ietf.org/html/draft-handrews-json-schema-validation-01[Json Schema draft-7]
 * Implementation of https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.1.md#schemaObject[OpenAPI 3 dialect].
 * Non blocking `$ref` resolution and caching

@@ -2,7 +2,9 @@ package io.vertx.ext.json.schema.openapi3;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.json.schema.*;
+import io.vertx.ext.json.schema.NoSyncValidationException;
+import io.vertx.ext.json.schema.SchemaException;
+import io.vertx.ext.json.schema.ValidationException;
 import io.vertx.ext.json.schema.common.*;
 
 import static io.vertx.ext.json.schema.ValidationException.createException;
@@ -11,7 +13,7 @@ public class NullableValidatorFactory implements ValidatorFactory {
 
   private final static BaseSyncValidator NULL_VALIDATOR = new BaseSyncValidator() {
     @Override
-    public void validateSync(Object in) throws ValidationException, NoSyncValidationException {
+    public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       if (in == null) throw createException("input cannot be null", "nullable", in);
     }
   };

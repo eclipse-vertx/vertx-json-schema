@@ -8,6 +8,7 @@ import io.vertx.ext.json.schema.ValidationException;
 import io.vertx.ext.json.schema.common.BaseSingleSchemaValidator;
 import io.vertx.ext.json.schema.common.BaseSingleSchemaValidatorFactory;
 import io.vertx.ext.json.schema.common.MutableStateValidator;
+import io.vertx.ext.json.schema.common.ValidatorContext;
 
 import java.util.stream.Collectors;
 
@@ -32,19 +33,22 @@ public class PropertyNamesValidatorFactory extends BaseSingleSchemaValidatorFact
     }
 
     @Override
-    public void validateSync(Object in) throws ValidationException, NoSyncValidationException {
+    public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
       if (in instanceof JsonObject) {
-        ((JsonObject) in).getMap().keySet().stream().forEach(schema::validateSync);
+        ((JsonObject) in).getMap().keySet().forEach(k -> schema.validateSync(context.lowerLevelContext(), in));
       }
     }
 
     @Override
-    public Future<Void> validateAsync(Object in) {
-      if (isSync()) return validateSyncAsAsync(in);
+    public Future<Void> validateAsync(ValidatorContext context, Object in) {
+      if (isSync()) return validateSyncAsAsync(context, in);
       if (in instanceof JsonObject) {
         return CompositeFuture.all(
-          ((JsonObject) in).getMap().keySet().stream().map(schema::validateAsync).collect(Collectors.toList())
+          ((JsonObject) in).getMap().keySet()
+            .stream()
+            .map(k -> schema.validateAsync(context.lowerLevelContext(), k))
+            .collect(Collectors.toList())
         ).compose(
           cf -> Future.succeededFuture(),
           err -> Future.failedFuture(createException("provided object contains a key not matching the propertyNames schema", "propertyNames", in, err))

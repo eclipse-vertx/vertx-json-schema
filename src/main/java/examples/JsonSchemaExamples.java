@@ -12,7 +12,7 @@ public class JsonSchemaExamples {
 
   public void instantiate(Vertx vertx) {
     SchemaRouter schemaRouter = SchemaRouter.create(vertx, new SchemaRouterOptions());
-    SchemaParser draft7SchemaParser = SchemaParser.createDraft7SchemaParser(schemaRouter);
+    SchemaParser schemaParser = SchemaParser.createDraft201909SchemaParser(schemaRouter);
   }
 
   public void parse(SchemaParser parser, JsonObject object, JsonPointer schemaPointer) {

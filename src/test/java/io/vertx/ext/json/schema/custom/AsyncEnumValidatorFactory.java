@@ -6,7 +6,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.json.schema.*;
+import io.vertx.ext.json.schema.SchemaException;
 import io.vertx.ext.json.schema.common.*;
 
 import static io.vertx.ext.json.schema.ValidationException.createException;
@@ -47,7 +47,7 @@ public class AsyncEnumValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public Future<Void> validateAsync(Object in) {
+    public Future<Void> validateAsync(ValidatorContext context, Object in) {
       Promise<Void> fut = Promise.promise();
       vertx.eventBus().request(address, new JsonObject(), ar -> {
         JsonArray enumValues = (JsonArray) ar.result().body();

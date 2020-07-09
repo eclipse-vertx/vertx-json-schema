@@ -3,7 +3,8 @@ package io.vertx.ext.json.schema.common;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.json.schema.*;
+import io.vertx.ext.json.schema.SchemaException;
+import io.vertx.ext.json.schema.ValidationException;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -37,11 +38,12 @@ public class RequiredValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public void validateSync(Object in) throws ValidationException {
+    public void validateSync(ValidatorContext context, Object in) throws ValidationException {
       if (in instanceof JsonObject) {
         JsonObject obj = (JsonObject) in;
         for (String k : requiredKeys) {
-          if (!obj.containsKey(k)) throw createException("provided object should contain property " + k, "required", in);
+          if (!obj.containsKey(k))
+            throw createException("provided object should contain property " + k, "required", in);
         }
       }
     }

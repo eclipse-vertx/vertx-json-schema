@@ -12,7 +12,7 @@ public class MaximumValidator extends BaseSyncValidator {
   }
 
   @Override
-  public void validateSync(Object in) throws ValidationException {
+  public void validateSync(ValidatorContext context, Object in) throws ValidationException {
     if (in instanceof Number) {
       if (((Number) in).doubleValue() > maximum) {
         throw createException("value should be <= " + maximum, "maximum", in);

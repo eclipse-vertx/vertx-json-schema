@@ -1,0 +1,16 @@
+{
+  "$ref": "citizen.json",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "surname": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "surname"
+  ]
+}

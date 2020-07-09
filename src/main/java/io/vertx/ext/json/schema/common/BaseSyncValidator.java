@@ -9,7 +9,7 @@ public abstract class BaseSyncValidator implements SyncValidator {
 
   @Override
   public ValidatorPriority getPriority() {
-    return ValidatorPriority.MIN_PRIORITY;
+    return ValidatorPriority.NORMAL_PRIORITY;
   }
 
 }

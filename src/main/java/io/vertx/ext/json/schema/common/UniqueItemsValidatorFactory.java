@@ -3,7 +3,9 @@ package io.vertx.ext.json.schema.common;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.ext.json.schema.*;
+import io.vertx.ext.json.schema.NoSyncValidationException;
+import io.vertx.ext.json.schema.SchemaException;
+import io.vertx.ext.json.schema.ValidationException;
 
 import java.util.HashSet;
 
@@ -13,7 +15,7 @@ public class UniqueItemsValidatorFactory implements ValidatorFactory {
 
   private final static BaseSyncValidator UNIQUE_VALIDATOR = new BaseSyncValidator() {
     @Override
-    public void validateSync(Object in) throws ValidationException, NoSyncValidationException {
+    public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       if (in instanceof JsonArray) {
         JsonArray arr = (JsonArray) in;
         if (new HashSet(arr.getList()).size() != arr.size())

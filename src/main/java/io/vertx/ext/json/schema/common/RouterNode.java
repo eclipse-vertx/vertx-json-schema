@@ -6,19 +6,19 @@ import java.util.*;
 import java.util.stream.Stream;
 
 class RouterNode {
-  private Schema schema;
+  private SchemaInternal schema;
   private final Map<String, RouterNode> childs;
 
   public RouterNode() {
     this(null);
   }
 
-  public RouterNode(Schema schema) {
+  public RouterNode(SchemaInternal schema) {
     this.schema = schema;
     this.childs = new HashMap<>();
   }
 
-  public void setSchema(Schema schema) {
+  public void setSchema(SchemaInternal schema) {
     this.schema = schema;
   }
 

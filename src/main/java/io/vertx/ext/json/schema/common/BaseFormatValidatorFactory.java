@@ -10,6 +10,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -70,6 +71,15 @@ public abstract class BaseFormatValidatorFactory implements ValidatorFactory {
     }
   };
 
+  protected final static Predicate<String> UUID_VALIDATOR = in -> {
+    try {
+      UUID.fromString(in);
+      return true;
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
+  };
+
   class FormatValidator extends BaseSyncValidator {
 
     Predicate<String> validator;
@@ -79,7 +89,7 @@ public abstract class BaseFormatValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public void validateSync(Object in) throws ValidationException {
+    public void validateSync(ValidatorContext context, Object in) throws ValidationException {
       if (in instanceof String) {
         if (!validator.test((String) in)) {
           throw createException("Provided value don't match pattern", "pattern", in);

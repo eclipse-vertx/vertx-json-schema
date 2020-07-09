@@ -12,7 +12,7 @@ public class ExclusiveMinimumValidator extends BaseSyncValidator {
   }
 
   @Override
-  public void validateSync(Object in) throws ValidationException {
+  public void validateSync(ValidatorContext context, Object in) throws ValidationException {
     if (in instanceof Number) {
       if (((Number) in).doubleValue() <= minimum) {
         throw createException("value should be > " + minimum, "minimum", in);

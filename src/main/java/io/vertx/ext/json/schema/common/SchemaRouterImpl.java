@@ -43,10 +43,11 @@ public class SchemaRouterImpl implements SchemaRouter {
   @Override
   public List<Schema> registeredSchemas() {
     return absolutePaths
-        .values()
-        .stream()
-        .flatMap(RouterNode::flattened)
-        .map(RouterNode::getSchema)
+      .values()
+      .stream()
+      .flatMap(RouterNode::flattened)
+      .map(RouterNode::getSchema)
+      .filter(Objects::nonNull)
         .collect(Collectors.toList());
   }
 
@@ -128,6 +129,13 @@ public class SchemaRouterImpl implements SchemaRouter {
     return this;
   }
 
+  // Very very expensive method
+  public Future<Void> resolveAllSchemas() {
+    return CompositeFuture
+      .all(this.registeredSchemas().stream().map(this::solveAllSchemaReferences).collect(Collectors.toList()))
+      .mapEmpty();
+  }
+
   /**
    * Deeply resolve all references of the provided {@code schema}
    *
@@ -141,7 +149,7 @@ public class SchemaRouterImpl implements SchemaRouter {
         .compose(s -> (s != schema) ? solveAllSchemaReferences(s).map(schema) : Future.succeededFuture(schema));
     } else {
       // If not absolute, then there is nothing to resolve
-      if (!schema.getScope().getURIWithoutFragment().isAbsolute()) {
+      if (schema.getScope().getURIWithoutFragment() == null || !schema.getScope().getURIWithoutFragment().isAbsolute()) {
         return Future.succeededFuture(schema);
       }
       RouterNode node = absolutePaths.get(schema.getScope().getURIWithoutFragment());
@@ -303,7 +311,7 @@ public class SchemaRouterImpl implements SchemaRouter {
 
   public void insertSchema(JsonPointer pointer, RouterNode initialNode, Schema schema) {
     if (pointer.isRootPointer())
-      initialNode.setSchema(schema);
+      initialNode.setSchema((SchemaInternal) schema);
     else
       pointer.write(
         initialNode,

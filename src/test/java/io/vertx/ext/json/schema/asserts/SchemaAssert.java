@@ -5,7 +5,11 @@ import io.vertx.ext.json.schema.common.SchemaImpl;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.StringAssert;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class SchemaAssert extends AbstractAssert<SchemaAssert, Schema> {
 
@@ -34,6 +38,41 @@ public class SchemaAssert extends AbstractAssert<SchemaAssert, Schema> {
 
   public SchemaAssert isAsync() {
     assertThat(actual.isSync()).isFalse();
+    return this;
+  }
+
+  public SchemaAssert validateAsyncSuccess(Object in) {
+    CountDownLatch latch = new CountDownLatch(1);
+    AtomicReference<Throwable> ex = new AtomicReference<>();
+    actual.validateAsync(in).onComplete(ar -> {
+      ex.set(ar.cause());
+      latch.countDown();
+    });
+    try {
+      latch.await();
+    } catch (InterruptedException e) {
+      fail("Failure while waiting for schema to validate", e);
+    }
+    assertThat(ex.get())
+      .isNull();
+    return this;
+  }
+
+  public SchemaAssert validateAsyncFailure(Object in) {
+    CountDownLatch latch = new CountDownLatch(1);
+    AtomicReference<Throwable> ex = new AtomicReference<>();
+    actual.validateAsync(in).onComplete(ar -> {
+      ex.set(ar.cause());
+      latch.countDown();
+    });
+    try {
+      latch.await();
+    } catch (InterruptedException e) {
+      fail("Failure while waiting for schema to validate", e);
+    }
+    assertThat(ex.get())
+      .withFailMessage("Expecting schema to validate with a failure")
+      .isNotNull();
     return this;
   }
 

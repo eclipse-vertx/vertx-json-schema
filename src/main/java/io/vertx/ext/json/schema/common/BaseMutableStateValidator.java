@@ -16,9 +16,9 @@ public abstract class BaseMutableStateValidator implements MutableStateValidator
 
   public abstract boolean calculateIsSync();
 
-  protected Future<Void> validateSyncAsAsync(Object in) {
+  protected Future<Void> validateSyncAsAsync(ValidatorContext context, Object in) {
     try {
-      validateSync(in);
+      validateSync(context, in);
       triggerUpdateIsSync();
       return Future.succeededFuture();
     } catch (ValidationException e) {
@@ -53,6 +53,6 @@ public abstract class BaseMutableStateValidator implements MutableStateValidator
 
   @Override
   public ValidatorPriority getPriority() {
-    return ValidatorPriority.MIN_PRIORITY;
+    return ValidatorPriority.NORMAL_PRIORITY;
   }
 }
