@@ -8,11 +8,11 @@ jobs:
     - stage: test
       name: "OpenJDK 8"
       jdk: openjdk8
-      script: mvn -q clean verify -B
+      script: mvn clean verify -B
     - if: type != pull_request
       name: "OpenJDK 11"
       jdk: openjdk11
-      script: mvn -q clean verify -B
+      script: mvn clean verify -B
     - stage: deploy
       name: "Deploy to Sonatype's snapshots repository"
       if: type != pull_request AND env(SONATYPE_NEXUS_USERNAME) IS present
