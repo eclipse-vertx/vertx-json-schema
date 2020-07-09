@@ -30,7 +30,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -76,20 +75,20 @@ public abstract class BaseIntegrationTest {
 
   @BeforeAll
   public void setUp(Vertx vertx, VertxTestContext testContext) {
-    startSchemaServer(vertx, testContext.completing());
+    startSchemaServer(vertx, testContext.succeedingThenComplete());
   }
 
   @AfterAll
   public void tearDown(VertxTestContext testContext) {
-    stopSchemaServer(testContext.completing());
+    stopSchemaServer(testContext.succeedingThenComplete());
   }
 
-  private Optional<Map.Entry<SchemaParser, Schema>> buildSchema(Vertx vertx, Object schema, String testName, String testFileName) {
+  private Map.Entry<SchemaParser, Schema> buildSchema(Vertx vertx, Object schema, String testName, String testFileName) {
     try {
-      return Optional.of(buildSchemaFunction(vertx, schema, testFileName));
+      return buildSchemaFunction(vertx, schema, testFileName);
     } catch (Exception e) {
       fail("Something went wrong during schema initialization for test \"" + testName + "\"", e);
-      return Optional.empty();
+      return null;
     }
   }
 
@@ -97,16 +96,14 @@ public abstract class BaseIntegrationTest {
   @ParameterizedTest(name = "{0}")
   @MethodSource("buildParameters")
   public void test(String testName, String testFileName, JsonObject testObj, Vertx vertx, VertxTestContext context) {
-    buildSchema(vertx, testObj.getValue("schema"), testName, testFileName)
-      .ifPresent(t -> {
-        for (Object tc : testObj.getJsonArray("tests").stream().collect(Collectors.toList())) {
-          JsonObject testCase = (JsonObject) tc;
-          if (testCase.getBoolean("valid"))
-            validateSuccess(t.getValue(), t.getKey(), testCase.getValue("data"), testName, testCase.getString("description"), context);
-          else
-            validateFailure(t.getValue(), t.getKey(), testCase.getValue("data"), testName, testCase.getString("description"), context);
-        }
-      });
+    Map.Entry<SchemaParser, Schema> t = buildSchema(vertx, testObj.getValue("schema"), testName, testFileName);
+    for (Object tc : testObj.getJsonArray("tests").stream().collect(Collectors.toList())) {
+      JsonObject testCase = (JsonObject) tc;
+      if (testCase.getBoolean("valid"))
+        validateSuccess(t.getValue(), t.getKey(), testCase.getValue("data"), testName, testCase.getString("description"), context);
+      else
+        validateFailure(t.getValue(), t.getKey(), testCase.getValue("data"), testName, testCase.getString("description"), context);
+    }
   }
 
   private void validateSuccess(Schema schema, SchemaParser parser, Object obj, String testName, String testCaseName, VertxTestContext context) {
@@ -114,12 +111,18 @@ public abstract class BaseIntegrationTest {
       if (event.failed())
         context.verify(() -> fail(String.format("\"%s\" -> \"%s\" should be valid", testName, testCaseName), event.cause()));
 
-      ((SchemaRouterImpl) parser.getSchemaRouter()).solveAllSchemaReferences(schema).onComplete(ar -> {
+      if (skipSyncCheck(schema)) {
+        context.completeNow();
+        return;
+      }
+
+      ((SchemaRouterImpl) parser.getSchemaRouter()).resolveAllSchemas().onComplete(ar -> {
         context.verify(() -> {
           if (ar.failed()) {
             fail("Failed schema refs resolving with cause", ar.cause());
           }
           assertThat(schema.isSync())
+            .as("Schema is sync")
             .isTrue();
           assertThatCode(() -> schema.validateSync(obj))
             .as("\"%s\" -> \"%s\" should be valid", testName, testCaseName)
@@ -137,12 +140,18 @@ public abstract class BaseIntegrationTest {
       else if (log.isDebugEnabled())
         log.debug(event.cause().toString());
 
-      ((SchemaRouterImpl) parser.getSchemaRouter()).solveAllSchemaReferences(schema).onComplete(ar -> {
+      if (skipSyncCheck(schema)) {
+        context.completeNow();
+        return;
+      }
+
+      ((SchemaRouterImpl) parser.getSchemaRouter()).resolveAllSchemas().onComplete(ar -> {
         context.verify(() -> {
           if (ar.failed()) {
             fail("Failed schema refs resolving with cause", ar.cause());
           }
           assertThat(schema.isSync())
+            .as("Schema is sync")
             .isTrue();
           assertThatExceptionOfType(ValidationException.class)
             .isThrownBy(() -> schema.validateSync(obj))
@@ -158,19 +167,18 @@ public abstract class BaseIntegrationTest {
       .map(f -> new SimpleImmutableEntry<>(f, getTckPath().resolve(f + ".json")))
       .map(p -> {
         try {
-          return new SimpleImmutableEntry<>(p.getKey(), Files.readAllLines(p.getValue(), StandardCharsets.UTF_8));
+          return new SimpleImmutableEntry<>(p.getKey(), String.join("", Files.readAllLines(p.getValue(), StandardCharsets.UTF_8)));
         } catch (IOException e) {
           e.printStackTrace();
           throw new RuntimeException(e);
         }
       })
-      .map(strings -> new SimpleImmutableEntry<>(strings.getKey(), String.join("", strings.getValue())))
       .map(string -> new SimpleImmutableEntry<>(string.getKey(), new JsonArray(string.getValue())))
-        .flatMap(t -> t.getValue()
-            .stream()
-            .map(JsonObject.class::cast)
-            .map(o -> arguments(t.getKey() + ": " + o.getString("description"), t.getKey(), o))
-        );
+      .flatMap(t -> t.getValue()
+        .stream()
+        .map(JsonObject.class::cast)
+        .map(o -> arguments(t.getKey() + ": " + o.getString("description"), t.getKey(), o))
+      );
   }
 
   public abstract Stream<String> getTestFiles();
@@ -180,4 +188,8 @@ public abstract class BaseIntegrationTest {
   public abstract Path getTckPath();
 
   public abstract Path getRemotesPath();
+
+  public boolean skipSyncCheck(Schema schema) {
+    return false;
+  }
 }

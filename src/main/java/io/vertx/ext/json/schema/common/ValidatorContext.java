@@ -7,8 +7,6 @@ import java.util.Set;
  */
 public interface ValidatorContext {
 
-  ValidatorContext startRecording();
-
   void markEvaluatedItem(int index);
 
   void markEvaluatedProperty(String propertyName);
@@ -16,6 +14,8 @@ public interface ValidatorContext {
   Set<Integer> evaluatedItems();
 
   Set<String> evaluatedProperties();
+
+  ValidatorContext startRecording();
 
   ValidatorContext lowerLevelContext();
 

@@ -16,12 +16,10 @@ public class RecordingValidatorContext implements ValidatorContext {
 
   @Override
   public void markEvaluatedItem(int index) {
-
     if (evaluatedItems == null) {
       this.evaluatedItems = new HashSet<>();
     }
     evaluatedItems.add(index);
-
   }
 
   @Override

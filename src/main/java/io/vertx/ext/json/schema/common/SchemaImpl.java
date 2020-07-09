@@ -21,15 +21,17 @@ public class SchemaImpl extends BaseMutableStateValidator implements SchemaInter
   private final JsonObject schema;
   private final JsonPointer scope;
   private Validator[] validators;
-  private boolean shouldRecordContext;
+  protected boolean shouldRecordContext;
+  final boolean recursiveAnchor;
 
   private final Set<RefSchema> referringSchemas;
 
-  SchemaImpl(JsonObject schema, JsonPointer scope, MutableStateValidator parent) {
+  public SchemaImpl(JsonObject schema, JsonPointer scope, MutableStateValidator parent) {
     super(parent);
     this.schema = schema;
     this.scope = scope;
     this.shouldRecordContext = false;
+    this.recursiveAnchor = schema.getBoolean("$recursiveAnchor", false);
     referringSchemas = new HashSet<>();
   }
 
@@ -101,7 +103,68 @@ public class SchemaImpl extends BaseMutableStateValidator implements SchemaInter
     if (log.isTraceEnabled())
       log.trace(String.format("Starting async validation for schema %s and input %s", schema, in));
 
-    context = shouldRecordContext ? context.startRecording() : context;
+    context = generateValidationContext(context);
+
+    return runAsyncValidators(context, in);
+  }
+
+  @Override
+  public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
+    this.checkSync();
+    context = generateValidationContext(context);
+    runSyncValidator(context, in);
+  }
+
+  @Override
+  public boolean calculateIsSync() {
+    return validators.length == 0 || Arrays.stream(validators).map(Validator::isSync).reduce(true, Boolean::logicalAnd);
+  }
+
+  void setValidators(Set<Validator> validators) {
+    this.shouldRecordContext = validators
+      .stream()
+      .map(Validator::getPriority)
+      .anyMatch(p -> p == ValidatorPriority.CONTEXTUAL_VALIDATOR);
+    this.validators = validators.toArray(new Validator[0]);
+    Arrays.sort(this.validators, ValidatorPriority.COMPARATOR);
+    this.initializeIsSync();
+  }
+
+  private Future<Void> fillException(Throwable e, Object in) {
+    if (e instanceof ValidationException) {
+      ValidationException ve = (ValidationException) e;
+      ve.setSchema(this);
+      ve.setScope(this.scope);
+      return Future.failedFuture(ve);
+    } else {
+      return Future.failedFuture(createException("Error while validating", null, in, e));
+    }
+  }
+
+  void registerReferredSchema(RefSchema ref) {
+    referringSchemas.add(ref);
+    if (log.isTraceEnabled()) {
+      log.trace(String.format("Ref schema %s reefers to schema %s", ref, this));
+      log.trace(String.format("Ref schemas that refeers to %s: %s", this, this.referringSchemas.size()));
+    }
+    // This is a trick to solve the circular references.
+    // 1. for each ref that reefers to this schema we propagate isSync = true to the upper levels.
+    //    If this schema isSync = false only because its childs contains refs to itself, after the pre propagation
+    //    this schema isSync = true, otherwise is still false
+    // 2. for each ref schema we set the isSync calculated and propagate to upper levels of refs
+    referringSchemas.forEach(RefSchema::prePropagateSyncState);
+    referringSchemas.forEach(r -> r.setIsSync(this.isSync));
+  }
+
+  protected ValidatorContext generateValidationContext(ValidatorContext parent) {
+    ValidatorContext context = shouldRecordContext ? parent.startRecording() : parent;
+    if (this.recursiveAnchor) {
+      return RecursiveAnchorValidatorContextDecorator.wrap(context, this.scope);
+    }
+    return context;
+  }
+
+  protected Future<Void> runAsyncValidators(ValidatorContext context, Object in) {
     List<Future> futures = new ArrayList<>();
     for (Validator validator : validators) {
       if (!validator.isSync()) {
@@ -123,10 +186,7 @@ public class SchemaImpl extends BaseMutableStateValidator implements SchemaInter
     }
   }
 
-  @Override
-  public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
-    this.checkSync();
-    context = shouldRecordContext ? context.startRecording() : context;
+  protected void runSyncValidator(ValidatorContext context, Object in) {
     for (Validator validator : validators) {
       try {
         ((SyncValidator) validator).validateSync(context, in);
@@ -136,47 +196,5 @@ public class SchemaImpl extends BaseMutableStateValidator implements SchemaInter
         throw e;
       }
     }
-  }
-
-  @Override
-  public boolean calculateIsSync() {
-    return validators.length == 0 || Arrays.stream(validators).map(Validator::isSync).reduce(true, Boolean::logicalAnd);
-  }
-
-  void setValidators(Set<Validator> validators) {
-    this.shouldRecordContext = validators
-      .stream()
-      .map(Validator::getPriority)
-      .anyMatch(p -> p == ValidatorPriority.CONTEXTUAL_VALIDATOR);
-    this.validators = validators.toArray(new Validator[0]);
-    Arrays.sort(this.validators, ValidatorPriority.VALIDATOR_COMPARATOR);
-    this.initializeIsSync();
-  }
-
-  private Future<Void> fillException(Throwable e, Object in) {
-    if (e instanceof ValidationException) {
-      ValidationException ve = (ValidationException) e;
-      ve.setSchema(this);
-      ve.setScope(this.scope);
-      return Future.failedFuture(ve);
-    } else {
-      return Future.failedFuture(createException("Error while validating", null, in, e));
-    }
-  }
-
-  void registerReferredSchema(RefSchema ref) {
-      referringSchemas.add(ref);
-    if (log.isTraceEnabled()) {
-      log.trace(String.format("Ref schema %s reefers to schema %s", ref, this));
-      log.trace(String.format("Ref schemas that refeers to %s: %s", this, this.referringSchemas.size()));
-    }
-      // This is a trick to solve the circular references.
-      // 1. for each ref that reefers to this schema we propagate isSync = true to the upper levels.
-      //    If this schema isSync = false only because its childs contains refs to itself, after the pre propagation
-      //    this schema isSync = true, otherwise is still false
-      // 2. for each ref schema we set the isSync calculated and propagate to upper levels of refs
-      referringSchemas.forEach(RefSchema::prePropagateSyncState);
-      referringSchemas.forEach(r -> r.setIsSync(this.isSync));
-
   }
 }

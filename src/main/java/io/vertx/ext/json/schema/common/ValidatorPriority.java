@@ -16,7 +16,7 @@ public enum ValidatorPriority {
     this.priority = value;
   }
 
-  public static Comparator<Validator> VALIDATOR_COMPARATOR = (v1, v2) -> {
+  public static Comparator<PriorityGetter> COMPARATOR = (v1, v2) -> {
     int res = v1.getPriority().priority.compareTo(v2.getPriority().priority);
     if (res == 0) return (v1.equals(v2)) ? 0 : +1; // Comparator need to be consistent with equals generic
     else return res;

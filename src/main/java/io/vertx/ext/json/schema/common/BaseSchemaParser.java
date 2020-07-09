@@ -71,8 +71,10 @@ public abstract class BaseSchemaParser implements SchemaParserInternal {
   }
 
   protected SchemaImpl createSchema(JsonObject schema, JsonPointer scope, MutableStateValidator parent) {
-    if (schema.containsKey("$ref")) return new RefSchema(schema, scope, this, parent);
-    else return new SchemaImpl(schema, scope, parent);
+    if (schema.containsKey("$ref"))
+      return new RefSchema(schema, scope, this, parent, false);
+    else
+      return new SchemaImpl(schema, scope, parent);
   }
 
   protected abstract List<ValidatorFactory> initValidatorFactories();

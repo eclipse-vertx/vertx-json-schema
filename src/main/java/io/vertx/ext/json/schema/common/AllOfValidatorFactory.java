@@ -3,7 +3,6 @@ package io.vertx.ext.json.schema.common;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.ext.json.schema.NoSyncValidationException;
-import io.vertx.ext.json.schema.Schema;
 import io.vertx.ext.json.schema.ValidationException;
 
 import java.util.Arrays;
@@ -30,15 +29,15 @@ public class AllOfValidatorFactory extends BaseCombinatorsValidatorFactory {
     @Override
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
-      for (Schema s : schemas) s.validateSync(in);
+      for (SchemaInternal s : schemas) s.validateSync(context, in);
     }
 
     @Override
     public Future<Void> validateAsync(ValidatorContext context, Object in) {
       if (isSync()) return validateSyncAsAsync(context, in);
       return CompositeFuture
-        .all(Arrays.stream(schemas).map(s -> s.validateAsync(in)).collect(Collectors.toList()))
-        .compose(res -> Future.succeededFuture(), Future::failedFuture);
+        .all(Arrays.stream(schemas).map(s -> s.validateAsync(context, in)).collect(Collectors.toList()))
+        .mapEmpty();
     }
   }
 

@@ -6,6 +6,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.json.schema.common.ValidatorFactory;
+import io.vertx.ext.json.schema.draft201909.Draft201909SchemaParser;
 import io.vertx.ext.json.schema.draft7.Draft7SchemaParser;
 import io.vertx.ext.json.schema.openapi3.OpenAPI3SchemaParser;
 
@@ -127,5 +128,15 @@ public interface SchemaParser {
    */
   static SchemaParser createDraft7SchemaParser(SchemaRouter router) {
     return Draft7SchemaParser.create(router);
+  }
+
+  /**
+   * Create a new {@link SchemaParser} for Json Schema Draft2019-09 schemas
+   *
+   * @param router
+   * @return
+   */
+  static SchemaParser createDraft201909SchemaParser(SchemaRouter router) {
+    return Draft201909SchemaParser.create(router);
   }
 }

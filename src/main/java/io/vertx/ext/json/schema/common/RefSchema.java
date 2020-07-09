@@ -21,9 +21,12 @@ public class RefSchema extends SchemaImpl {
   private final SchemaParser schemaParser;
   private SchemaInternal cachedSchema;
 
-  RefSchema(JsonObject schema, JsonPointer scope, SchemaParser schemaParser, MutableStateValidator parent) {
+  private final boolean executeSchemaValidators;
+
+  public RefSchema(JsonObject schema, JsonPointer scope, SchemaParser schemaParser, MutableStateValidator parent, boolean executeSchemaValidators) {
     super(schema, scope, parent);
     this.schemaParser = schemaParser;
+    this.executeSchemaValidators = executeSchemaValidators;
     try {
       String unparsedUri = schema.getString("$ref");
       refPointer = URIUtils.createJsonPointerFromURI(URI.create(unparsedUri));
@@ -44,10 +47,11 @@ public class RefSchema extends SchemaImpl {
   }
 
   @Override
-  public Future<Void> validateAsync(ValidatorContext context, Object in) {
-    if (isSync()) return validateSyncAsAsync(context, in);
+  public Future<Void> validateAsync(ValidatorContext inContext, Object in) {
+    if (isSync()) return validateSyncAsAsync(inContext, in);
+    ValidatorContext context = generateValidationContext(inContext);
     if (cachedSchema == null) {
-      return schemaParser
+      Future<Void> fut = schemaParser
         .getSchemaRouter()
         .resolveRef(refPointer, this.getScope(), schemaParser)
         .compose(
@@ -70,21 +74,35 @@ public class RefSchema extends SchemaImpl {
           },
           err -> Future.failedFuture(createException("Error while resolving reference " + this.refPointer.toURI(), "$ref", in, err))
         );
+      if (executeSchemaValidators) {
+        return fut.compose(v -> this.runAsyncValidators(context, in));
+      }
+      return fut;
     } else {
-      return cachedSchema.validateAsync(context, in);
+      if (executeSchemaValidators) {
+        return cachedSchema
+          .validateAsync(context, in)
+          .compose(v -> this.runAsyncValidators(context, in));
+      } else {
+        return cachedSchema.validateAsync(context, in);
+      }
     }
   }
 
   @Override
   public void validateSync(ValidatorContext context, Object in) throws ValidationException {
     this.checkSync();
+    context = generateValidationContext(context);
     // validateSync in RefSchema asserts that a cached schema exists
     cachedSchema.validateSync(context, in);
+    if (executeSchemaValidators) {
+      runSyncValidator(context, in);
+    }
   }
 
   @Override
   public boolean calculateIsSync() {
-    return cachedSchema != null && cachedSchema.isSync();
+    return (!executeSchemaValidators || super.calculateIsSync()) && cachedSchema != null && cachedSchema.isSync();
   }
 
   @Override
