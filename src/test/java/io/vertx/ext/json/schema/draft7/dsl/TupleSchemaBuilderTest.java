@@ -13,33 +13,33 @@ public class TupleSchemaBuilderTest {
   @Test
   public void testItemByItem() {
     JsonObject generated = tupleSchema()
-        .item(
-            numberSchema()
-        ).item(
-            stringSchema()
-        ).additionalItems(
-            objectSchema()
-        )
-        .toJson();
+      .item(
+        numberSchema()
+      ).item(
+        stringSchema()
+      ).additionalItems(
+        objectSchema()
+      )
+      .toJson();
 
     assertThat(generated)
-        .removingEntry("$id")
-        .containsEntry("type", "array");
+      .removingEntry("$id")
+      .containsEntry("type", "array");
 
     assertThat(generated)
-        .extracting(create().append("items").append("0"))
-        .removingEntry("$id")
-        .containsAllAndOnlyEntries(entry("type", "number"));
+      .extracting(create().append("items").append("0"))
+      .removingEntry("$id")
+      .containsAllAndOnlyEntries(entry("type", "number"));
 
     assertThat(generated)
-        .extracting(create().append("items").append("1"))
-        .removingEntry("$id")
-        .containsAllAndOnlyEntries(entry("type", "string"));
+      .extracting(create().append("items").append("1"))
+      .removingEntry("$id")
+      .containsAllAndOnlyEntries(entry("type", "string"));
 
     assertThat(generated)
-        .extractingKey("additionalItems")
-        .removingEntry("$id")
-        .containsAllAndOnlyEntries(entry("type", "object"));
+      .extractingKey("additionalItems")
+      .removingEntry("$id")
+      .containsAllAndOnlyEntries(entry("type", "object"));
   }
 
 }

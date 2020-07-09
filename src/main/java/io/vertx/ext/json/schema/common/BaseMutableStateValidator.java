@@ -40,10 +40,13 @@ public abstract class BaseMutableStateValidator implements MutableStateValidator
   }
 
   @Override
-  public MutableStateValidator getParent() { return parent; }
+  public MutableStateValidator getParent() {
+    return parent;
+  }
 
   protected void checkSync() throws ValidationException, NoSyncValidationException {
-    if (!isSync) throw new NoSyncValidationException("Trying to execute validateSync() for a Validator in asynchronous state", this);
+    if (!isSync)
+      throw new NoSyncValidationException("Trying to execute validateSync() for a Validator in asynchronous state", this);
   }
 
   @Override

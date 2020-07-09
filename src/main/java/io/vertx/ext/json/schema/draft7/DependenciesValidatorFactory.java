@@ -33,8 +33,8 @@ public class DependenciesValidatorFactory implements ValidatorFactory {
         if (entry.getValue() instanceof Map || entry.getValue() instanceof Boolean) {
           keySchemaDeps.put(entry.getKey(), parser.parse((entry.getValue() instanceof Map) ? new JsonObject((Map<String, Object>) entry.getValue()) : entry.getValue(), baseScope.copy().append(entry.getKey()), validator));
         } else {
-          if (!((List)entry.getValue()).isEmpty())
-            keyDeps.put(entry.getKey(), ((List<String>)entry.getValue()).stream().collect(Collectors.toSet()));
+          if (!((List) entry.getValue()).isEmpty())
+            keyDeps.put(entry.getKey(), ((List<String>) entry.getValue()).stream().collect(Collectors.toSet()));
         }
       }
       validator.configure(keyDeps, keySchemaDeps);

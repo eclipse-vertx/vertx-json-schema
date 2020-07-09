@@ -36,15 +36,15 @@ public class BuildedSchemaParsingTest {
   @Test
   public void testCircularTreeDeclaration(VertxTestContext testContext) {
     Schema schema =
-        objectSchema()
-            .alias("root_object")
-            .requiredProperty("value",
-                intSchema()
-                    .with(exclusiveMaximum(20d), multipleOf(2d))
-            )
-            .property("leftChild", refToAlias("root_object"))
-            .property("rightChild", refToAlias("root_object"))
-            .build(parser);
+      objectSchema()
+        .alias("root_object")
+        .requiredProperty("value",
+          intSchema()
+            .with(exclusiveMaximum(20d), multipleOf(2d))
+        )
+        .property("leftChild", refToAlias("root_object"))
+        .property("rightChild", refToAlias("root_object"))
+        .build(parser);
     testContext.assertComplete(schema.validateAsync(
       new JsonObject().put("value", 6).put("leftChild", new JsonObject().put("value", 2))
     )).onComplete(v -> testContext.completeNow());

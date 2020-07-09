@@ -76,9 +76,11 @@ public class FalseSchema implements SchemaInternal {
   }
 
   @Override
-  public void applyDefaultValues(JsonArray array) throws NoSyncValidationException { }
+  public void applyDefaultValues(JsonArray array) throws NoSyncValidationException {
+  }
 
   @Override
-  public void applyDefaultValues(JsonObject object) throws NoSyncValidationException { }
+  public void applyDefaultValues(JsonObject object) throws NoSyncValidationException {
+  }
 
 }

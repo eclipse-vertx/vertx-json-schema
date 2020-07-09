@@ -11,8 +11,8 @@ public class ConstValidatorFactory implements ValidatorFactory {
   @SuppressWarnings("unchecked")
   @Override
   public Validator createValidator(JsonObject schema, JsonPointer scope, SchemaParserInternal parser, MutableStateValidator parent) {
-      Object allowedValue = schema.getValue("const");
-      return new ConstValidator(allowedValue);
+    Object allowedValue = schema.getValue("const");
+    return new ConstValidator(allowedValue);
   }
 
   @Override

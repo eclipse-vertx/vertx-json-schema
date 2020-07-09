@@ -117,9 +117,9 @@ public class ItemsValidatorFactory extends io.vertx.ext.json.schema.common.Items
         for (int i = 0; i < arr.size(); i++) {
           if (i >= schemas.length) {
             if (additionalItems != null)
-              ((SchemaImpl)additionalItems).doApplyDefaultValues(arr.getValue(i));
+              ((SchemaImpl) additionalItems).doApplyDefaultValues(arr.getValue(i));
           } else
-            ((SchemaImpl)schemas[i]).doApplyDefaultValues(arr.getValue(i));
+            ((SchemaImpl) schemas[i]).doApplyDefaultValues(arr.getValue(i));
         }
       }
     }

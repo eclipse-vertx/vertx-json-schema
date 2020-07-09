@@ -21,13 +21,13 @@ public class JsonAssert extends AbstractAssert<JsonAssert, Object> {
 
   public JsonAssert extractingKey(String keyName) {
     isJsonObject();
-    return new JsonAssert(((JsonObject)actual).getValue(keyName));
+    return new JsonAssert(((JsonObject) actual).getValue(keyName));
   }
 
   public JsonAssert removingEntry(String keyName) {
     containsKey(keyName);
 
-    JsonObject jo = ((JsonObject)actual).copy();
+    JsonObject jo = ((JsonObject) actual).copy();
     jo.remove(keyName);
 
     return new JsonAssert(jo);
@@ -91,7 +91,8 @@ public class JsonAssert extends AbstractAssert<JsonAssert, Object> {
       try {
         requirement.accept(obj);
         found = true;
-      } catch (AssertionError a) {}
+      } catch (AssertionError a) {
+      }
     }
 
     if (!found) failWithMessage("Cannot find an element in the array satisfying the requirement");

@@ -1,7 +1,10 @@
 package io.vertx.ext.json.schema.draft7;
 
 import io.vertx.core.Vertx;
-import io.vertx.ext.json.schema.*;
+import io.vertx.ext.json.schema.BaseIntegrationTest;
+import io.vertx.ext.json.schema.Schema;
+import io.vertx.ext.json.schema.SchemaParser;
+import io.vertx.ext.json.schema.SchemaRouterOptions;
 import io.vertx.ext.json.schema.common.SchemaRouterImpl;
 
 import java.nio.file.Path;
@@ -25,47 +28,47 @@ public class Draft7IntegrationTest extends BaseIntegrationTest {
   @Override
   public Stream<String> getTestFiles() {
     return Stream.of(
-        "additionalItems",
-        "additionalProperties",
-        "allOf",
-        "anyOf",
-        "boolean_schema",
-        "const",
-        "contains",
-        "definitions",
-        "dependencies",
-        "enum",
-        "exclusiveMaximum",
-        "exclusiveMinimum",
-        "if-then-else",
-        "format",
-        "items",
-        "maximum",
-        "maxItems",
-        "maxLength",
-        "maxProperties",
-        "minimum",
-        "minItems",
-        "minLength",
-        "minProperties",
-        "multipleOf",
-        "not",
-        "oneOf",
-        "pattern",
-        "patternProperties",
-        "properties",
-        "propertyNames",
-        "ref",
-        "refRemote",
-        "required",
-        "type",
-        "uniqueItems"
+      "additionalItems",
+      "additionalProperties",
+      "allOf",
+      "anyOf",
+      "boolean_schema",
+      "const",
+      "contains",
+      "definitions",
+      "dependencies",
+      "enum",
+      "exclusiveMaximum",
+      "exclusiveMinimum",
+      "if-then-else",
+      "format",
+      "items",
+      "maximum",
+      "maxItems",
+      "maxLength",
+      "maxProperties",
+      "minimum",
+      "minItems",
+      "minLength",
+      "minProperties",
+      "multipleOf",
+      "not",
+      "oneOf",
+      "pattern",
+      "patternProperties",
+      "properties",
+      "propertyNames",
+      "ref",
+      "refRemote",
+      "required",
+      "type",
+      "uniqueItems"
     );
   }
 
   @Override
   public Path getTckPath() {
-    return Paths.get("src",  "test", "resources",  "tck", "draft7");
+    return Paths.get("src", "test", "resources", "tck", "draft7");
   }
 
   @Override

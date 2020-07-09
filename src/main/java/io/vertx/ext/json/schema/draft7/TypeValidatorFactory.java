@@ -21,10 +21,10 @@ public class TypeValidatorFactory implements ValidatorFactory {
       List<JsonSchemaType> allowedTypes = new ArrayList<>();
       Object type = schema.getValue("type");
       String format = schema.getString("format");
-      if (type instanceof String) allowedTypes.add(parseType((String)type, format, schema));
+      if (type instanceof String) allowedTypes.add(parseType((String) type, format, schema));
       else {
         JsonArray types = (JsonArray) type;
-        for (Object t : types) allowedTypes.add(parseType((String)t, format, schema));
+        for (Object t : types) allowedTypes.add(parseType((String) t, format, schema));
       }
       boolean allowNull = allowedTypes.contains(JsonSchemaType.NULL);
       if (allowNull) allowedTypes.remove(JsonSchemaType.NULL);

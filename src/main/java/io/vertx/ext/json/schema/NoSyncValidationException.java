@@ -5,7 +5,6 @@ import io.vertx.ext.json.schema.common.MutableStateValidator;
 
 /**
  * This exception is thrown when you call {@link Schema#validateSync(Object)} when the schema is in an asynchronous state
- *
  */
 public class NoSyncValidationException extends VertxException {
 

@@ -5,7 +5,11 @@
       "$ref": "#/definitions/hello"
     }
   },
-  "default": {"hello": {"name": "francesco"}},
+  "default": {
+    "hello": {
+      "name": "francesco"
+    }
+  },
   "definitions": {
     "hello": {
       "type": "object",

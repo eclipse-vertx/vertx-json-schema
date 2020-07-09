@@ -17,9 +17,9 @@ import java.util.List;
 
 /**
  * Represents a pool where parsed schemas are addressed and cached. <br/>
- *
+ * <p>
  * It also contains a cache of {@link JsonObject} including on top or inner level some json schemas that could eventually parsed later.<br/>
- *
+ * <p>
  * You should not share this object between different threads
  *
  * @author slinkydeveloper
@@ -89,7 +89,7 @@ public interface SchemaRouter {
 
   /**
    * Add one or more json documents including schemas on top or inner levels. This method doesn't trigger the schema parsing<br/>
-   *
+   * <p>
    * You can use this schema if you have externally loaded some json document and you want to register to the schema router.
    * You can later parse and retrieve a schema from this json structure using {@link this#resolveCachedSchema(JsonPointer, JsonPointer, SchemaParser)},
    * providing the correct {@code refPointer}
@@ -103,7 +103,7 @@ public interface SchemaRouter {
 
   /**
    * Add one or more json documents including schemas on top or inner levels. This method doesn't trigger the schema parsing<br/>
-   *
+   * <p>
    * You can use this schema if you have externally loaded some json document and you want to register to the schema router.
    * You can later parse and retrieve a schema from this json structure using {@link this#resolveCachedSchema(JsonPointer, JsonPointer, SchemaParser)},
    * providing the correct {@code refPointer}

@@ -23,7 +23,7 @@ public class SchemaAssert extends AbstractAssert<SchemaAssert, Schema> {
     if (!(actual instanceof SchemaImpl))
       failWithMessage("Schema <%s> must be a SchemaImpl instance", actual.toString());
 
-    return new StringAssert(((SchemaImpl)actual).getJson().getString("x-id"));
+    return new StringAssert(((SchemaImpl) actual).getJson().getString("x-id"));
   }
 
   public SchemaAssert hasXIdEqualsTo(String expectedXId) {

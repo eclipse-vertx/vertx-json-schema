@@ -17,47 +17,47 @@ public class ObjectSchemaBuilderTest {
   @Test
   public void testProperties() {
     JsonObject generated = objectSchema()
-        .optionalProperty("optionalProp", numberSchema())
-        .requiredProperty("requiredProp", stringSchema())
-        .patternProperty(Pattern.compile("[0-9]{3,5}"), intSchema())
-        .additionalProperties(arraySchema())
-        .toJson();
+      .optionalProperty("optionalProp", numberSchema())
+      .requiredProperty("requiredProp", stringSchema())
+      .patternProperty(Pattern.compile("[0-9]{3,5}"), intSchema())
+      .additionalProperties(arraySchema())
+      .toJson();
 
     assertThat(generated)
-        .removingEntry("$id")
-        .containsEntry("type", "object")
-        .containsEntry("required", new JsonArray().add("requiredProp"));
+      .removingEntry("$id")
+      .containsEntry("type", "object")
+      .containsEntry("required", new JsonArray().add("requiredProp"));
 
     assertThat(generated)
-        .extracting(create().append("properties").append("optionalProp"))
-        .containsEntry("type", "number");
+      .extracting(create().append("properties").append("optionalProp"))
+      .containsEntry("type", "number");
 
     assertThat(generated)
-        .extracting(create().append("properties").append("requiredProp"))
-        .containsEntry("type", "string");
+      .extracting(create().append("properties").append("requiredProp"))
+      .containsEntry("type", "string");
 
     assertThat(generated)
-        .extracting(create().append("patternProperties").append(Pattern.compile("[0-9]{3,5}").toString()))
-        .containsEntry("type", "integer");
+      .extracting(create().append("patternProperties").append(Pattern.compile("[0-9]{3,5}").toString()))
+      .containsEntry("type", "integer");
 
     assertThat(generated)
-        .extractingKey("additionalProperties")
-        .containsEntry("type", "array");
+      .extractingKey("additionalProperties")
+      .containsEntry("type", "array");
   }
 
   @Test
   public void testKeywords() {
     JsonObject generated = objectSchema()
-        .with(maxProperties(10), minProperties(1), propertyNames(stringSchema()))
-        .toJson();
+      .with(maxProperties(10), minProperties(1), propertyNames(stringSchema()))
+      .toJson();
 
     assertThat(generated)
-        .removingEntry("$id")
-        .removingEntry("propertyNames")
-        .containsAllAndOnlyEntries(entry("type", "object"), entry("minProperties", 1), entry("maxProperties", 10));
+      .removingEntry("$id")
+      .removingEntry("propertyNames")
+      .containsAllAndOnlyEntries(entry("type", "object"), entry("minProperties", 1), entry("maxProperties", 10));
 
     assertThat(generated)
-        .extractingKey("propertyNames")
-        .containsEntry("type", "string");
+      .extractingKey("propertyNames")
+      .containsEntry("type", "string");
   }
 }

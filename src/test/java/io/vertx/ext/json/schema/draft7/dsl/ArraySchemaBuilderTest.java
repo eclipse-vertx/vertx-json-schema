@@ -14,39 +14,39 @@ public class ArraySchemaBuilderTest {
   @Test
   public void testItems() {
     JsonObject generated = arraySchema()
-        .items(
-            numberSchema()
-        )
-        .toJson();
+      .items(
+        numberSchema()
+      )
+      .toJson();
 
     assertThat(generated)
-        .removingEntry("$id")
-        .containsEntry("type", "array")
-        .extractingKey("items")
-        .removingEntry("$id")
-        .containsAllAndOnlyEntries(entry("type", "number"));
+      .removingEntry("$id")
+      .containsEntry("type", "array")
+      .extractingKey("items")
+      .removingEntry("$id")
+      .containsAllAndOnlyEntries(entry("type", "number"));
   }
 
   @Test
   public void testKeywords() {
     JsonObject generated = arraySchema()
-        .with(maxItems(10), minItems(1), uniqueItems(), contains(numberSchema()))
-        .toJson();
+      .with(maxItems(10), minItems(1), uniqueItems(), contains(numberSchema()))
+      .toJson();
 
     assertThat(generated)
-        .removingEntry("$id")
-        .removingEntry("contains")
-        .containsAllAndOnlyEntries(
-            entry("type", "array"),
-            entry("maxItems", 10),
-            entry("minItems", 1),
-            entry("uniqueItems", true)
-        );
+      .removingEntry("$id")
+      .removingEntry("contains")
+      .containsAllAndOnlyEntries(
+        entry("type", "array"),
+        entry("maxItems", 10),
+        entry("minItems", 1),
+        entry("uniqueItems", true)
+      );
 
     assertThat(generated)
-        .extractingKey("contains")
-        .removingEntry("$id")
-        .containsAllAndOnlyEntries(entry("type", "number"));
+      .extractingKey("contains")
+      .removingEntry("$id")
+      .containsAllAndOnlyEntries(entry("type", "number"));
   }
 
 }

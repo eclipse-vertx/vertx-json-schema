@@ -1,6 +1,9 @@
 {
   "x-id": "main",
-  "type": ["object", "integer"],
+  "type": [
+    "object",
+    "integer"
+  ],
   "properties": {
     "a": {
       "x-id": "a",

@@ -64,7 +64,7 @@ public class ItemsValidatorFactory extends BaseSingleSchemaValidatorFactory {
     @Override
     public void applyDefaultValue(Object value) {
       if (value instanceof JsonArray) {
-        ((JsonArray)value).forEach(((SchemaImpl)schema)::doApplyDefaultValues);
+        ((JsonArray) value).forEach(((SchemaImpl) schema)::doApplyDefaultValues);
       }
     }
   }

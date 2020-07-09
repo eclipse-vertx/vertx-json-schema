@@ -15,10 +15,16 @@ public class MyAssertions {
     return new SchemaRouterAssert(actual);
   }
 
-  public static JsonAssert assertThat(JsonObject actual) { return new JsonAssert(actual); }
+  public static JsonAssert assertThat(JsonObject actual) {
+    return new JsonAssert(actual);
+  }
 
-  public static JsonAssert assertThat(JsonArray actual) { return new JsonAssert(actual); }
+  public static JsonAssert assertThat(JsonArray actual) {
+    return new JsonAssert(actual);
+  }
 
-  public static JsonAssert assertThatJson(Object actual) { return new JsonAssert(actual); }
+  public static JsonAssert assertThatJson(Object actual) {
+    return new JsonAssert(actual);
+  }
 
 }

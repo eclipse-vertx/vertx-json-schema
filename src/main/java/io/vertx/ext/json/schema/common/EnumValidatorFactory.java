@@ -21,12 +21,12 @@ public class EnumValidatorFactory implements ValidatorFactory {
     try {
       JsonArray allowedValues = (JsonArray) schema.getValue("enum");
       Set allowedValuesParsed = (Set) allowedValues
-          .getList().stream()
-          .map(o ->
-              (o instanceof Map) ? new JsonObject((Map<String, Object>) o) :
-                  (o instanceof List) ? new JsonArray((List) o) :
-                      o
-          ).collect(Collectors.toSet());
+        .getList().stream()
+        .map(o ->
+          (o instanceof Map) ? new JsonObject((Map<String, Object>) o) :
+            (o instanceof List) ? new JsonArray((List) o) :
+              o
+        ).collect(Collectors.toSet());
       return new EnumValidator(allowedValuesParsed);
     } catch (ClassCastException e) {
       throw new SchemaException(schema, "Wrong type for enum keyword", e);

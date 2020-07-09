@@ -24,7 +24,7 @@ class RouterNodeJsonPointerIterator implements JsonPointerIterator {
 
   @Override
   public boolean objectContainsKey(Object value, String key) {
-    return !isNull(value) && ((RouterNode)value).getChilds().containsKey(key);
+    return !isNull(value) && ((RouterNode) value).getChilds().containsKey(key);
   }
 
   @Override
@@ -33,12 +33,12 @@ class RouterNodeJsonPointerIterator implements JsonPointerIterator {
       if (!objectContainsKey(value, key) && createOnMissing) {
         if (createOnMissing) {
           RouterNode node = new RouterNode();
-          ((RouterNode)value).getChilds().put(key, node);
+          ((RouterNode) value).getChilds().put(key, node);
         } else {
           return null;
         }
       }
-      return ((RouterNode)value).getChilds().get(key);
+      return ((RouterNode) value).getChilds().get(key);
     }
     return null;
   }

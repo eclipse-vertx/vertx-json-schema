@@ -22,137 +22,137 @@ public class SchemaBuilderTest {
   @Test
   public void testNullableSchema() {
     assertThat(
-        intSchema().nullable().toJson()
+      intSchema().nullable().toJson()
     )
-        .removingEntry("$id")
-        .extractingKey("type")
-        .containsAllAndOnlyItems("integer", "null");
+      .removingEntry("$id")
+      .extractingKey("type")
+      .containsAllAndOnlyItems("integer", "null");
   }
 
   @Test
   public void testMultipleTypes() {
     assertThat(
-        schema()
-          .with(
-              type(SchemaType.INT, SchemaType.STRING)
-          )
+      schema()
+        .with(
+          type(SchemaType.INT, SchemaType.STRING)
+        )
         .toJson()
     )
-        .removingEntry("$id")
-        .extractingKey("type")
-        .containsAllAndOnlyItems("integer", "string");
+      .removingEntry("$id")
+      .extractingKey("type")
+      .containsAllAndOnlyItems("integer", "string");
   }
 
   @Test
   public void testBooleanSchema() {
     assertThat(
-        booleanSchema()
-          .toJson()
+      booleanSchema()
+        .toJson()
     )
-        .removingEntry("$id")
-        .containsAllAndOnlyEntries(entry("type", "boolean"));
+      .removingEntry("$id")
+      .containsAllAndOnlyEntries(entry("type", "boolean"));
   }
 
   @Test
   public void testFromJson() {
     assertThat(
-        schema()
-            .fromJson(new JsonObject().put("mykey", "myvalue"))
-            .toJson()
+      schema()
+        .fromJson(new JsonObject().put("mykey", "myvalue"))
+        .toJson()
     )
-        .removingEntry("$id")
-        .containsAllAndOnlyEntries(entry("mykey", "myvalue"));
+      .removingEntry("$id")
+      .containsAllAndOnlyEntries(entry("mykey", "myvalue"));
   }
 
   @Test
   public void testDefault() {
     assertThat(
-        schema()
-            .defaultValue("bla")
-            .toJson()
+      schema()
+        .defaultValue("bla")
+        .toJson()
     )
-        .removingEntry("$id")
-        .containsAllAndOnlyEntries(entry("default", "bla"));
+      .removingEntry("$id")
+      .containsAllAndOnlyEntries(entry("default", "bla"));
   }
 
   @Test
   public void testId() {
     assertThat(
-        schema()
-            .id(JsonPointer.fromURI(URI.create("#/bla")))
-            .toJson()
+      schema()
+        .id(JsonPointer.fromURI(URI.create("#/bla")))
+        .toJson()
     )
-        .containsAllAndOnlyEntries(entry("$id", "#/bla"));
+      .containsAllAndOnlyEntries(entry("$id", "#/bla"));
   }
 
   @Test
   public void testGeneratedId() {
     assertThat(
-        schema()
+      schema()
         .toJson()
     )
-        .extractingKey("$id")
-        .asString()
-        .startsWith("urn:vertxschemas:");
+      .extractingKey("$id")
+      .asString()
+      .startsWith("urn:vertxschemas:");
   }
 
   @Test
   public void testCustomAlias() {
     assertThat(
-        schema()
-            .alias("bla")
-            .toJson()
+      schema()
+        .alias("bla")
+        .toJson()
     )
-        .extractingKey("$id")
-        .asString()
-        .startsWith("urn:vertxschemas:bla");
+      .extractingKey("$id")
+      .asString()
+      .startsWith("urn:vertxschemas:bla");
   }
 
   @Test
   public void testConstSchema() {
     assertThat(
-        constSchema("hello").toJson()
+      constSchema("hello").toJson()
     )
-        .containsEntry("const", "hello");
+      .containsEntry("const", "hello");
   }
 
   @Test
   public void testEnumSchema() {
     assertThat(
-        enumSchema("hello", 10, 8.5d).toJson()
+      enumSchema("hello", 10, 8.5d).toJson()
     )
-        .containsEntry("enum", new JsonArray().add("hello").add(10).add(8.5d));
+      .containsEntry("enum", new JsonArray().add("hello").add(10).add(8.5d));
   }
 
   @Test
   public void testRefSchema() {
     assertThat(
-        ref(JsonPointer.create()).toJson()
+      ref(JsonPointer.create()).toJson()
     )
-        .containsEntry("$ref", JsonPointer.create().toURI().toString());
+      .containsEntry("$ref", JsonPointer.create().toURI().toString());
   }
 
   @Test
   public void testRefToAlias() {
     assertThat(
-        refToAlias("hello").toJson()
+      refToAlias("hello").toJson()
     )
-        .extractingKey("$ref")
-        .asString()
-        .startsWith("urn:vertxschemas:hello");
+      .extractingKey("$ref")
+      .asString()
+      .startsWith("urn:vertxschemas:hello");
   }
 
   private void combinatorsTest(String keywordName, BiFunction<SchemaBuilder, SchemaBuilder, GenericSchemaBuilder> combinatorFactory) {
     assertThat(
-        combinatorFactory.apply(numberSchema(), intSchema()).toJson()
+      combinatorFactory.apply(numberSchema(), intSchema()).toJson()
     )
-        .extractingKey(keywordName)
-        .containsItemSatisfying(
-            i -> assertThatJson(i).containsEntry("type", "number")
-        )
-        .containsItemSatisfying(
-            i -> assertThatJson(i).containsEntry("type", "integer")
-        );
+      .extractingKey(keywordName)
+      .containsItemSatisfying(
+        i -> assertThatJson(i).containsEntry("type", "number")
+      )
+      .containsItemSatisfying(
+        i -> assertThatJson(i).containsEntry("type", "integer")
+      );
   }
 
   @Test
@@ -173,21 +173,21 @@ public class SchemaBuilderTest {
   @Test
   public void testNot() {
     assertThat(
-        not(numberSchema()).toJson()
+      not(numberSchema()).toJson()
     )
-        .extractingKey("not")
-        .containsEntry("type", "number");
+      .extractingKey("not")
+      .containsEntry("type", "number");
   }
 
   @Test
   public void testIfThenElse() {
     assertThat(
-        ifThenElse(numberSchema(), intSchema(), stringSchema())
-            .toJson()
+      ifThenElse(numberSchema(), intSchema(), stringSchema())
+        .toJson()
     )
-        .containsEntrySatisfying("if", v -> assertThatJson(v).containsEntry("type", "number"))
-        .containsEntrySatisfying("then", v -> assertThatJson(v).containsEntry("type", "integer"))
-        .containsEntrySatisfying("else", v -> assertThatJson(v).containsEntry("type", "string"));
+      .containsEntrySatisfying("if", v -> assertThatJson(v).containsEntry("type", "number"))
+      .containsEntrySatisfying("then", v -> assertThatJson(v).containsEntry("type", "integer"))
+      .containsEntrySatisfying("else", v -> assertThatJson(v).containsEntry("type", "string"));
   }
 
 }

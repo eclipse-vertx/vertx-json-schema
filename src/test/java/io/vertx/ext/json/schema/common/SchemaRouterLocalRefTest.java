@@ -53,7 +53,7 @@ public class SchemaRouterLocalRefTest {
   public void relativeLocalRef(VertxTestContext context) {
     URI sampleURI = URI.create("./sample.json");
     JsonObject mainSchemaUnparsed = new JsonObject().put("$ref", sampleURI.toString());
-    Schema mainSchema = parser.parse(mainSchemaUnparsed, Paths.get(".","src", "test", "resources", "ref_test", "test_2.json").toUri());
+    Schema mainSchema = parser.parse(mainSchemaUnparsed, Paths.get(".", "src", "test", "resources", "ref_test", "test_2.json").toUri());
     mainSchema.validateAsync("").onComplete(context.succeeding(o -> { // Trigger validation to start solve refs
       context.verify(() -> {
         assertThat(router).canResolveSchema(JsonPointer.fromURI(sampleURI), mainSchema.getScope(), parser).hasXIdEqualsTo("main");

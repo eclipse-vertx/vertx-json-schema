@@ -1,15 +1,15 @@
 {
   "type": "object",
-  "properties":{
+  "properties": {
     "names": {
       "type": "array",
-      "items":{
+      "items": {
         "$ref": "#/definitions/name"
       }
     },
     "devices": {
       "type": "array",
-      "items":{
+      "items": {
         "$ref": "#/definitions/device"
       }
     }
