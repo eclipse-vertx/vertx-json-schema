@@ -47,20 +47,27 @@ where each one contains the necessary logic to perform the validation. The perfo
 === SchemaParser & SchemaRouter
 
 The {@link io.vertx.ext.json.schema.SchemaParser} is the component that parses the schemas from Json data structures to {@link io.vertx.ext.json.schema.Schema} instances.
-The {@link io.vertx.ext.json.schema.SchemaRouter} is the component able to cache parsed schemas and resolve `$ref`s.
-Every time a new `$ref` is solved or a {@link io.vertx.ext.json.schema.SchemaParser} parses a new schema, this will be cached inside the corresponding {@link io.vertx.ext.json.schema.SchemaRouter}.
-The {@link io.vertx.ext.json.schema.SchemaParser} can be extended to support custom keywords and formats
+The {@link io.vertx.ext.json.schema.SchemaRouter} is the component able to cache parsed schemas and resolve `$ref`.
+Every time a new `$ref` is solved or a {@link io.vertx.ext.json.schema.SchemaParser} parses a new schema, the new schema will be cached inside the corresponding {@link io.vertx.ext.json.schema.SchemaRouter}.
+The {@link io.vertx.ext.json.schema.SchemaParser} can be extended to support custom keywords and formats.
+
+The available {@link io.vertx.ext.json.schema.SchemaParser} are:
+
+* {@link io.vertx.ext.json.schema.draft201909.Draft201909SchemaParser} for Json Schema Draft 2019-09
+* {@link io.vertx.ext.json.schema.draft7.Draft7SchemaParser} for Json Schema Draft 7
+* {@link io.vertx.ext.json.schema.openapi3.OpenAPI3SchemaParser} for OpenAPI 3 dialect
 
 == Parse a schema
 
-To parse a schema you first need a schema router and a schema parser matching your schema _dialect_. For example to instantiate a _draft 7_ schema parser:
+To parse a schema you first need a schema router and a schema parser matching your schema _dialect_.
+For example to instantiate a _draft 2019-09_ schema parser:
 
 [source,$lang]
 ----
 {@link examples.JsonSchemaExamples#instantiate}
 ----
 
-You can reuse `SchemaRouter` instance for different `SchemaParser`s and you can parse different `Schema`s with same `SchemaParser`.
+You can reuse `SchemaRouter` instance for different `SchemaParser` and you can parse different `Schema` with same `SchemaParser`.
 
 Now you can parse the schema:
 
@@ -81,7 +88,7 @@ If you don't have any schema pointer `SchemaParser` will generate one for you:
 ====
 Remember that the schema pointer is required to reference this schema later using Json Schema `$ref`
 and to resolve relative references. If you load a schema from filesystem and you use relative references, **provide the correct pointer** or the
-`SchemaRouter` won't be able to resolve the `$ref`s
+`SchemaRouter` won't be able to resolve the local filesystem `$ref`.
 ====
 
 == Validate
