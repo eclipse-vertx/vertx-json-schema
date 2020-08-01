@@ -221,22 +221,18 @@ public class SchemaRouterImpl implements SchemaRouter {
 
     options.getAuthHeaders().forEach(reqOptions::addHeader);
 
-    Promise<String> prom = Promise.promise();
-    client.get(reqOptions, ar -> {
-      if (!ar.succeeded()) {
-        prom.tryFail(ar.cause());
-      }
-      int statusCode = ar.result().statusCode();
-      if (statusCode < 200 || statusCode > 299) {
-        prom.fail(
-          new IllegalStateException("Wrong status " + statusCode + " " + ar.result().statusMessage() + " received while resolving remote ref")
-        );
-      } else {
-        ar.result().body().map(Buffer::toString).onComplete(prom);
-        ar.result().exceptionHandler(prom::tryFail);
-      }
-    });
-    return prom.future();
+    return client.request(reqOptions)
+      .compose(req -> req.send()
+        .compose(resp -> {
+          int statusCode = resp.statusCode();
+          if (statusCode < 200 || statusCode > 299) {
+            return Future.failedFuture(new IllegalStateException("Wrong status " + statusCode + " " + resp.statusMessage() + " received while resolving remote ref"));
+          } else {
+            return resp
+              .body()
+              .map(Buffer::toString);
+          }
+        }));
   }
 
   private Future<String> solveLocalRef(final URI ref) {
