@@ -4,6 +4,10 @@ import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.VertxException;
 import io.vertx.core.json.pointer.JsonPointer;
 
+import java.util.Collection;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 /**
  * This is the main class for every Validation flow related errors
  *
@@ -26,6 +30,10 @@ public class ValidationException extends VertxException {
     super(message, cause);
     this.keyword = keyword;
     this.input = input;
+  }
+
+  public static ValidationException createException(String message, String keyword, Object input, Collection<Throwable> causes) {
+    return createException(message + ". Multiple causes: " + formatExceptions(causes), keyword, input);
   }
 
   public static ValidationException createException(String message, String keyword, Object input, Throwable cause) {
@@ -90,5 +98,16 @@ public class ValidationException extends VertxException {
       ", schema=" + schema +
       ((scope != null) ? ", scope=" + scope.toURI() : "") +
       '}';
+  }
+
+  private static String formatExceptions(Collection<Throwable> throwables) {
+    if (throwables == null) {
+      return "[]";
+    }
+    return "[" + throwables
+      .stream()
+      .filter(Objects::nonNull)
+      .map(Throwable::getMessage)
+      .collect(Collectors.joining(", ")) + "]";
   }
 }
