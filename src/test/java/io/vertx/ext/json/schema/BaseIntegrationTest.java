@@ -140,8 +140,6 @@ public abstract class BaseIntegrationTest {
       else if (log.isDebugEnabled())
         log.debug(event.cause().toString());
 
-      event.cause().printStackTrace();
-
       if (skipSyncCheck(schema)) {
         context.completeNow();
         return;
