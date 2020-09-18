@@ -13,11 +13,21 @@ package io.vertx.ext.json.schema.openapi3;
 import io.vertx.ext.json.schema.common.BaseFormatValidatorFactory;
 import io.vertx.ext.json.schema.common.RegularExpressions;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
 public class FormatValidatorFactory extends BaseFormatValidatorFactory {
+
+  @Override
+  protected List<String> initIgnoringFormats() {
+    List<String> formats = new ArrayList<>(super.initIgnoringFormats());
+    formats.add("password");
+    return formats;
+  }
+
   @Override
   public Map<String, Predicate<String>> initFormatsMap() {
     Map<String, Predicate<String>> predicates = new HashMap<>();
