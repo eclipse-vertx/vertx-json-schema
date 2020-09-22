@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import static io.vertx.ext.json.schema.ValidationException.createException;
+import java.util.List;
 import java.util.Map;
 
 public class OneOfValidatorFactory extends BaseCombinatorsValidatorFactory {
@@ -78,9 +79,12 @@ public class OneOfValidatorFactory extends BaseCombinatorsValidatorFactory {
     @Override
     public Future<Void> validateAsync(ValidatorContext context, Object in) {
       if (isSync()) return validateSyncAsAsync(context, in);
-      return FutureUtils
-        .oneOf(Arrays.stream(schemas).filter(s -> checkDiscriminator(s, in)).map(s -> s.validateAsync(context, in)).collect(Collectors.toList()))
-        .recover(err -> Future.failedFuture(createException("No schema matches", "oneOf", in, err)));
+      List<Future<Void>> futures = Arrays.stream(schemas).filter(s -> checkDiscriminator(s, in)).map(s -> s.validateAsync(context, in)).collect(Collectors.toList());
+      if (futures.isEmpty()) {
+        return Future.failedFuture(createException("No schema matches", "oneOf", in));
+      } else {
+        return FutureUtils.oneOf(futures).recover(err -> Future.failedFuture(createException("No schema matches", "oneOf", in, err)));
+      }
     }
 
     private boolean checkDiscriminator(SchemaInternal schema, Object in) {
@@ -91,7 +95,7 @@ public class OneOfValidatorFactory extends BaseCombinatorsValidatorFactory {
 
           JsonObject jsonSchema = ((JsonObject) schema.getJson());
           String schemaName = (jsonSchema.containsKey("name")) ? jsonSchema.getString("name") : jsonSchema.getString("$ref");
-          return discriminator != null && discriminator.equals(schemaName);
+          return schemaName!=null && discriminator != null && (discriminator.equals(schemaName) || schemaName.endsWith("/"+discriminator));
         }
       }
       return true;
