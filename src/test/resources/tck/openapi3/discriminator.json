@@ -72,6 +72,19 @@
           "id": "A"
         },
         "valid": false
+      },
+      {
+        "description": "should be valid with id B and without value_b",
+        "data": {
+          "id": "B"
+        },
+        "valid": true
+      },
+      {
+        "description": "should be invalid with empty object",
+        "data": {          
+        },
+        "valid": false
       }
     ]
   },
@@ -152,6 +165,19 @@
         "description": "should be invalid with id A and without value_a",
         "data": {
           "id": "A"
+        },
+        "valid": false
+      },
+      {
+        "description": "should be valid with id B and without value_b",
+        "data": {
+          "id": "B"
+        },
+        "valid": true
+      },
+      {
+        "description": "should be invalid with empty object",
+        "data": {          
         },
         "valid": false
       }
@@ -238,6 +264,19 @@
         "description": "should be invalid with id A and without value_a",
         "data": {
           "id": "A"
+        },
+        "valid": false
+      },
+      {
+        "description": "should be valid with id B and without value_b",
+        "data": {
+          "id": "B"
+        },
+        "valid": true
+      },
+      {
+        "description": "should be invalid with empty object",
+        "data": {          
         },
         "valid": false
       }
