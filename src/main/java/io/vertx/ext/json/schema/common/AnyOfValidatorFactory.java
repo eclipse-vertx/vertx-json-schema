@@ -27,12 +27,12 @@ import static io.vertx.ext.json.schema.ValidationException.createException;
 public class AnyOfValidatorFactory extends BaseCombinatorsValidatorFactory {
 
   @Override
-  BaseCombinatorsValidator instantiate(MutableStateValidator parent) {
+  protected BaseCombinatorsValidator instantiate(MutableStateValidator parent) {
     return new AnyOfValidator(parent);
   }
 
   @Override
-  String getKeyword() {
+  protected String getKeyword() {
     return "anyOf";
   }
 

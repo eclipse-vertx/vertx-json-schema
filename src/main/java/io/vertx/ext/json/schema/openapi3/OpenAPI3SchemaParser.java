@@ -48,7 +48,7 @@ public class OpenAPI3SchemaParser extends BaseSchemaParser {
     factories.add(new MinPropertiesValidatorFactory());
     factories.add(new MultipleOfValidatorFactory());
     factories.add(new NotValidatorFactory());
-    factories.add(new OneOfValidatorFactory());
+    factories.add(new OneOfDiscriminatorValidatorFactory());
     factories.add(new PatternValidatorFactory());
     factories.add(new PropertiesValidatorFactory());
     factories.add(new RequiredValidatorFactory());
