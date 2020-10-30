@@ -27,8 +27,7 @@ public class URIUtils {
         return new URI(oldURI.getScheme(), oldURI.getSchemeSpecificPart(), fragment);
       } else return new URI(null, null, fragment);
     } catch (URISyntaxException e) {
-      e.printStackTrace();
-      return null;
+      throw new IllegalArgumentException(e);
     }
   }
 
@@ -49,8 +48,7 @@ public class URIUtils {
       } else if (path.isEmpty()) return oldURI;
       else return oldURI.resolve(path);
     } catch (URISyntaxException e) {
-      e.printStackTrace();
-      return null;
+      throw new IllegalArgumentException(e);
     }
   }
 
