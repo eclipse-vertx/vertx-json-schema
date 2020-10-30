@@ -10,26 +10,41 @@
             },
             {
                 "description": "an invalid date-time string",
-                "data": "06/19/1963 08:30:06 PST",
-                "valid": false
+              "data": "06/19/1963 08:30:06 PST",
+              "valid": false
             },
-            {
-                "description": "only RFC3339 not all of ISO 8601 are valid",
-                "data": "2013-350T01:01:01",
-                "valid": false
-            }
+          {
+            "description": "only RFC3339 not all of ISO 8601 are valid",
+            "data": "2013-350T01:01:01",
+            "valid": false
+          }
         ]
     },
-    {
-        "description": "validation of URIs",
-        "schema": {"format": "uri"},
-        "tests": [
-            {
-                "description": "a valid URL with anchor tag",
-                "data": "http://foo.bar/?baz=qux#quux",
-                "valid": true
-            },
-            {
+  {
+    "description": "ignore password format",
+    "schema": {
+      "format": "password"
+    },
+    "tests": [
+      {
+        "description": "a valid string",
+        "data": "hello world",
+        "valid": true
+      }
+    ]
+  },
+  {
+    "description": "validation of URIs",
+    "schema": {
+      "format": "uri"
+    },
+    "tests": [
+      {
+        "description": "a valid URL with anchor tag",
+        "data": "http://foo.bar/?baz=qux#quux",
+        "valid": true
+      },
+      {
                 "description": "a valid URL with anchor tag and parantheses",
                 "data": "http://foo.com/blah_(wikipedia)_blah#cite-1",
                 "valid": true
