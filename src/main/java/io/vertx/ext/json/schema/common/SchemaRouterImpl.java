@@ -63,15 +63,34 @@ public class SchemaRouterImpl implements SchemaRouter {
 
   @Override
   public Schema resolveCachedSchema(JsonPointer refPointer, JsonPointer scope, final SchemaParser parser) {
-    return resolveParentNode(refPointer, scope).flatMap(parentNode -> {
-      Optional<RouterNode> resultNode = Optional.ofNullable((RouterNode) refPointer.query(parentNode, RouterNodeJsonPointerIterator.INSTANCE));
-      if (resultNode.isPresent())
-        return resultNode.map(RouterNode::getSchema);
-      if (parentNode.getSchema() instanceof SchemaImpl) // Maybe the schema that we are searching was not parsed yet!
-        return Optional.ofNullable(refPointer.queryJson(parentNode.getSchema().getJson()))
-          .map(queryResult -> ((SchemaParserInternal) parser).parse(queryResult, URIUtils.replaceFragment(parentNode.getSchema().getScope().getURIWithoutFragment(), refPointer.toString())));
-      return Optional.empty();
-    }).orElse(null);
+    // Let's try first searching in already parsed cached schemas
+    return resolveParentNode(refPointer, scope)
+      .flatMap(parentNode -> {
+        Optional<RouterNode> resultNode = Optional.ofNullable((RouterNode) refPointer.query(parentNode, RouterNodeJsonPointerIterator.INSTANCE));
+        if (resultNode.isPresent())
+          return resultNode.map(RouterNode::getSchema);
+        if (parentNode.getSchema() instanceof SchemaImpl) // Maybe the schema that we are searching was not parsed yet!
+          return Optional.ofNullable(refPointer.queryJson(parentNode.getSchema().getJson()))
+            .map(queryResult -> ((SchemaParserInternal) parser).parse(queryResult, URIUtils.replaceFragment(parentNode.getSchema().getScope().getURIWithoutFragment(), refPointer.toString())));
+        return Optional.empty();
+      })
+      // Let's try from the rootJson, user could be requesting a json added but not parsed
+      .orElseGet(() -> resolveAbsoluteUriAlternatives(refPointer, scope)
+        .filter(rootJsons::containsKey)
+        .map(uriToSolve -> {
+          Object realLocation = refPointer.queryJson(rootJsons.get(uriToSolve));
+          if (realLocation == null) {
+            return null;
+          }
+          return ((SchemaParserInternal) parser).parse(
+            realLocation,
+            JsonPointer.fromURI(URIUtils.replaceFragment(uriToSolve, refPointer.toString()))
+          );
+        })
+        .filter(Objects::nonNull)
+        .findFirst()
+        .orElse(null)
+      );
   }
 
   @Override
@@ -109,9 +128,7 @@ public class SchemaRouterImpl implements SchemaRouter {
 
   @Override
   public SchemaRouter addSchemaWithScope(Schema schema, JsonPointer scope) {
-    if (!scope.getURIWithoutFragment().isAbsolute()) {
-      throw new IllegalStateException("Schema scope MUST be a pointer with an absolute URI. Actual: " + scope.getURIWithoutFragment());
-    }
+    URIUtils.requireAbsoluteUri(scope.getURIWithoutFragment(), "schema scope");
     RouterNode parentNode = absolutePaths.computeIfAbsent(scope.getURIWithoutFragment(), k -> new RouterNode());
     insertSchema(scope, parentNode, schema);
     return this;
@@ -135,6 +152,7 @@ public class SchemaRouterImpl implements SchemaRouter {
 
   @Override
   public SchemaRouter addJson(URI uri, JsonObject object) {
+    URIUtils.requireAbsoluteUri(uri);
     this.rootJsons.put(uri, object);
     return this;
   }
@@ -183,6 +201,10 @@ public class SchemaRouterImpl implements SchemaRouter {
   private Stream<URI> getScopeParentAliases(JsonPointer scope) {
     Stream.Builder<URI> uriStreamBuilder = Stream.builder();
     RouterNode startingNode = absolutePaths.get(scope.getURIWithoutFragment());
+    // If this is the first external ref solved by this schema router, then the startingNode could not be there
+    if (startingNode == null) {
+      return Stream.of(scope.getURIWithoutFragment());
+    }
     scope.tracedQuery(startingNode, RouterNodeJsonPointerIterator.INSTANCE)
       .forEach((node) -> absolutePaths.forEach((uri, n) -> {
         if (n == node) uriStreamBuilder.accept(uri);
@@ -190,29 +212,34 @@ public class SchemaRouterImpl implements SchemaRouter {
     return uriStreamBuilder.build();
   }
 
-  private Optional<RouterNode> resolveParentNode(JsonPointer refPointer, JsonPointer scope) {
+  private Stream<URI> resolveAbsoluteUriAlternatives(JsonPointer refPointer, JsonPointer scope) {
     URI refURI = refPointer.getURIWithoutFragment();
     if (!refURI.isAbsolute()) {
       if (refURI.getPath() != null && !refURI.getPath().isEmpty()) {
         // Path pointer
         return Stream.concat(
-          getScopeParentAliases(scope).map(e -> URIUtils.resolvePath(e, refURI.getPath())),
+          getScopeParentAliases(scope)
+            .map(e -> URIUtils.resolvePath(e, refURI.getPath())),
           Stream.of(
             getResourceAbsoluteURIFromClasspath(refURI),
             refURI
           )
-        )
-          .map(absolutePaths::get)
-          .filter(Objects::nonNull)
-          .findFirst();
+        ).filter(Objects::nonNull);
       } else {
         // Fragment pointer, fallback to scope
-        return Optional.ofNullable(absolutePaths.get(scope.getURIWithoutFragment()));
+        return Stream.of(scope.getURIWithoutFragment());
       }
     } else {
       // Absolute pointer
-      return Optional.ofNullable(absolutePaths.get(refURI));
+      return Stream.of(refURI);
     }
+  }
+
+  private Optional<RouterNode> resolveParentNode(JsonPointer refPointer, JsonPointer scope) {
+    return resolveAbsoluteUriAlternatives(refPointer, scope)
+      .map(absolutePaths::get)
+      .filter(Objects::nonNull)
+      .findFirst();
   }
 
   private Future<String> solveRemoteRef(final URI ref) {
@@ -262,9 +289,9 @@ public class SchemaRouterImpl implements SchemaRouter {
     URI refURI = pointer.getURIWithoutFragment();
     return externalSchemasSolving.computeIfAbsent(refURI, (r) -> {
       Stream<URI> candidatesURIs;
-      if (refURI.isAbsolute()) // $ref uri is absolute, just solve it
+      if (refURI.isAbsolute()) { // $ref uri is absolute, just solve it
         candidatesURIs = Stream.of(refURI);
-      else // $ref is relative, so it should resolve all aliases of scope and then relativize
+      } else { // $ref is relative, so it should resolve all aliases of scope and then relativize
         candidatesURIs = Stream.concat(
           getScopeParentAliases(scope)
             .map(u -> URIUtils.resolvePath(u, refURI.getPath()))
@@ -274,19 +301,12 @@ public class SchemaRouterImpl implements SchemaRouter {
             getResourceAbsoluteURIFromClasspath(refURI) // Last hope: try to solve from class loader
           )
         );
+      }
       URI uriToSolve = candidatesURIs
         .filter(Objects::nonNull)
         .findFirst()
         .orElse(refURI); // REALLY Last hope: try to solve as is from file system
 
-      if (rootJsons.containsKey(uriToSolve)) { // Cached!
-        Object realLocation = pointer.queryJson(rootJsons.get(uriToSolve));
-        ((SchemaParserInternal) schemaParser).parse(
-          realLocation,
-          JsonPointer.fromURI(URIUtils.replaceFragment(uriToSolve, pointer.toString()))
-        );
-        return Future.succeededFuture(resolveCachedSchema(pointer, scope, schemaParser));
-      }
       return
         ((URIUtils.isRemoteURI(uriToSolve)) ? solveRemoteRef(uriToSolve) : solveLocalRef(uriToSolve))
           .map(s -> {

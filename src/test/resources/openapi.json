@@ -5,116 +5,6 @@
     "version": "1.0.0",
     "description": "OpenAPI used to test the SchemaRouterImpl"
   },
-  "paths": {
-    "/roadlayouts": {
-      "summary": "Path used to manage the list of roadlayouts.",
-      "description": "The REST endpoint/path used to list and create zero or more `RoadLayout` entities.  This path contains a `GET` and `POST` operation to perform the list and create tasks, respectively.",
-      "get": {
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/RoadLayout"
-                  }
-                }
-              }
-            },
-            "description": "Successful response - returns an array of `RoadLayout` entities."
-          }
-        },
-        "operationId": "getroadlayouts",
-        "summary": "List All roadlayouts",
-        "description": "Gets a list of all `RoadLayout` entities."
-      },
-      "post": {
-        "requestBody": {
-          "description": "A new `RoadLayout` to be created.",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RoadLayout"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "Successful response."
-          }
-        },
-        "operationId": "createRoadLayout",
-        "summary": "Create a RoadLayout",
-        "description": "Creates a new instance of a `RoadLayout`."
-      }
-    },
-    "/roadlayouts/{roadlayoutId}": {
-      "summary": "Path used to manage a single RoadLayout.",
-      "description": "The REST endpoint/path used to get, update, and delete single instances of an `RoadLayout`.  This path contains `GET`, `PUT`, and `DELETE` operations used to perform the get, update, and delete tasks, respectively.",
-      "get": {
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RoadLayout"
-                }
-              }
-            },
-            "description": "Successful response - returns a single `RoadLayout`."
-          }
-        },
-        "operationId": "getRoadLayout",
-        "summary": "Get a RoadLayout",
-        "description": "Gets the details of a single instance of a `RoadLayout`."
-      },
-      "put": {
-        "requestBody": {
-          "description": "Updated `RoadLayout` information.",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RoadLayout"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "202": {
-            "description": "Successful response."
-          }
-        },
-        "operationId": "updateRoadLayout",
-        "summary": "Update a RoadLayout",
-        "description": "Updates an existing `RoadLayout`."
-      },
-      "delete": {
-        "responses": {
-          "204": {
-            "description": "Successful response."
-          }
-        },
-        "operationId": "deleteRoadLayout",
-        "summary": "Delete a RoadLayout",
-        "description": "Deletes an existing `RoadLayout`."
-      },
-      "parameters": [
-        {
-          "name": "roadlayoutId",
-          "description": "A unique identifier for a `RoadLayout`.",
-          "schema": {
-            "type": "string"
-          },
-          "in": "path",
-          "required": true
-        }
-      ]
-    }
-  },
   "components": {
     "schemas": {
       "TrafficLight": {
@@ -157,6 +47,7 @@
         }
       },
       "RoadLayout": {
+        "title": "Root Type for RoadLayout",
         "description": "An average road with all its traffic lights",
         "required": [
           "name"

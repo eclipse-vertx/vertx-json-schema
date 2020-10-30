@@ -14,6 +14,7 @@ import io.vertx.core.json.pointer.JsonPointer;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Objects;
 
 public class URIUtils {
 
@@ -64,6 +65,22 @@ public class URIUtils {
       if (frag.charAt(0) != '/') frag = "/" + frag;
     }
     return JsonPointer.fromURI(replaceFragment(original, frag));
+  }
+
+  public static URI requireAbsoluteUri(URI uri) {
+    Objects.requireNonNull(uri);
+    if (!uri.isAbsolute()) {
+      throw new IllegalArgumentException("Provided uri should be absolute. Actual: " + uri.toString());
+    }
+    return uri;
+  }
+
+  public static URI requireAbsoluteUri(URI uri, String name) {
+    Objects.requireNonNull(uri);
+    if (!uri.isAbsolute()) {
+      throw new IllegalArgumentException("Provided " + name + " uri should be absolute. Actual: " + uri.toString());
+    }
+    return uri;
   }
 
 }

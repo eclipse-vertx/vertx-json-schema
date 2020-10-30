@@ -23,7 +23,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 public class SchemaRouterImplTest {
 
   @Test
-  public void resolveCachedSchemaInJsonContainingSchemas(Vertx vertx) throws Exception {
+  public void resolveCachedSchemaInJsonContainingSchemasWithRelativeRef(Vertx vertx) throws Exception {
     final URI baseJsonUri = buildBaseUri("openapi.json");
     SchemaRouter schemaRouter = SchemaRouter.create(vertx, new SchemaRouterOptions());
     SchemaParser schemaParser = SchemaParser.createOpenAPI3SchemaParser(schemaRouter);
@@ -36,12 +36,109 @@ public class SchemaRouterImplTest {
       schemaParser
     );
 
+    assertThat(schema)
+      .isNotNull();
     assertThat(schema.getJson())
       .isInstanceOf(JsonObject.class);
 
     assertThat((JsonObject) schema.getJson())
-      .extractingKey("description")
+      .extractingKey("title")
       .isEqualTo("Root Type for TrafficLight");
+  }
+
+  @Test
+  public void resolveCachedSchemaInJsonContainingSchemasWithAbsoluteRef(Vertx vertx) throws Exception {
+    final URI baseJsonUri = buildBaseUri("openapi.json");
+    SchemaRouter schemaRouter = SchemaRouter.create(vertx, new SchemaRouterOptions());
+    SchemaParser schemaParser = SchemaParser.createOpenAPI3SchemaParser(schemaRouter);
+
+    schemaRouter.addJson(baseJsonUri, loadJson(baseJsonUri));
+
+    Schema schema = schemaRouter.resolveCachedSchema(
+      JsonPointer.fromURI(URIUtils.replaceFragment(baseJsonUri, "/components/schemas/TrafficLight")),
+      JsonPointer.create(),
+      schemaParser
+    );
+
+    assertThat(schema)
+      .isNotNull();
+    assertThat(schema.getJson())
+      .isInstanceOf(JsonObject.class);
+
+    assertThat((JsonObject) schema.getJson())
+      .extractingKey("title")
+      .isEqualTo("Root Type for TrafficLight");
+  }
+
+  @Test
+  public void resolveMultipleCachedSchemaInJsonContainingSchemasWithRelativeRef(Vertx vertx) throws Exception {
+    final URI baseJsonUri = buildBaseUri("openapi.json");
+    SchemaRouter schemaRouter = SchemaRouter.create(vertx, new SchemaRouterOptions());
+    SchemaParser schemaParser = SchemaParser.createOpenAPI3SchemaParser(schemaRouter);
+
+    schemaRouter.addJson(baseJsonUri, loadJson(baseJsonUri));
+
+    Schema trafficLight = schemaRouter.resolveCachedSchema(
+      JsonPointer.from("/components/schemas/TrafficLight"),
+      JsonPointer.fromURI(baseJsonUri),
+      schemaParser
+    );
+
+    assertThat(trafficLight)
+      .isNotNull();
+    assertThat(trafficLight.getJson())
+      .isInstanceOf(JsonObject.class);
+    assertThat((JsonObject) trafficLight.getJson())
+      .extractingKey("title")
+      .isEqualTo("Root Type for TrafficLight");
+
+    Schema roadLayout = schemaRouter.resolveCachedSchema(
+      JsonPointer.from("/components/schemas/RoadLayout"),
+      JsonPointer.fromURI(baseJsonUri),
+      schemaParser
+    );
+    assertThat(roadLayout)
+      .isNotNull();
+    assertThat(roadLayout.getJson())
+      .isInstanceOf(JsonObject.class);
+    assertThat((JsonObject) roadLayout.getJson())
+      .extractingKey("title")
+      .isEqualTo("Root Type for RoadLayout");
+  }
+
+  @Test
+  public void resolveMultipleCachedSchemaInJsonContainingSchemasWithAbsoluteRef(Vertx vertx) throws Exception {
+    final URI baseJsonUri = buildBaseUri("openapi.json");
+    SchemaRouter schemaRouter = SchemaRouter.create(vertx, new SchemaRouterOptions());
+    SchemaParser schemaParser = SchemaParser.createOpenAPI3SchemaParser(schemaRouter);
+
+    schemaRouter.addJson(baseJsonUri, loadJson(baseJsonUri));
+
+    Schema trafficLight = schemaRouter.resolveCachedSchema(
+      JsonPointer.fromURI(URIUtils.replaceFragment(baseJsonUri, "/components/schemas/TrafficLight")),
+      JsonPointer.create(),
+      schemaParser
+    );
+    assertThat(trafficLight)
+      .isNotNull();
+    assertThat(trafficLight.getJson())
+      .isInstanceOf(JsonObject.class);
+    assertThat((JsonObject) trafficLight.getJson())
+      .extractingKey("title")
+      .isEqualTo("Root Type for TrafficLight");
+
+    Schema roadLayout = schemaRouter.resolveCachedSchema(
+      JsonPointer.fromURI(URIUtils.replaceFragment(baseJsonUri, "/components/schemas/RoadLayout")),
+      JsonPointer.create(),
+      schemaParser
+    );
+    assertThat(roadLayout)
+      .isNotNull();
+    assertThat(roadLayout.getJson())
+      .isInstanceOf(JsonObject.class);
+    assertThat((JsonObject) roadLayout.getJson())
+      .extractingKey("title")
+      .isEqualTo("Root Type for RoadLayout");
   }
 
   @Test
@@ -63,7 +160,7 @@ public class SchemaRouterImplTest {
           assertThat(schema.getJson())
             .isInstanceOf(JsonObject.class);
           assertThat((JsonObject) schema.getJson())
-            .extractingKey("description")
+            .extractingKey("title")
             .isEqualTo("Root Type for TrafficLight");
         });
         testContext.completeNow();
