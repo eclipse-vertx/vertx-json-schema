@@ -11,8 +11,10 @@
 package io.vertx.ext.json.schema.common;
 
 import io.netty.handler.codec.http.QueryStringEncoder;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
@@ -72,6 +74,14 @@ public class SchemaRouterImpl implements SchemaRouter {
           .map(queryResult -> ((SchemaParserInternal) parser).parse(queryResult, URIUtils.replaceFragment(parentNode.getSchema().getScope().getURIWithoutFragment(), refPointer.toString())));
       return Optional.empty();
     }).orElse(null);
+  }
+
+  @Override
+  public void resolveRef(JsonPointer pointer, JsonPointer scope, SchemaParser schemaParser, Handler<AsyncResult<Schema>> handler) {
+    Future<Schema> fut = resolveRef(pointer, scope, schemaParser);
+    if (handler != null) {
+      fut.onComplete(handler);
+    }
   }
 
   @Override

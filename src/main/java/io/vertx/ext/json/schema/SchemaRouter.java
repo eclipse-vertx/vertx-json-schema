@@ -14,7 +14,9 @@ import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.http.HttpClient;
@@ -47,6 +49,11 @@ public interface SchemaRouter {
    * @throws SchemaException If was found an unparsed schema that is an invalid json schema
    */
   @Nullable Schema resolveCachedSchema(JsonPointer refPointer, JsonPointer schemaScope, SchemaParser parser) throws SchemaException;
+
+  /**
+   * Like {@link #resolveRef(JsonPointer, JsonPointer, SchemaParser)} but with a direct callback.
+   */
+  void resolveRef(JsonPointer pointer, JsonPointer scope, SchemaParser schemaParser, Handler<AsyncResult<Schema>> handler);
 
   /**
    * Resolve $ref. <br/>
