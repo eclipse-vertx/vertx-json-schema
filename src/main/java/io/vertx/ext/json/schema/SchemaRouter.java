@@ -116,6 +116,7 @@ public interface SchemaRouter {
    * @return a reference to this
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  @Fluent
   SchemaRouter addJson(URI uri, JsonObject object);
 
   /**
@@ -129,6 +130,7 @@ public interface SchemaRouter {
    * @param object
    * @return a reference to this
    */
+  @Fluent
   default SchemaRouter addJson(String uri, JsonObject object) {
     return addJson(URI.create(uri), object);
   }
