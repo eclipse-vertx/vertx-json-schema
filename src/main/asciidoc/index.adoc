@@ -41,21 +41,21 @@ dependencies {
 
 === Schema
 
-Each parsed schema is represented by a {@link io.vertx.ext.json.schema.Schema} instance. A schema is a tree of {@link io.vertx.ext.json.schema.common.Validator} objects,
+Each parsed schema is represented by a {@link io.vertx.json.schema.Schema} instance. A schema is a tree of {@link io.vertx.json.schema.common.Validator} objects,
 where each one contains the necessary logic to perform the validation. The performed validation is _fail-fast_: as soon as a validation error is encountered, the validation fails without going further
 
 === SchemaParser & SchemaRouter
 
-The {@link io.vertx.ext.json.schema.SchemaParser} is the component that parses the schemas from Json data structures to {@link io.vertx.ext.json.schema.Schema} instances.
-The {@link io.vertx.ext.json.schema.SchemaRouter} is the component able to cache parsed schemas and resolve `$ref`.
-Every time a new `$ref` is solved or a {@link io.vertx.ext.json.schema.SchemaParser} parses a new schema, the new schema will be cached inside the corresponding {@link io.vertx.ext.json.schema.SchemaRouter}.
-The {@link io.vertx.ext.json.schema.SchemaParser} can be extended to support custom keywords and formats.
+The {@link io.vertx.json.schema.SchemaParser} is the component that parses the schemas from Json data structures to {@link io.vertx.json.schema.Schema} instances.
+The {@link io.vertx.json.schema.SchemaRouter} is the component able to cache parsed schemas and resolve `$ref`.
+Every time a new `$ref` is solved or a {@link io.vertx.json.schema.SchemaParser} parses a new schema, the new schema will be cached inside the corresponding {@link io.vertx.json.schema.SchemaRouter}.
+The {@link io.vertx.json.schema.SchemaParser} can be extended to support custom keywords and formats.
 
-The available {@link io.vertx.ext.json.schema.SchemaParser} are:
+The available {@link io.vertx.json.schema.SchemaParser} are:
 
-* {@link io.vertx.ext.json.schema.draft201909.Draft201909SchemaParser} for Json Schema Draft 2019-09
-* {@link io.vertx.ext.json.schema.draft7.Draft7SchemaParser} for Json Schema Draft 7
-* {@link io.vertx.ext.json.schema.openapi3.OpenAPI3SchemaParser} for OpenAPI 3 dialect
+* {@link io.vertx.json.schema.draft201909.Draft201909SchemaParser} for Json Schema Draft 2019-09
+* {@link io.vertx.json.schema.draft7.Draft7SchemaParser} for Json Schema Draft 7
+* {@link io.vertx.json.schema.openapi3.OpenAPI3SchemaParser} for OpenAPI 3 dialect
 
 == Parse a schema
 
@@ -95,8 +95,8 @@ and to resolve relative references. If you load a schema from filesystem and you
 
 A schema could have two states:
 
-* Synchronous: The validators tree can provide a synchronous validation. You can validate your json both using {@link io.vertx.ext.json.schema.Schema#validateSync(Object)} and {@link io.vertx.ext.json.schema.Schema#validateAsync(Object)}</li>
-* Asynchronous: One or more branches of the validator tree requires an asynchronous validation. You must use {@link io.vertx.ext.json.schema.Schema#validateAsync(Object)} to validate your json. If you use {@link io.vertx.ext.json.schema.Schema#validateSync(Object)} it will throw a {@link io.vertx.ext.json.schema.NoSyncValidationException}</li>
+* Synchronous: The validators tree can provide a synchronous validation. You can validate your json both using {@link io.vertx.json.schema.Schema#validateSync(Object)} and {@link io.vertx.json.schema.Schema#validateAsync(Object)}</li>
+* Asynchronous: One or more branches of the validator tree requires an asynchronous validation. You must use {@link io.vertx.json.schema.Schema#validateAsync(Object)} to validate your json. If you use {@link io.vertx.json.schema.Schema#validateSync(Object)} it will throw a {@link io.vertx.json.schema.NoSyncValidationException}</li>
 
 To validate a schema in an asynchronous state:
 
@@ -112,13 +112,13 @@ To validate a schema in a synchronous state:
 {@link examples.JsonSchemaExamples#validateSync}
 ----
 
-To check the schema state you can use method {@link io.vertx.ext.json.schema.Schema#isSync()}.
+To check the schema state you can use method {@link io.vertx.json.schema.Schema#isSync()}.
 The schema can mutate the state in time, e.g. if you have a schema that is asynchronous because of a `$ref`,
 after the first validation the external schema is cached and the schema will switch to synchronous state.
 
 [NOTE]
 ====
-If you use {@link io.vertx.ext.json.schema.Schema#validateAsync(Object)} while the schema is in a synchronous state,
+If you use {@link io.vertx.json.schema.Schema#validateAsync(Object)} while the schema is in a synchronous state,
 the schema will validate synchronously wrapping the result in the returned `Future`, avoiding unnecessary async computations and memory usage
 ====
 
@@ -144,12 +144,12 @@ You can add custom formats to use with validation keyword `format` before parsin
 
 == Adding custom keywords
 
-For every new keyword type you want to provide, you must implement {@link io.vertx.ext.json.schema.common.ValidatorFactory}
-and provide an instance to `SchemaParser` using {@link io.vertx.ext.json.schema.SchemaParser#withValidatorFactory(ValidatorFactory)}.
-When parsing happens, the `SchemaParser` calls {@link io.vertx.ext.json.schema.common.ValidatorFactory#canConsumeSchema(JsonObject)} for each registered factory.
-If the factory can consume the schema, then the method {@link io.vertx.ext.json.schema.common.ValidatorFactory#createValidator(JsonObject, JsonPointer, SchemaParserInternal, MutableStateValidator)}
-is called. This method returns an instance of {@link io.vertx.ext.json.schema.common.Validator}, that represents the object that will perform the validation.
-If something goes wrong during `Validator` creation, a {@link io.vertx.ext.json.schema.SchemaException} should be thrown
+For every new keyword type you want to provide, you must implement {@link io.vertx.json.schema.common.ValidatorFactory}
+and provide an instance to `SchemaParser` using {@link io.vertx.json.schema.SchemaParser#withValidatorFactory(ValidatorFactory)}.
+When parsing happens, the `SchemaParser` calls {@link io.vertx.json.schema.common.ValidatorFactory#canConsumeSchema(JsonObject)} for each registered factory.
+If the factory can consume the schema, then the method {@link io.vertx.json.schema.common.ValidatorFactory#createValidator(JsonObject, JsonPointer, SchemaParserInternal, MutableStateValidator)}
+is called. This method returns an instance of {@link io.vertx.json.schema.common.Validator}, that represents the object that will perform the validation.
+If something goes wrong during `Validator` creation, a {@link io.vertx.json.schema.SchemaException} should be thrown
 
 You can add custom keywords of three types:
 
@@ -159,7 +159,7 @@ You can add custom keywords of three types:
 
 === Synchronous keywords
 
-Synchronous validators must implement the interface {@link io.vertx.ext.json.schema.common.SyncValidator}.
+Synchronous validators must implement the interface {@link io.vertx.json.schema.common.SyncValidator}.
 In the example below I add a keyword that checks if the number of properties in a json object is a multiple of a provided number:
 
 [source,$lang]
@@ -183,7 +183,7 @@ Now we can mount the new validator factory:
 
 === Asynchronous keywords
 
-Synchronous validators must implement the interface {@link io.vertx.ext.json.schema.common.AsyncValidator}.
+Synchronous validators must implement the interface {@link io.vertx.json.schema.common.AsyncValidator}.
 In this example I add a keyword that retrieves from the Vert.x Event bus an enum of values:
 
 [source,$lang]
@@ -209,11 +209,11 @@ Now we can mount the new validator factory:
 
 If you want to build schemas from code, you can use the included DSL. Only Draft-7 is supported for this feature.
 
-To start, add static imports for {@link io.vertx.ext.json.schema.draft7.dsl.Schemas} and {@link io.vertx.ext.json.schema.draft7.dsl.Keywords}
+To start, add static imports for {@link io.vertx.json.schema.draft7.dsl.Schemas} and {@link io.vertx.json.schema.draft7.dsl.Keywords}
 
 === Creating the schema
 
-Inside {@link io.vertx.ext.json.schema.draft7.dsl.Schemas} there are static methods to create the schema:
+Inside {@link io.vertx.json.schema.draft7.dsl.Schemas} there are static methods to create the schema:
 
 [source,$lang]
 ----
@@ -222,7 +222,7 @@ Inside {@link io.vertx.ext.json.schema.draft7.dsl.Schemas} there are static meth
 
 === Using the keywords
 
-For every schema you can add keywords built with {@link io.vertx.ext.json.schema.draft7.dsl.Keywords} methods,
+For every schema you can add keywords built with {@link io.vertx.json.schema.draft7.dsl.Keywords} methods,
 depending on the type of the schema:
 
 [source,$lang]
@@ -257,11 +257,11 @@ To create a tuple schema:
 
 === `$ref` and aliases
 
-To add a `$ref` schema you can use the {@link io.vertx.ext.json.schema.common.dsl.Schemas#ref(JsonPointer)} method.
-To assign an `$id` keyword to a schema, use {@link io.vertx.ext.json.schema.common.dsl.SchemaBuilder#id(JsonPointer)}
+To add a `$ref` schema you can use the {@link io.vertx.json.schema.common.dsl.Schemas#ref(JsonPointer)} method.
+To assign an `$id` keyword to a schema, use {@link io.vertx.json.schema.common.dsl.SchemaBuilder#id(JsonPointer)}
 
-You can also refer to schemas defined with this dsl using aliases. You can use {@link io.vertx.ext.json.schema.common.dsl.SchemaBuilder#alias(String)} to assign an alias to
-a schema. Then you can refer to a schema with an alias using {@link io.vertx.ext.json.schema.common.dsl.Schemas#refToAlias(String)}:
+You can also refer to schemas defined with this dsl using aliases. You can use {@link io.vertx.json.schema.common.dsl.SchemaBuilder#alias(String)} to assign an alias to
+a schema. Then you can refer to a schema with an alias using {@link io.vertx.json.schema.common.dsl.Schemas#refToAlias(String)}:
 
 [source,$lang]
 ----
@@ -270,7 +270,7 @@ a schema. Then you can refer to a schema with an alias using {@link io.vertx.ext
 
 === Using the schema
 
-After you defined the schema, you can call {@link io.vertx.ext.json.schema.common.dsl.SchemaBuilder#build(SchemaParser)} to parse and use the schema:
+After you defined the schema, you can call {@link io.vertx.json.schema.common.dsl.SchemaBuilder#build(SchemaParser)} to parse and use the schema:
 
 [source,$lang]
 ----

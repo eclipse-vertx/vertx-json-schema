@@ -1,14 +1,14 @@
 package examples;
 
 import io.vertx.docgen.Source;
-import io.vertx.ext.json.schema.Schema;
-import io.vertx.ext.json.schema.SchemaParser;
-import io.vertx.ext.json.schema.common.dsl.SchemaBuilder;
-import io.vertx.ext.json.schema.common.dsl.SchemaType;
-import io.vertx.ext.json.schema.draft7.dsl.StringFormat;
+import io.vertx.json.schema.Schema;
+import io.vertx.json.schema.SchemaParser;
+import io.vertx.json.schema.common.dsl.SchemaBuilder;
+import io.vertx.json.schema.common.dsl.SchemaType;
+import io.vertx.json.schema.draft7.dsl.StringFormat;
 
-import static io.vertx.ext.json.schema.draft7.dsl.Keywords.*;
-import static io.vertx.ext.json.schema.draft7.dsl.Schemas.*;
+import static io.vertx.json.schema.draft7.dsl.Keywords.*;
+import static io.vertx.json.schema.draft7.dsl.Schemas.*;
 
 @Source
 public class JsonSchemaDslExamples {

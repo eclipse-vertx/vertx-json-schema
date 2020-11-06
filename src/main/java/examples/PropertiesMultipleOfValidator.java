@@ -1,10 +1,10 @@
 package examples;
 
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.json.schema.NoSyncValidationException;
-import io.vertx.ext.json.schema.ValidationException;
-import io.vertx.ext.json.schema.common.BaseSyncValidator;
-import io.vertx.ext.json.schema.common.ValidatorContext;
+import io.vertx.json.schema.NoSyncValidationException;
+import io.vertx.json.schema.ValidationException;
+import io.vertx.json.schema.common.BaseSyncValidator;
+import io.vertx.json.schema.common.ValidatorContext;
 
 public class PropertiesMultipleOfValidator extends BaseSyncValidator {
 
