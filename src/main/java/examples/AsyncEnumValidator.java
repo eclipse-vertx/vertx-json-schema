@@ -5,10 +5,10 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.json.schema.common.BaseAsyncValidator;
-import io.vertx.ext.json.schema.common.ValidatorContext;
+import io.vertx.json.schema.common.BaseAsyncValidator;
+import io.vertx.json.schema.common.ValidatorContext;
 
-import static io.vertx.ext.json.schema.ValidationException.createException;
+import static io.vertx.json.schema.ValidationException.createException;
 
 class AsyncEnumValidator extends BaseAsyncValidator {
 
