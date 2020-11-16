@@ -16,6 +16,7 @@ import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.json.schema.SchemaException;
 import io.vertx.json.schema.ValidationException;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -66,7 +67,7 @@ public class EnumValidatorFactory implements ValidatorFactory {
         if (ComparisonUtils.equalsNumberSafe(allowedValues[i], in))
           return;
       }
-      throw ValidationException.createException("Input doesn't match one of allowed values of enum: " + allowedValues, "enum", in);
+      throw ValidationException.createException("Input doesn't match one of allowed values of enum: " + Arrays.toString(allowedValues), "enum", in);
     }
   }
 
