@@ -68,7 +68,6 @@ public class RefSchema extends SchemaImpl {
               return Future.failedFuture(ValidationException.createException("Cannot resolve reference " + this.refPointer.toURI(), "$ref", in));
             SchemaInternal solvedSchema = (SchemaInternal) s;
             registerCachedSchema(solvedSchema);
-            if (log.isDebugEnabled()) log.debug(String.format("Solved ref %s as %s", refPointer, s.getScope()));
             if (solvedSchema instanceof RefSchema) {
               // We need to call solved schema validateAsync to solve upper ref, then we can update sync status
               return solvedSchema.validateAsync(context, in).compose(v -> {
@@ -146,7 +145,6 @@ public class RefSchema extends SchemaImpl {
             if (s == null)
               return Future.failedFuture(ValidationException.createException("Cannot resolve reference " + this.refPointer.toURI(), "$ref", null));
             registerCachedSchema((SchemaInternal) s);
-            if (log.isDebugEnabled()) log.debug(String.format("Solved ref %s as %s", refPointer, s.getScope()));
             if (s instanceof RefSchema) {
               // We need to call solved schema validateAsync to solve upper ref, then we can update sync status
               return ((RefSchema) s).trySolveSchema().map(s1 -> {
