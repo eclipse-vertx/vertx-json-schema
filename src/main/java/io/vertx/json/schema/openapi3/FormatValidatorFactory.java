@@ -40,6 +40,7 @@ public class FormatValidatorFactory extends BaseFormatValidatorFactory {
     predicates.put("email", createPredicateFromPattern(RegularExpressions.EMAIL));
     predicates.put("uri", URI_VALIDATOR);
     predicates.put("uriref", URI_REFERENCE_VALIDATOR);
+    predicates.put("uuid", UUID_VALIDATOR);
     return predicates;
   }
 }
