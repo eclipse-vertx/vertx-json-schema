@@ -1,6 +1,10 @@
 package io.vertx.json.schema;
 
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.impl.JsonUtil;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Converter and mapper for {@link io.vertx.json.schema.SchemaRouterOptions}.
