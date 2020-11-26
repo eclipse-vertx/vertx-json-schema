@@ -15,8 +15,11 @@ jobs:
     name: Run tests
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        jdk: [8, 11]
+        os: [ubuntu-latest, windows-latest]
+        jdk: [8]
+        include:
+          - os: ubuntu-latest
+            jdk: 11
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/cache@v2
