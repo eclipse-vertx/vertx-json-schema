@@ -20,6 +20,7 @@ import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.json.schema.common.SchemaParserInternal;
 import io.vertx.json.schema.common.SchemaRouterImpl;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxExtension;
@@ -38,6 +39,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -72,25 +74,31 @@ public abstract class BaseIntegrationTest {
   }
 
   private void stopSchemaServer(Handler<AsyncResult<Void>> completion) {
-    if (schemaServer != null) {
-      try {
-        schemaServer.close((asyncResult) -> {
-          completion.handle(Future.succeededFuture());
-        });
-      } catch (IllegalStateException e) { // Server is already open
+    try {
+      schemaServer.close((asyncResult) -> {
         completion.handle(Future.succeededFuture());
-      }
+      });
+    } catch (IllegalStateException e) { // Server is already open
+      completion.handle(Future.succeededFuture());
     }
   }
 
   @BeforeAll
   public void setUp(Vertx vertx, VertxTestContext testContext) {
-    startSchemaServer(vertx, testContext.succeedingThenComplete());
+    if (getRemotesPath() != null) {
+      startSchemaServer(vertx, testContext.succeedingThenComplete());
+    } else {
+      testContext.completeNow();
+    }
   }
 
   @AfterAll
   public void tearDown(VertxTestContext testContext) {
-    stopSchemaServer(testContext.succeedingThenComplete());
+    if (schemaServer != null) {
+      stopSchemaServer(testContext.succeedingThenComplete());
+    } else {
+      testContext.completeNow();
+    }
   }
 
   private Map.Entry<SchemaParser, Schema> buildSchema(Vertx vertx, Object schema, String testName, String testFileName) {
@@ -193,7 +201,15 @@ public abstract class BaseIntegrationTest {
 
   public abstract Stream<String> getTestFiles();
 
-  public abstract Map.Entry<SchemaParser, Schema> buildSchemaFunction(Vertx vertx, Object schema, String testFileName) throws URISyntaxException;
+  public abstract SchemaParserInternal getSchemaParser(Vertx vertx);
+
+  protected Map.Entry<SchemaParser, Schema> buildSchemaFunction(Vertx vertx, Object schema, String testFileName) throws URISyntaxException {
+    SchemaParserInternal parser = getSchemaParser(vertx);
+    Schema s = parser.parse(schema, Paths.get(this.getTckPath() + "/" + testFileName + ".json").toAbsolutePath().toUri());
+    return new AbstractMap.SimpleImmutableEntry<>(parser, s);
+  }
+
+  ;
 
   public abstract Path getTckPath();
 

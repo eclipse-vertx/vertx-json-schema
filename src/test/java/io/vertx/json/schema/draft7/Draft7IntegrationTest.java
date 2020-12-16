@@ -12,28 +12,18 @@ package io.vertx.json.schema.draft7;
 
 import io.vertx.core.Vertx;
 import io.vertx.json.schema.BaseIntegrationTest;
-import io.vertx.json.schema.Schema;
-import io.vertx.json.schema.SchemaParser;
 import io.vertx.json.schema.SchemaRouterOptions;
+import io.vertx.json.schema.common.SchemaParserInternal;
 import io.vertx.json.schema.common.SchemaRouterImpl;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.AbstractMap;
-import java.util.Map;
 import java.util.stream.Stream;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
 public class Draft7IntegrationTest extends BaseIntegrationTest {
-
-  @Override
-  public Map.Entry<SchemaParser, Schema> buildSchemaFunction(Vertx vertx, Object schema, String testFileName) {
-    Draft7SchemaParser parser = Draft7SchemaParser.create(new SchemaRouterImpl(vertx.createHttpClient(), vertx.fileSystem(), new SchemaRouterOptions()));
-    Schema s = parser.parse(schema, Paths.get(this.getTckPath() + "/" + testFileName + ".json").toAbsolutePath().toUri());
-    return new AbstractMap.SimpleImmutableEntry<>(parser, s);
-  }
 
   @Override
   public Stream<String> getTestFiles() {
@@ -74,6 +64,11 @@ public class Draft7IntegrationTest extends BaseIntegrationTest {
       "type",
       "uniqueItems"
     );
+  }
+
+  @Override
+  public SchemaParserInternal getSchemaParser(Vertx vertx) {
+    return Draft7SchemaParser.create(new SchemaRouterImpl(vertx.createHttpClient(), vertx.fileSystem(), new SchemaRouterOptions()));
   }
 
   @Override

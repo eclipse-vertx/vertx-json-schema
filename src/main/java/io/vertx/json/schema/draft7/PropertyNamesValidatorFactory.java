@@ -44,7 +44,7 @@ public class PropertyNamesValidatorFactory extends BaseSingleSchemaValidatorFact
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
       if (in instanceof JsonObject) {
-        ((JsonObject) in).getMap().keySet().forEach(k -> schema.validateSync(context.lowerLevelContext(), in));
+        ((JsonObject) in).getMap().keySet().forEach(k -> schema.validateSync(context.lowerLevelContext(), k));
       }
     }
 

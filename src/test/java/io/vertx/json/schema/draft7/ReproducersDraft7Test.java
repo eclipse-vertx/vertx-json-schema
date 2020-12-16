@@ -8,14 +8,13 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
  */
-package io.vertx.json.schema.oas3;
+package io.vertx.json.schema.draft7;
 
 import io.vertx.core.Vertx;
 import io.vertx.json.schema.BaseIntegrationTest;
 import io.vertx.json.schema.SchemaRouterOptions;
 import io.vertx.json.schema.common.SchemaParserInternal;
 import io.vertx.json.schema.common.SchemaRouterImpl;
-import io.vertx.json.schema.openapi3.OpenAPI3SchemaParser;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,54 +23,27 @@ import java.util.stream.Stream;
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
-public class OAS3IntegrationTest extends BaseIntegrationTest {
+public class ReproducersDraft7Test extends BaseIntegrationTest {
 
   @Override
   public Stream<String> getTestFiles() {
     return Stream.of(
-      "additionalProperties",
-      "allOf",
-      "anyOf",
-//        "discriminator",
-      "enum",
-      "exclusiveMaximum",
-      "exclusiveMinimum",
-      "format",
-      "items",
-      "maximum",
-      "maxItems",
-      "maxLength",
-      "maxProperties",
-      "minimum",
-      "minItems",
-      "minLength",
-      "minProperties",
-      "multipleOf",
-      "not",
-      "nullable",
-      "oneOf",
-      "pattern",
-      "properties",
-      "ref",
-      "refRemote",
-      "required",
-      "type",
-      "uniqueItems"
+      "28"
     );
   }
 
   @Override
   public SchemaParserInternal getSchemaParser(Vertx vertx) {
-    return OpenAPI3SchemaParser.create(new SchemaRouterImpl(vertx.createHttpClient(), vertx.fileSystem(), new SchemaRouterOptions()));
+    return Draft7SchemaParser.create(new SchemaRouterImpl(vertx.createHttpClient(), vertx.fileSystem(), new SchemaRouterOptions()));
   }
 
   @Override
   public Path getTckPath() {
-    return Paths.get("src", "test", "resources", "tck", "openapi3");
+    return Paths.get("src", "test", "resources", "reproducers");
   }
 
   @Override
   public Path getRemotesPath() {
-    return Paths.get("src", "test", "resources", "tck", "openapi3", "remotes");
+    return null;
   }
 }
