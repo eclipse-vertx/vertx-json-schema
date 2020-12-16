@@ -16,6 +16,7 @@ import io.vertx.json.schema.BaseIntegrationTest;
 import io.vertx.json.schema.Schema;
 import io.vertx.json.schema.SchemaParser;
 import io.vertx.json.schema.SchemaRouterOptions;
+import io.vertx.json.schema.common.SchemaParserInternal;
 import io.vertx.json.schema.common.SchemaRouterImpl;
 
 import java.net.URI;
@@ -84,6 +85,11 @@ public class Draft201909IntegrationTest extends BaseIntegrationTest {
       "unevaluatedProperties",
       "uniqueItems"
     );
+  }
+
+  @Override
+  public SchemaParserInternal getSchemaParser(Vertx vertx) {
+    return Draft201909SchemaParser.create(new SchemaRouterImpl(vertx.createHttpClient(), vertx.fileSystem(), new SchemaRouterOptions()));
   }
 
   @Override
