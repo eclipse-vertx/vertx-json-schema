@@ -12,8 +12,6 @@ package io.vertx.json.schema;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 
 /**
@@ -25,7 +23,7 @@ import io.vertx.core.json.pointer.JsonPointer;
  *   <li>Asynchronous: One or more branches of the validator tree requires an asynchronous validation, so you must use {@link this#validateAsync(Object)} to validate your json. If you use {@link this#validateSync(Object)} it will throw a {@link NoSyncValidationException}</li>
  * </ul>
  * <p>
- * To check the schema state you can use method {@link this#isSync()} <br/>
+ * To check the schema state you can use method {@link this#isSync()}. Note that invoking {@link #validateAsync(Object)} generally doesn't have any additional overhead than invoking {@link #validateSync(Object)}. <br/>
  * The schema can mutate the state in time, e.g. if you have a schema that is asynchronous because of a {@code $ref},
  * after the first validation the external schema is cached inside {@link SchemaRouter} and this schema will switch to synchronous state<br/>
  */
@@ -33,72 +31,36 @@ import io.vertx.core.json.pointer.JsonPointer;
 public interface Schema {
 
   /**
-   * Validate the json performing an asynchronous validation. Returns a failed future with {@link ValidationException} if json doesn't match the schema.<br/>
+   * Validate the json performing an asynchronous validation.<br/>
    * <p>
    * Note: If the schema is synchronous, this method will call internally {@link this#validateSync(Object)}
    *
-   * @param json
-   * @return
+   * @param json input to validate
+   * @return a failed future with {@link ValidationException} if json doesn't match the schema, otherwise a succeeded future.
    */
   Future<Void> validateAsync(Object json);
 
   /**
    * Validate the json performing a synchronous validation. Throws a {@link ValidationException} if json doesn't match the schema.<br/>
    *
-   * @param json
-   * @throws ValidationException
+   * @param json input to validate
+   * @throws ValidationException       if the input doesn't match the schema
    * @throws NoSyncValidationException If the schema cannot perform a synchronous validation
    */
   void validateSync(Object json) throws ValidationException, NoSyncValidationException;
 
   /**
-   * Get scope of this schema
-   *
-   * @return
+   * @return scope of this schema
    */
   JsonPointer getScope();
 
   /**
-   * Get Json representation of the schema
-   *
-   * @return
+   * @return Json representation of the schema
    */
   Object getJson();
 
   /**
-   * Return the default value defined in the schema
-   *
-   * @return
-   */
-  Object getDefaultValue();
-
-  /**
-   * Return true if the schema has a default value defined
-   *
-   * @return
-   */
-  boolean hasDefaultValue();
-
-  /**
-   * This function mutates {@code array} applying default values, when available.
-   *
-   * @param array
-   * @throws NoSyncValidationException if this schema represents a {@code $ref} not solved yet
-   */
-  void applyDefaultValues(JsonArray array) throws NoSyncValidationException;
-
-  /**
-   * This function mutates {@code object} applying default values, when available.
-   *
-   * @param object
-   * @throws NoSyncValidationException if this schema represents a {@code $ref} not solved yet
-   */
-  void applyDefaultValues(JsonObject object) throws NoSyncValidationException;
-
-  /**
-   * Returns true if this validator can actually provide a synchronous validation
-   *
-   * @return
+   * @return true if this validator can provide a synchronous validation.
    */
   boolean isSync();
 

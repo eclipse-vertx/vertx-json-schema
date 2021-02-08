@@ -122,17 +122,6 @@ If you use {@link io.vertx.json.schema.Schema#validateAsync(Object)} while the s
 the schema will validate synchronously wrapping the result in the returned `Future`, avoiding unnecessary async computations and memory usage
 ====
 
-== Apply default values
-
-You can deeply apply default values to `JsonObject` and `JsonArray`:
-
-[source,$lang]
-----
-{@link examples.JsonSchemaExamples#applyDefaultValues}
-----
-
-These methods will mutate the internal state of the provided Json structures.
-
 == Adding custom formats
 
 You can add custom formats to use with validation keyword `format` before parsing the schemas:

@@ -72,10 +72,29 @@ public class ItemsValidatorFactory extends BaseSingleSchemaValidatorFactory {
     }
 
     @Override
-    public void applyDefaultValue(Object value) {
-      if (value instanceof JsonArray) {
-        ((JsonArray) value).forEach(((SchemaImpl) schema)::doApplyDefaultValues);
+    public Future<Void> applyDefaultValue(Object value) {
+      if (!(value instanceof JsonArray)) {
+        return Future.succeededFuture();
       }
+
+      List<Future> futures = new ArrayList<>();
+      JsonArray arr = (JsonArray) value;
+      for (int i = 0; i < arr.size(); i++) {
+        Object valToDefault = arr.getValue(i);
+        if (schema.isSync()) {
+          schema.getOrApplyDefaultSync(valToDefault);
+        } else {
+          futures.add(
+            schema.getOrApplyDefaultAsync(valToDefault)
+          );
+        }
+      }
+
+      if (futures.isEmpty()) {
+        return Future.succeededFuture();
+      }
+
+      return CompositeFuture.all(futures).mapEmpty();
     }
   }
 }

@@ -81,21 +81,6 @@ public class RecursiveRefSchema extends SchemaImpl {
   }
 
   @Override
-  public Object getDefaultValue() {
-    //TODO that requires the context!
-    return null;
-  }
-
-  @Override
-  public boolean hasDefaultValue() {
-    return false;
-  }
-
-  @Override
-  public void doApplyDefaultValues(Object obj) {
-  }
-
-  @Override
   public boolean isSync() {
     return false;
   }
@@ -123,6 +108,16 @@ public class RecursiveRefSchema extends SchemaImpl {
       return RecursiveAnchorValidatorContextDecorator.wrap(context, this.getScope());
     }
     return context;
+  }
+
+  @Override
+  public Future<Object> getOrApplyDefaultAsync(Object input) {
+    return Future.succeededFuture(input); // TODO Does it really makes sense default on $recursiveRef?
+  }
+
+  @Override
+  public Object getOrApplyDefaultSync(Object input) {
+    return input; // TODO Does it really makes sense default on $recursiveRef?
   }
 
 }
