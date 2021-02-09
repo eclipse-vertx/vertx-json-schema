@@ -5,7 +5,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.docgen.Source;
-import io.vertx.ext.json.schema.*;
+import io.vertx.json.schema.*;
 
 @Source
 public class JsonSchemaExamples {
