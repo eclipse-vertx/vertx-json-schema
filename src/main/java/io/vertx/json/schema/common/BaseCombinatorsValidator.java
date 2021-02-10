@@ -30,7 +30,7 @@ public abstract class BaseCombinatorsValidator extends BaseMutableStateValidator
     return Arrays.stream(schemas).map(Schema::isSync).reduce(true, Boolean::logicalAnd);
   }
 
-  void setSchemas(List<SchemaInternal> schemas) {
+  protected void setSchemas(List<SchemaInternal> schemas) {
     this.schemas = schemas.toArray(new SchemaInternal[schemas.size()]);
     Arrays.sort(this.schemas, ValidatorPriority.COMPARATOR);
     this.initializeIsSync();

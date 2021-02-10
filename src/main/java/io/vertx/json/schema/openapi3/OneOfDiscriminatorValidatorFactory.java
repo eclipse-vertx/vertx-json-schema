@@ -12,6 +12,7 @@ package io.vertx.json.schema.openapi3;
 
 import io.vertx.json.schema.common.*;
 import io.vertx.core.Future;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.json.schema.NoSyncValidationException;
@@ -21,6 +22,7 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import static io.vertx.json.schema.ValidationException.createException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -55,6 +57,21 @@ public class OneOfDiscriminatorValidatorFactory extends BaseCombinatorsValidator
 
     private String propertyName;
     private Map<String, String> mapping;
+    private Map<SchemaInternal, String> schemaNameMap;
+
+    @Override
+    protected void setSchemas(List<SchemaInternal> schemas) {
+      super.setSchemas(schemas);
+      schemaNameMap = new HashMap<>();
+      schemas.forEach(schema->{
+        JsonObject jsonSchema = ((JsonObject) schema.getJson());
+        if (jsonSchema.containsKey("name")) {
+          schemaNameMap.put(schema, jsonSchema.getString("name"));
+        } else if (jsonSchema.containsKey("$ref")) {
+          schemaNameMap.put(schema, jsonSchema.getString("$ref"));
+        }
+      });
+    }
 
     public OneOfValidator(MutableStateValidator parent) {
       super(parent);
@@ -94,8 +111,7 @@ public class OneOfDiscriminatorValidatorFactory extends BaseCombinatorsValidator
           String discriminator = ((JsonObject) in).getString(propertyName);
           if (mapping != null) discriminator = mapping.get(discriminator);
 
-          JsonObject jsonSchema = ((JsonObject) schema.getJson());
-          String schemaName = (jsonSchema.containsKey("name")) ? jsonSchema.getString("name") : jsonSchema.getString("$ref");
+          String schemaName = schemaNameMap.get(schema);
           return schemaName!=null && discriminator != null && (discriminator.equals(schemaName) || schemaName.endsWith("/"+discriminator));
         }
       }
