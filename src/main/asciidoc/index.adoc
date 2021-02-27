@@ -95,8 +95,8 @@ and to resolve relative references. If you load a schema from filesystem and you
 
 A schema could have two states:
 
-* Synchronous: The validators tree can provide a synchronous validation. You can validate your json both using {@link io.vertx.json.schema.Schema#validateSync(Object)} and {@link io.vertx.json.schema.Schema#validateAsync(Object)}</li>
-* Asynchronous: One or more branches of the validator tree requires an asynchronous validation. You must use {@link io.vertx.json.schema.Schema#validateAsync(Object)} to validate your json. If you use {@link io.vertx.json.schema.Schema#validateSync(Object)} it will throw a {@link io.vertx.json.schema.NoSyncValidationException}</li>
+* Synchronous: The validators tree can provide a synchronous validation. You can validate your json both using {@link io.vertx.json.schema.Schema#validateSync(Object)} and {@link io.vertx.json.schema.Schema#validateAsync(Object)}
+* Asynchronous: One or more branches of the validator tree requires an asynchronous validation. You must use {@link io.vertx.json.schema.Schema#validateAsync(Object)} to validate your json. If you use {@link io.vertx.json.schema.Schema#validateSync(Object)} it will throw a {@link io.vertx.json.schema.NoSyncValidationException}
 
 To validate a schema in an asynchronous state:
 
