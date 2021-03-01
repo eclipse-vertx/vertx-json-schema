@@ -1,7 +1,6 @@
 package examples;
 
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.docgen.Source;
@@ -44,12 +43,6 @@ public class JsonSchemaExamples {
         ar.cause(); // Contains ValidationException
       }
     });
-  }
-
-  public void applyDefaultValues(Schema schema, JsonObject jsonObject, JsonArray jsonArray) {
-    schema.applyDefaultValues(jsonObject);
-    // Or
-    schema.applyDefaultValues(jsonArray);
   }
 
   public void customFormat(SchemaParser parser) {

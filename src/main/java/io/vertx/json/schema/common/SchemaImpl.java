@@ -14,13 +14,13 @@ import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.json.schema.NoSyncValidationException;
 import io.vertx.json.schema.ValidationException;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class SchemaImpl extends BaseMutableStateValidator implements SchemaInternal {
 
@@ -63,33 +63,38 @@ public class SchemaImpl extends BaseMutableStateValidator implements SchemaInter
     return schema;
   }
 
-  @Override
-  public Object getDefaultValue() {
+  private Object getDefaultValue() {
     return schema.getValue("default");
   }
 
   @Override
-  public boolean hasDefaultValue() {
-    return schema.containsKey("default");
+  public Future<Object> getOrApplyDefaultAsync(Object input) {
+    if (this.isSync()) {
+      return Future.succeededFuture(this.getOrApplyDefaultSync(input));
+    }
+    if (input == null) {
+      return Future.succeededFuture(getDefaultValue());
+    }
+    return CompositeFuture.all(
+      Arrays.stream(validators)
+        .filter(v -> v instanceof DefaultApplier)
+        .map(v -> ((DefaultApplier) v).applyDefaultValue(input))
+        .collect(Collectors.toList())
+    ).map(input);
   }
 
   @Override
-  public void applyDefaultValues(JsonArray array) throws NoSyncValidationException {
-    doApplyDefaultValues(array);
-  }
-
-  @Override
-  public void applyDefaultValues(JsonObject object) throws NoSyncValidationException {
-    doApplyDefaultValues(object);
-  }
-
-
-  public void doApplyDefaultValues(Object obj) {
+  public Object getOrApplyDefaultSync(Object input) {
+    this.checkSync();
+    if (input == null) {
+      return getDefaultValue();
+    }
     for (Validator v : validators) {
       if (v instanceof DefaultApplier) {
-        ((DefaultApplier) v).applyDefaultValue(obj);
+        ((DefaultApplier) v).applyDefaultValue(input);
       }
     }
+    return input;
   }
 
   @Override

@@ -253,17 +253,48 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public void applyDefaultValue(Object value) {
-      if (value instanceof JsonObject && properties != null) {
-        JsonObject obj = (JsonObject) value;
-        for (Map.Entry<String, SchemaInternal> e : properties.entrySet()) {
-          if (!obj.containsKey(e.getKey()) && e.getValue().hasDefaultValue()) {
-            obj.put(e.getKey(), e.getValue().getDefaultValue());
-          } else if (obj.containsKey(e.getKey())) {
-            ((SchemaImpl) e.getValue()).doApplyDefaultValues(obj.getValue(e.getKey()));
+    public Future<Void> applyDefaultValue(Object value) {
+      if (!(value instanceof JsonObject && properties != null)) {
+        return Future.succeededFuture();
+      }
+
+      List<Future> futs = new ArrayList<>();
+      JsonObject obj = (JsonObject) value;
+      for (Map.Entry<String, SchemaInternal> e : properties.entrySet()) {
+        final String key = e.getKey();
+        final SchemaInternal schema = e.getValue();
+
+        if (!obj.containsKey(key)) {
+          if (schema.isSync()) {
+            Object def = schema.getOrApplyDefaultSync(null);
+            if (def != null) {
+              obj.put(key, def);
+            }
+          } else {
+            futs.add(
+              schema.getOrApplyDefaultAsync(null).onSuccess(def -> {
+                if (def != null) {
+                  obj.put(key, def);
+                }
+              })
+            );
+          }
+        } else {
+          if (schema.isSync()) {
+            schema.getOrApplyDefaultSync(obj.getValue(key));
+          } else {
+            futs.add(
+              schema.getOrApplyDefaultAsync(obj.getValue(key))
+            );
           }
         }
       }
+
+      if (futs.isEmpty()) {
+        return Future.succeededFuture();
+      }
+
+      return CompositeFuture.all(futs).mapEmpty();
     }
   }
 

@@ -121,17 +121,42 @@ public class ItemsValidatorFactory extends io.vertx.json.schema.common.ItemsVali
     }
 
     @Override
-    public void applyDefaultValue(Object value) {
-      if (value instanceof JsonArray) {
-        JsonArray arr = (JsonArray) value;
-        for (int i = 0; i < arr.size(); i++) {
-          if (i >= schemas.length) {
-            if (additionalItems != null)
-              ((SchemaImpl) additionalItems).doApplyDefaultValues(arr.getValue(i));
-          } else
-            ((SchemaImpl) schemas[i]).doApplyDefaultValues(arr.getValue(i));
+    public Future<Void> applyDefaultValue(Object value) {
+      if (!(value instanceof JsonArray)) {
+        return Future.succeededFuture();
+      }
+
+      List<Future> futures = new ArrayList<>();
+      JsonArray arr = (JsonArray) value;
+      for (int i = 0; i < arr.size(); i++) {
+        Object valToDefault = arr.getValue(i);
+        if (i >= schemas.length) {
+          if (additionalItems != null) {
+            if (additionalItems.isSync()) {
+              additionalItems.getOrApplyDefaultSync(valToDefault);
+            } else {
+              futures.add(
+                additionalItems.getOrApplyDefaultAsync(valToDefault)
+              );
+            }
+          }
+        } else {
+          SchemaInternal schema = schemas[i];
+          if (schema.isSync()) {
+            schemas[i].getOrApplyDefaultSync(valToDefault);
+          } else {
+            futures.add(
+              schemas[i].getOrApplyDefaultAsync(valToDefault)
+            );
+          }
         }
       }
+
+      if (futures.isEmpty()) {
+        return Future.succeededFuture();
+      }
+
+      return CompositeFuture.all(futures).mapEmpty();
     }
   }
 

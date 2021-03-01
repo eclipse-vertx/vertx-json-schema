@@ -10,12 +10,15 @@
  */
 package io.vertx.json.schema.common;
 
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.Schema;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public abstract class BaseCombinatorsValidator extends BaseMutableStateValidator implements DefaultApplier {
 
@@ -37,10 +40,21 @@ public abstract class BaseCombinatorsValidator extends BaseMutableStateValidator
   }
 
   @Override
-  public void applyDefaultValue(Object obj) {
-    if (!(obj instanceof JsonObject || obj instanceof JsonArray)) return;
-    for (Schema s : schemas) {
-      ((SchemaImpl) s).doApplyDefaultValues(obj);
+  public Future<Void> applyDefaultValue(Object obj) {
+    if (!(obj instanceof JsonObject || obj instanceof JsonArray)) {
+      return Future.succeededFuture();
     }
+
+    if (this.isSync()) {
+      for (Schema s : schemas) {
+        ((SchemaImpl) s).getOrApplyDefaultAsync(obj);
+      }
+      return Future.succeededFuture();
+    }
+    return CompositeFuture.all(
+      Arrays.stream(schemas)
+        .map(s -> s.getOrApplyDefaultAsync(obj))
+        .collect(Collectors.toList())
+    ).mapEmpty();
   }
 }
