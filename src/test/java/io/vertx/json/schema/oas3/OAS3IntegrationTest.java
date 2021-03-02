@@ -32,7 +32,7 @@ public class OAS3IntegrationTest extends BaseIntegrationTest {
       "additionalProperties",
       "allOf",
       "anyOf",
-//        "discriminator",
+      "discriminator",
       "enum",
       "exclusiveMaximum",
       "exclusiveMinimum",

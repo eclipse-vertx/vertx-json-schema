@@ -22,12 +22,12 @@ import static io.vertx.json.schema.ValidationException.createException;
 public class OneOfValidatorFactory extends BaseCombinatorsValidatorFactory {
 
   @Override
-  BaseCombinatorsValidator instantiate(MutableStateValidator parent) {
+  protected BaseCombinatorsValidator instantiate(MutableStateValidator parent) {
     return new OneOfValidator(parent);
   }
 
   @Override
-  String getKeyword() {
+  protected String getKeyword() {
     return "oneOf";
   }
 

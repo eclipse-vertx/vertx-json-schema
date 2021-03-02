@@ -21,12 +21,12 @@ import java.util.stream.Collectors;
 public class AllOfValidatorFactory extends BaseCombinatorsValidatorFactory {
 
   @Override
-  BaseCombinatorsValidator instantiate(MutableStateValidator parent) {
+  protected BaseCombinatorsValidator instantiate(MutableStateValidator parent) {
     return new AllOfValidator(parent);
   }
 
   @Override
-  String getKeyword() {
+  protected String getKeyword() {
     return "allOf";
   }
 

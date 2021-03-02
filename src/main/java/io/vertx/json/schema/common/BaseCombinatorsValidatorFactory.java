@@ -46,7 +46,7 @@ public abstract class BaseCombinatorsValidatorFactory implements ValidatorFactor
     return schema.containsKey(getKeyword());
   }
 
-  abstract BaseCombinatorsValidator instantiate(MutableStateValidator parent);
+  protected abstract BaseCombinatorsValidator instantiate(MutableStateValidator parent);
 
-  abstract String getKeyword();
+  protected abstract String getKeyword();
 }
