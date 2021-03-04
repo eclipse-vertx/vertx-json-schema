@@ -13,27 +13,24 @@ package io.vertx.json.schema;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.VertxException;
 import io.vertx.core.json.pointer.JsonPointer;
+import io.vertx.json.schema.common.ValidationExceptionImpl;
 
 import java.util.Collection;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * This is the main class for every Validation flow related errors
  *
  * @author Francesco Guardiani @slinkydeveloper
  */
-public class ValidationException extends VertxException {
+public abstract class ValidationException extends VertxException {
 
   final private String keyword;
   final private Object input;
-  private Schema schema;
-  private JsonPointer scope;
+  protected Schema schema;
+  protected JsonPointer inputScope;
 
   protected ValidationException(String message, String keyword, Object input) {
-    super(message);
-    this.keyword = keyword;
-    this.input = input;
+    this(message, null, keyword, input);
   }
 
   protected ValidationException(String message, Throwable cause, String keyword, Object input) {
@@ -42,22 +39,20 @@ public class ValidationException extends VertxException {
     this.input = input;
   }
 
-  public static ValidationException createException(String message, String keyword, Object input, Collection<Throwable> causes) {
-    return createException(message + ". Multiple causes: " + formatExceptions(causes), keyword, input);
+  public static ValidationException create(String message, String keyword, Object input, Collection<Throwable> causes) {
+    return new ValidationExceptionImpl(message, causes, keyword, input);
   }
 
-  public static ValidationException createException(String message, String keyword, Object input, Throwable cause) {
-    return new ValidationException(message, cause, keyword, input);
+  public static ValidationException create(String message, String keyword, Object input, Throwable cause) {
+    return new ValidationExceptionImpl(message, cause, keyword, input);
   }
 
-  public static ValidationException createException(String message, String keyword, Object input) {
-    return new ValidationException(message, keyword, input);
+  public static ValidationException create(String message, String keyword, Object input) {
+    return new ValidationExceptionImpl(message, keyword, input);
   }
 
   /**
-   * Returns the keyword that failed the validation, if any
-   *
-   * @return
+   * @return the keyword that failed the validation, if any
    */
   @Nullable
   public String keyword() {
@@ -65,38 +60,33 @@ public class ValidationException extends VertxException {
   }
 
   /**
-   * Returns the input that triggered the error
-   *
-   * @return
+   * @return the input that triggered the error
    */
   public Object input() {
     return input;
   }
 
   /**
-   * Returns the schema that failed the validation
-   *
-   * @return
+   * @return the schema that failed the validation
    */
   public Schema schema() {
     return schema;
   }
 
   /**
-   * Returns the scope of the schema that failed the validation
-   *
-   * @return
+   * @return the scope of the schema that failed the validation
+   * @deprecated use {@link #schema()} and then {@link Schema#getScope()} instead
    */
+  @Deprecated
   public JsonPointer scope() {
-    return scope;
+    return this.schema.getScope();
   }
 
-  public void setSchema(Schema schema) {
-    this.schema = schema;
-  }
-
-  public void setScope(JsonPointer scope) {
-    this.scope = scope;
+  /**
+   * @return the scope of the input, where the validation failed.
+   */
+  public JsonPointer inputScope() {
+    return this.inputScope;
   }
 
   @Override
@@ -106,18 +96,8 @@ public class ValidationException extends VertxException {
       ", keyword='" + keyword + '\'' +
       ", input=" + input +
       ", schema=" + schema +
-      ((scope != null) ? ", scope=" + scope.toURI() : "") +
+      ((inputScope != null) ? ", inputScope=" + inputScope.toURI() : "") +
       '}';
   }
 
-  private static String formatExceptions(Collection<Throwable> throwables) {
-    if (throwables == null) {
-      return "[]";
-    }
-    return "[" + throwables
-      .stream()
-      .filter(Objects::nonNull)
-      .map(Throwable::getMessage)
-      .collect(Collectors.joining(", ")) + "]";
-  }
 }

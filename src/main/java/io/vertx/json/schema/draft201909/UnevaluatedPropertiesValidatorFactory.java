@@ -66,10 +66,10 @@ public class UnevaluatedPropertiesValidatorFactory implements ValidatorFactory {
         return CompositeFuture.all(
           unevaluatedItems
             .stream()
-            .map(key -> schema.validateAsync(context.lowerLevelContext(), obj.getValue(key)))
+            .map(key -> schema.validateAsync(context.lowerLevelContext(key), obj.getValue(key)))
             .collect(Collectors.toList())
         )
-          .recover(t -> Future.failedFuture(ValidationException.createException(
+          .recover(t -> Future.failedFuture(ValidationException.create(
             "one of the unevaluated properties doesn't match the unevaluatedProperties schema",
             "unevaluatedProperties",
             in,
@@ -89,7 +89,7 @@ public class UnevaluatedPropertiesValidatorFactory implements ValidatorFactory {
         Set<String> unevaluatedProperties = computeUnevaluatedProperties(context, obj);
 
         unevaluatedProperties.forEach(key ->
-          schema.validateSync(context.lowerLevelContext(), obj.getValue(key))
+          schema.validateSync(context.lowerLevelContext(key), obj.getValue(key))
         );
       }
     }
@@ -113,7 +113,7 @@ public class UnevaluatedPropertiesValidatorFactory implements ValidatorFactory {
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       if (in instanceof JsonObject) {
         if (!context.evaluatedProperties().containsAll(((JsonObject) in).fieldNames())) {
-          throw ValidationException.createException(
+          throw ValidationException.create(
             "Expecting no unevaluated properties. Unevaluated properties: " +
               SetUtils.minus(
                 ((JsonObject) in).fieldNames(),

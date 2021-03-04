@@ -48,7 +48,7 @@ public class MinItemsValidatorFactory implements ValidatorFactory {
     public void validateSync(ValidatorContext context, Object in) throws ValidationException {
       if (in instanceof JsonArray) {
         if (((JsonArray) in).size() < minimum) {
-          throw ValidationException.createException("provided array should have size >= " + minimum, "minItems", in);
+          throw ValidationException.create("provided array should have size >= " + minimum, "minItems", in);
         }
       }
     }

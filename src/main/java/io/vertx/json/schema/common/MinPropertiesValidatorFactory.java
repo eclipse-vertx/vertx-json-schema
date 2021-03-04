@@ -47,7 +47,7 @@ public class MinPropertiesValidatorFactory implements ValidatorFactory {
     public void validateSync(ValidatorContext context, Object in) throws ValidationException {
       if (in instanceof JsonObject) {
         if (((JsonObject) in).size() < minimum) {
-          throw ValidationException.createException("provided object should have size >= " + minimum, "minProperties", in);
+          throw ValidationException.create("provided object should have size >= " + minimum, "minProperties", in);
         }
       }
     }

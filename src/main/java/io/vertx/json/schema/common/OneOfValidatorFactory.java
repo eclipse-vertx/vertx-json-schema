@@ -17,8 +17,6 @@ import io.vertx.json.schema.ValidationException;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-import static io.vertx.json.schema.ValidationException.createException;
-
 public class OneOfValidatorFactory extends BaseCombinatorsValidatorFactory {
 
   @Override
@@ -50,8 +48,8 @@ public class OneOfValidatorFactory extends BaseCombinatorsValidatorFactory {
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
       long validCount = Arrays.stream(schemas).map(s -> isValidSync(s, context, in)).filter(b -> b.equals(true)).count();
-      if (validCount > 1) throw ValidationException.createException("More than one schema valid", "oneOf", in);
-      else if (validCount == 0) throw ValidationException.createException("No schema matches", "oneOf", in);
+      if (validCount > 1) throw ValidationException.create("More than one schema valid", "oneOf", in);
+      else if (validCount == 0) throw ValidationException.create("No schema matches", "oneOf", in);
     }
 
     @Override
@@ -59,7 +57,7 @@ public class OneOfValidatorFactory extends BaseCombinatorsValidatorFactory {
       if (isSync()) return validateSyncAsAsync(context, in);
       return FutureUtils
         .oneOf(Arrays.stream(schemas).map(s -> s.validateAsync(context, in)).collect(Collectors.toList()))
-        .recover(err -> Future.failedFuture(createException("No schema matches", "oneOf", in, err)));
+        .recover(err -> Future.failedFuture(ValidationException.create("No schema matches", "oneOf", in, err)));
     }
   }
 

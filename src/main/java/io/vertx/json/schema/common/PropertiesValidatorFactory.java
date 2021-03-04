@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Stream;
 
-import static io.vertx.json.schema.ValidationException.createException;
+import static io.vertx.json.schema.ValidationException.create;
 
 public class PropertiesValidatorFactory implements ValidatorFactory {
 
@@ -107,7 +107,7 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
   }
 
   private Future<Void> fillAdditionalPropertyException(Throwable t, Object in) {
-    return Future.failedFuture(createException("additionalProperties schema should match", "additionalProperties", in, t));
+    return Future.failedFuture(ValidationException.create("additionalProperties schema should match", "additionalProperties", in, t));
   }
 
   class PropertiesValidator extends BaseMutableStateValidator implements DefaultApplier {
@@ -161,12 +161,12 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
             context.markEvaluatedProperty(key);
             if (s.isSync()) {
               try {
-                s.validateSync(context.lowerLevelContext(), obj.getValue(key));
+                s.validateSync(context.lowerLevelContext(key), obj.getValue(key));
               } catch (ValidationException e) {
                 return Future.failedFuture(e);
               }
             } else {
-              futs.add(s.validateAsync(context.lowerLevelContext(), obj.getValue(key)));
+              futs.add(s.validateAsync(context.lowerLevelContext(key), obj.getValue(key)));
             }
             found = true;
           }
@@ -177,12 +177,12 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
                 context.markEvaluatedProperty(key);
                 if (s.isSync()) {
                   try {
-                    s.validateSync(context.lowerLevelContext(), obj.getValue(key));
+                    s.validateSync(context.lowerLevelContext(key), obj.getValue(key));
                   } catch (ValidationException e) {
                     return Future.failedFuture(e);
                   }
                 } else {
-                  futs.add(s.validateAsync(context.lowerLevelContext(), obj.getValue(key)));
+                  futs.add(s.validateAsync(context.lowerLevelContext(key), obj.getValue(key)));
                 }
                 found = true;
               }
@@ -194,19 +194,19 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
                 context.markEvaluatedProperty(key);
                 if (additionalPropertiesSchema.isSync()) {
                   try {
-                    additionalPropertiesSchema.validateSync(context.lowerLevelContext(), obj.getValue(key));
+                    additionalPropertiesSchema.validateSync(context.lowerLevelContext(key), obj.getValue(key));
                   } catch (ValidationException e) {
                     return fillAdditionalPropertyException(e, in);
                   }
                 } else {
                   futs.add(additionalPropertiesSchema
-                    .validateAsync(context.lowerLevelContext(), obj.getValue(key))
+                    .validateAsync(context.lowerLevelContext(key), obj.getValue(key))
                     .recover(t -> fillAdditionalPropertyException(t, in))
                   );
                 }
               }
             } else {
-              return Future.failedFuture(createException("provided object should not contain additional properties", "additionalProperties", in));
+              return Future.failedFuture(create("provided object should not contain additional properties", "additionalProperties", in));
             }
           }
         }
@@ -225,7 +225,7 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
           if (properties != null && properties.containsKey(key)) {
             SchemaInternal s = properties.get(key);
             context.markEvaluatedProperty(key);
-            s.validateSync(context.lowerLevelContext(), obj.getValue(key));
+            s.validateSync(context.lowerLevelContext(key), obj.getValue(key));
             found = true;
           }
           if (patternProperties != null) {
@@ -233,7 +233,7 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
               if (patternProperty.getKey().matcher(key).find()) {
                 SchemaInternal s = patternProperty.getValue();
                 context.markEvaluatedProperty(key);
-                s.validateSync(context.lowerLevelContext(), obj.getValue(key));
+                s.validateSync(context.lowerLevelContext(key), obj.getValue(key));
                 found = true;
               }
             }
@@ -242,10 +242,10 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
             if (allowAdditionalProperties) {
               if (additionalPropertiesSchema != null) {
                 context.markEvaluatedProperty(key);
-                additionalPropertiesSchema.validateSync(context.lowerLevelContext(), obj.getValue(key));
+                additionalPropertiesSchema.validateSync(context.lowerLevelContext(key), obj.getValue(key));
               }
             } else {
-              throw createException("provided object should not contain additional properties", "additionalProperties", in);
+              throw create("provided object should not contain additional properties", "additionalProperties", in);
             }
           }
         }

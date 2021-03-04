@@ -19,7 +19,7 @@ import io.vertx.json.schema.ValidationException;
 import java.util.HashSet;
 import java.util.Set;
 
-import static io.vertx.json.schema.ValidationException.createException;
+import static io.vertx.json.schema.ValidationException.create;
 
 public class RequiredValidatorFactory implements ValidatorFactory {
 
@@ -53,7 +53,7 @@ public class RequiredValidatorFactory implements ValidatorFactory {
         JsonObject obj = (JsonObject) in;
         for (String k : requiredKeys) {
           if (!obj.containsKey(k))
-            throw createException("provided object should contain property " + k, "required", in);
+            throw create("provided object should contain property " + k, "required", in);
         }
       }
     }

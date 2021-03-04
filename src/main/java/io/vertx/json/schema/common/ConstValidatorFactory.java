@@ -44,7 +44,7 @@ public class ConstValidatorFactory implements ValidatorFactory {
     @Override
     public void validateSync(ValidatorContext context, Object in) throws ValidationException {
       if (!ComparisonUtils.equalsNumberSafe(allowedValue, in))
-        throw ValidationException.createException("Input doesn't match const: " + allowedValue, "const", in);
+        throw ValidationException.create("Input doesn't match const: " + allowedValue, "const", in);
     }
   }
 

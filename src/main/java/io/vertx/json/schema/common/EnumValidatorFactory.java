@@ -67,7 +67,7 @@ public class EnumValidatorFactory implements ValidatorFactory {
         if (ComparisonUtils.equalsNumberSafe(allowedValues[i], in))
           return;
       }
-      throw ValidationException.createException("Input doesn't match one of allowed values of enum: " + Arrays.toString(allowedValues), "enum", in);
+      throw ValidationException.create("Input doesn't match one of allowed values of enum: " + Arrays.toString(allowedValues), "enum", in);
     }
   }
 

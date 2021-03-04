@@ -52,7 +52,7 @@ public class PatternValidatorFactory implements ValidatorFactory {
       if (in instanceof String) {
         Matcher m = pattern.matcher((String) in);
         if (!(m.matches() || m.lookingAt() || m.find())) {
-          throw ValidationException.createException("provided string should respect pattern " + pattern, "pattern", in);
+          throw ValidationException.create("provided string should respect pattern " + pattern, "pattern", in);
         }
       }
     }
