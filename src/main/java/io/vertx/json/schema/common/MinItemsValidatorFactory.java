@@ -39,7 +39,7 @@ public class MinItemsValidatorFactory implements ValidatorFactory {
     return schema.containsKey("minItems");
   }
 
-  public class MinItemsValidator extends BaseSyncValidator {
+  public static class MinItemsValidator extends BaseSyncValidator {
     private final int minimum;
 
     public MinItemsValidator(int minimum) {

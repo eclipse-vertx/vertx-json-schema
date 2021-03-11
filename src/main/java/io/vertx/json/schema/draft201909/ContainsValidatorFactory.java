@@ -46,7 +46,7 @@ public class ContainsValidatorFactory implements ValidatorFactory {
     return schema.containsKey("contains");
   }
 
-  class BoundedContainsValidator extends BaseSingleSchemaValidator {
+  static class BoundedContainsValidator extends BaseSingleSchemaValidator {
 
     private final int min;
     private final Integer max;

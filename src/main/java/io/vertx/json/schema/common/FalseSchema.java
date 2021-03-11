@@ -25,7 +25,7 @@ public class FalseSchema implements SchemaInternal {
     return FalseSchemaHolder.INSTANCE;
   }
 
-  MutableStateValidator parent;
+  final MutableStateValidator parent;
 
   public FalseSchema(MutableStateValidator parent) {
     this.parent = parent;

@@ -26,7 +26,7 @@ public class NotValidatorFactory extends BaseSingleSchemaValidatorFactory {
     return "not";
   }
 
-  class NotValidator extends BaseSingleSchemaValidator {
+  static class NotValidator extends BaseSingleSchemaValidator {
 
     public NotValidator(MutableStateValidator parent) {
       super(parent);

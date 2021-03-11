@@ -30,7 +30,7 @@ public class AllOfValidatorFactory extends BaseCombinatorsValidatorFactory {
     return "allOf";
   }
 
-  class AllOfValidator extends BaseCombinatorsValidator {
+  static class AllOfValidator extends BaseCombinatorsValidator {
 
     public AllOfValidator(MutableStateValidator parent) {
       super(parent);

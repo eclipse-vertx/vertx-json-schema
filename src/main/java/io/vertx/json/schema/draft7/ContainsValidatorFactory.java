@@ -37,7 +37,7 @@ public class ContainsValidatorFactory extends BaseSingleSchemaValidatorFactory {
     return "contains";
   }
 
-  class ContainsValidator extends BaseSingleSchemaValidator {
+  static class ContainsValidator extends BaseSingleSchemaValidator {
 
     public ContainsValidator(MutableStateValidator parent) {
       super(parent);

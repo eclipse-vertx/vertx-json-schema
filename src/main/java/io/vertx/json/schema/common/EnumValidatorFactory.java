@@ -49,7 +49,7 @@ public class EnumValidatorFactory implements ValidatorFactory {
     return schema.containsKey("enum");
   }
 
-  public class EnumValidator extends BaseSyncValidator {
+  public static class EnumValidator extends BaseSyncValidator {
     private final Object[] allowedValues;
 
     public EnumValidator(Set allowedValues) {
@@ -63,8 +63,8 @@ public class EnumValidatorFactory implements ValidatorFactory {
 
     @Override
     public void validateSync(ValidatorContext context, Object in) throws ValidationException {
-      for (int i = 0; i < allowedValues.length; i++) {
-        if (ComparisonUtils.equalsNumberSafe(allowedValues[i], in))
+      for (Object allowedValue : allowedValues) {
+        if (ComparisonUtils.equalsNumberSafe(allowedValue, in))
           return;
       }
       throw ValidationException.createException("Input doesn't match one of allowed values of enum: " + Arrays.toString(allowedValues), "enum", in);

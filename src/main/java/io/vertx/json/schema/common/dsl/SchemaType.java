@@ -18,7 +18,7 @@ public enum SchemaType {
   ARRAY("array"),
   OBJECT("object");
 
-  private String name;
+  private final String name;
 
   SchemaType(String name) {
     this.name = name;

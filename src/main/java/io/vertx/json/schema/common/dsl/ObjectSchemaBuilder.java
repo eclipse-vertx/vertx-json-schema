@@ -18,9 +18,9 @@ import java.util.regex.Pattern;
 
 public final class ObjectSchemaBuilder extends SchemaBuilder<ObjectSchemaBuilder, ObjectKeyword> {
 
-  Map<String, SchemaBuilder> properties;
-  Map<Pattern, SchemaBuilder> patternProperties;
-  Set<String> requiredProperties;
+  final Map<String, SchemaBuilder> properties;
+  final Map<Pattern, SchemaBuilder> patternProperties;
+  final Set<String> requiredProperties;
 
   ObjectSchemaBuilder() {
     super(SchemaType.OBJECT);

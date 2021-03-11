@@ -63,8 +63,6 @@ public interface SchemaParserInternal extends SchemaParser {
     return parseFromString(unparsedJson, schemaPointer, null);
   }
 
-  ;
-
   default SchemaInternal parseFromString(String unparsedJson, URI scope, MutableStateValidator parent) {
     return this.parseFromString(unparsedJson, JsonPointer.fromURI(scope), parent);
   }

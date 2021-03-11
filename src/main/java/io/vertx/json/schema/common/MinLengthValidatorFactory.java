@@ -36,7 +36,7 @@ public class MinLengthValidatorFactory implements ValidatorFactory {
     return schema.containsKey("minLength");
   }
 
-  public class MinLengthValidator extends BaseSyncValidator {
+  public static class MinLengthValidator extends BaseSyncValidator {
     private final int minimum;
 
     public MinLengthValidator(int minimum) {

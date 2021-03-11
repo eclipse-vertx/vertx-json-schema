@@ -12,7 +12,6 @@ package io.vertx.json.schema.draft201909;
 
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.impl.JsonUtil;
 import io.vertx.core.json.pointer.JsonPointer;
@@ -21,7 +20,6 @@ import io.vertx.json.schema.SchemaException;
 import io.vertx.json.schema.ValidationException;
 import io.vertx.json.schema.common.*;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -54,7 +52,7 @@ public class UnevaluatedPropertiesValidatorFactory implements ValidatorFactory {
     return schema.containsKey("unevaluatedProperties");
   }
 
-  class SchemedUnevaluatedPropertiesValidator extends BaseSingleSchemaValidator {
+  static class SchemedUnevaluatedPropertiesValidator extends BaseSingleSchemaValidator {
 
     public SchemedUnevaluatedPropertiesValidator(MutableStateValidator parent) {
       super(parent);
@@ -119,7 +117,7 @@ public class UnevaluatedPropertiesValidatorFactory implements ValidatorFactory {
     }
   }
 
-  class NoUnevaluatedPropertiesValidator extends BaseSyncValidator {
+  static class NoUnevaluatedPropertiesValidator extends BaseSyncValidator {
 
     @Override
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {

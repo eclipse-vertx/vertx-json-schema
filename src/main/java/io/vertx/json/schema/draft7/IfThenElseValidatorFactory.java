@@ -45,7 +45,7 @@ public class IfThenElseValidatorFactory implements ValidatorFactory {
     return schema.containsKey("if") && (schema.containsKey("then") || schema.containsKey("else"));
   }
 
-  class IfThenElseValidator extends BaseMutableStateValidator {
+  static class IfThenElseValidator extends BaseMutableStateValidator {
 
     private SchemaInternal condition;
     private SchemaInternal thenBranch;

@@ -54,7 +54,7 @@ public class TypeValidatorFactory implements ValidatorFactory {
     }
   }
 
-  class TypeValidator extends BaseSyncValidator {
+  static class TypeValidator extends BaseSyncValidator {
 
     final JsonSchemaType type;
 

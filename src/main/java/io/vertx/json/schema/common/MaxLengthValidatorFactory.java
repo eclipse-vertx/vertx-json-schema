@@ -36,7 +36,7 @@ public class MaxLengthValidatorFactory implements ValidatorFactory {
     return schema.containsKey("maxLength");
   }
 
-  public class MaxLengthValidator extends BaseSyncValidator {
+  public static class MaxLengthValidator extends BaseSyncValidator {
     private final int maximum;
 
     public MaxLengthValidator(int maximum) {

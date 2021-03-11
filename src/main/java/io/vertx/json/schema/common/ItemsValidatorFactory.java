@@ -32,7 +32,7 @@ public class ItemsValidatorFactory extends BaseSingleSchemaValidatorFactory {
     return "items";
   }
 
-  class ItemsValidator extends BaseSingleSchemaValidator implements DefaultApplier {
+  static class ItemsValidator extends BaseSingleSchemaValidator implements DefaultApplier {
 
     public ItemsValidator(MutableStateValidator parent) {
       super(parent);
@@ -90,8 +90,8 @@ public class ItemsValidatorFactory extends BaseSingleSchemaValidatorFactory {
 
       List<Future> futures = new ArrayList<>();
       List<?> arr = (List<?>) in;
-      for (int i = 0; i < arr.size(); i++) {
-        Object valToDefault = JsonUtil.wrapJsonValue(arr.get(i));
+      for (Object o : arr) {
+        Object valToDefault = JsonUtil.wrapJsonValue(o);
         if (schema.isSync()) {
           schema.getOrApplyDefaultSync(valToDefault);
         } else {

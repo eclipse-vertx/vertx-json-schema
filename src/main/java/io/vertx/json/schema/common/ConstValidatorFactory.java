@@ -28,7 +28,7 @@ public class ConstValidatorFactory implements ValidatorFactory {
     return schema.containsKey("const");
   }
 
-  public class ConstValidator extends BaseSyncValidator {
+  public static class ConstValidator extends BaseSyncValidator {
 
     private final Object allowedValue;
 

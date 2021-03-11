@@ -39,7 +39,7 @@ public class MaxItemsValidatorFactory implements ValidatorFactory {
     return schema.containsKey("maxItems");
   }
 
-  public class MaxItemsValidator extends BaseSyncValidator {
+  public static class MaxItemsValidator extends BaseSyncValidator {
     private final int maximum;
 
     public MaxItemsValidator(int maximum) {

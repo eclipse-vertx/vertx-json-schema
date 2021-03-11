@@ -36,7 +36,7 @@ public class TypeValidatorFactory implements ValidatorFactory {
       }
       boolean allowNull = allowedTypes.contains(JsonSchemaType.NULL);
       if (allowNull) allowedTypes.remove(JsonSchemaType.NULL);
-      return new TypeValidator(allowedTypes.toArray(new JsonSchemaType[allowedTypes.size()]), allowNull);
+      return new TypeValidator(allowedTypes.toArray(new JsonSchemaType[0]), allowNull);
     } catch (NullPointerException e) {
       throw new SchemaException(schema, "Null type keyword", e);
     } catch (ClassCastException e) {
@@ -70,7 +70,7 @@ public class TypeValidatorFactory implements ValidatorFactory {
     }
   }
 
-  class TypeValidator extends BaseSyncValidator {
+  static class TypeValidator extends BaseSyncValidator {
 
     final JsonSchemaType[] types;
     final boolean nullIsValid;

@@ -22,7 +22,6 @@ import io.vertx.json.schema.ValidationException;
 import io.vertx.json.schema.common.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -54,7 +53,7 @@ public class UnevaluatedItemsValidatorFactory implements ValidatorFactory {
     return schema.containsKey("unevaluatedItems");
   }
 
-  class SchemedUnevaluatedItemsValidator extends BaseSingleSchemaValidator {
+  static class SchemedUnevaluatedItemsValidator extends BaseSingleSchemaValidator {
 
     public SchemedUnevaluatedItemsValidator(MutableStateValidator parent) {
       super(parent);
@@ -118,7 +117,7 @@ public class UnevaluatedItemsValidatorFactory implements ValidatorFactory {
     }
   }
 
-  class NoUnevaluatedItemsValidator extends BaseSyncValidator {
+  static class NoUnevaluatedItemsValidator extends BaseSyncValidator {
 
     @Override
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {

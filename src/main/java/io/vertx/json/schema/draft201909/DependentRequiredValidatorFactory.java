@@ -18,7 +18,6 @@ import io.vertx.json.schema.SchemaException;
 import io.vertx.json.schema.ValidationException;
 import io.vertx.json.schema.common.*;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -45,7 +44,7 @@ public class DependentRequiredValidatorFactory implements ValidatorFactory {
     return schema.containsKey("dependentRequired");
   }
 
-  class DependentRequiredValidator extends BaseSyncValidator {
+  static class DependentRequiredValidator extends BaseSyncValidator {
 
     public final Map<String, Set<String>> keyDeps;
 

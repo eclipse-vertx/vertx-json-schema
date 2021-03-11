@@ -32,9 +32,9 @@ import java.util.function.Supplier;
 public abstract class SchemaBuilder<T extends SchemaBuilder<?, ?>, K extends Keyword> {
 
   protected SchemaType type;
-  protected Map<String, Supplier<Object>> keywords;
+  protected final Map<String, Supplier<Object>> keywords;
   protected URI id;
-  T self;
+  final T self;
 
   @SuppressWarnings("unchecked")
   public SchemaBuilder(SchemaType type) {
@@ -55,12 +55,6 @@ public abstract class SchemaBuilder<T extends SchemaBuilder<?, ?>, K extends Key
   @Fluent
   public T id(JsonPointer id) {
     this.id = id.toURI();
-    return self;
-  }
-
-  @Fluent
-  public T with(K keyword) {
-    this.keywords.put(keyword.getKeyword(), keyword.getValueSupplier());
     return self;
   }
 

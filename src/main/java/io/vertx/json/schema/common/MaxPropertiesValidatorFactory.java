@@ -38,7 +38,7 @@ public class MaxPropertiesValidatorFactory implements ValidatorFactory {
     return schema.containsKey("maxProperties");
   }
 
-  public class MaxPropertiesValidator extends BaseSyncValidator {
+  public static class MaxPropertiesValidator extends BaseSyncValidator {
     private final int maximum;
 
     public MaxPropertiesValidator(int maximum) {
