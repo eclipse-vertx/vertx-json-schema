@@ -15,6 +15,8 @@ import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.json.schema.SchemaException;
 import io.vertx.json.schema.ValidationException;
 
+import java.util.Map;
+
 public class MinPropertiesValidatorFactory implements ValidatorFactory {
 
   @Override
@@ -45,9 +47,14 @@ public class MinPropertiesValidatorFactory implements ValidatorFactory {
 
     @Override
     public void validateSync(ValidatorContext context, Object in) throws ValidationException {
+      final Object orig = in;
+      // attempt to handle JsonObject as Map
       if (in instanceof JsonObject) {
-        if (((JsonObject) in).size() < minimum) {
-          throw ValidationException.createException("provided object should have size >= " + minimum, "minProperties", in);
+        in = ((JsonObject) in).getMap();
+      }
+      if (in instanceof Map) {
+        if (((Map) in).size() < minimum) {
+          throw ValidationException.createException("provided object should have size >= " + minimum, "minProperties", orig);
         }
       }
     }

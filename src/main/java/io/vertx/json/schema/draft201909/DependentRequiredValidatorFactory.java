@@ -18,6 +18,7 @@ import io.vertx.json.schema.SchemaException;
 import io.vertx.json.schema.ValidationException;
 import io.vertx.json.schema.common.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -52,19 +53,24 @@ public class DependentRequiredValidatorFactory implements ValidatorFactory {
       this.keyDeps = keyDeps;
     }
 
-    private void checkKeyDeps(JsonObject obj) {
-      Set<String> objKeys = obj.getMap().keySet();
+    private void checkKeyDeps(Map<String, ?> obj, Object orig) {
+      Set<String> objKeys = obj.keySet();
       for (Map.Entry<String, Set<String>> dependency : keyDeps.entrySet()) {
         if (obj.containsKey(dependency.getKey()) && !objKeys.containsAll(dependency.getValue()))
-          throw ValidationException.createException("dependencies of key " + dependency.getKey() + " are not satisfied: " + dependency.getValue().toString(), "dependentRequired", obj);
+          throw ValidationException.createException("dependencies of key " + dependency.getKey() + " are not satisfied: " + dependency.getValue().toString(), "dependentRequired", orig);
       }
     }
 
     @Override
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
+      // attempt to handle JsonObject as Map
+      final Object orig = in;
       if (in instanceof JsonObject) {
-        JsonObject obj = (JsonObject) in;
-        checkKeyDeps(obj);
+        in = ((JsonObject) in).getMap();
+      }
+      if (in instanceof Map) {
+        Map<String, ?> obj = (Map) in;
+        checkKeyDeps(obj, orig);
       }
     }
   }

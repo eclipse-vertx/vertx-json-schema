@@ -13,6 +13,7 @@ package io.vertx.json.schema.common;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.impl.JsonUtil;
 import io.vertx.json.schema.NoSyncValidationException;
 import io.vertx.json.schema.ValidationException;
 
@@ -41,10 +42,13 @@ public class ItemsValidatorFactory extends BaseSingleSchemaValidatorFactory {
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
       if (in instanceof JsonArray) {
-        JsonArray arr = (JsonArray) in;
+        in = ((JsonArray) in).getList();
+      }
+      if (in instanceof List) {
+        List<?> arr = (List<?>) in;
         for (int i = 0; i < arr.size(); i++) {
           context.markEvaluatedItem(i);
-          schema.validateSync(context.lowerLevelContext(), arr.getValue(i));
+          schema.validateSync(context.lowerLevelContext(), JsonUtil.wrapJsonValue(arr.get(i)));
         }
       }
     }
@@ -53,11 +57,14 @@ public class ItemsValidatorFactory extends BaseSingleSchemaValidatorFactory {
     public Future<Void> validateAsync(ValidatorContext context, Object in) {
       if (isSync()) return validateSyncAsAsync(context, in);
       if (in instanceof JsonArray) {
-        JsonArray arr = (JsonArray) in;
+        in = ((JsonArray) in).getList();
+      }
+      if (in instanceof List) {
+        List<?> arr = (List<?>) in;
         List<Future> futs = new ArrayList<>();
         for (int i = 0; i < arr.size(); i++) {
           context.markEvaluatedItem(i);
-          Future<Void> f = schema.validateAsync(context.lowerLevelContext(), arr.getValue(i));
+          Future<Void> f = schema.validateAsync(context.lowerLevelContext(), JsonUtil.wrapJsonValue(arr.get(i)));
           if (f.isComplete()) {
             if (f.failed()) return Future.failedFuture(f.cause());
           } else {
@@ -72,15 +79,19 @@ public class ItemsValidatorFactory extends BaseSingleSchemaValidatorFactory {
     }
 
     @Override
-    public Future<Void> applyDefaultValue(Object value) {
-      if (!(value instanceof JsonArray)) {
+    public Future<Void> applyDefaultValue(Object in) {
+      if (in instanceof JsonArray) {
+        in = ((JsonArray) in).getList();
+      }
+
+      if (!(in instanceof List)) {
         return Future.succeededFuture();
       }
 
       List<Future> futures = new ArrayList<>();
-      JsonArray arr = (JsonArray) value;
+      List<?> arr = (List<?>) in;
       for (int i = 0; i < arr.size(); i++) {
-        Object valToDefault = arr.getValue(i);
+        Object valToDefault = JsonUtil.wrapJsonValue(arr.get(i));
         if (schema.isSync()) {
           schema.getOrApplyDefaultSync(valToDefault);
         } else {

@@ -12,13 +12,17 @@ package io.vertx.json.schema.draft201909;
 
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.impl.JsonUtil;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.json.schema.NoSyncValidationException;
 import io.vertx.json.schema.SchemaException;
 import io.vertx.json.schema.ValidationException;
 import io.vertx.json.schema.common.*;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -59,20 +63,24 @@ public class UnevaluatedPropertiesValidatorFactory implements ValidatorFactory {
     @Override
     public Future<Void> validateAsync(ValidatorContext context, Object in) {
       if (isSync()) return validateSyncAsAsync(context, in);
+      final Object orig = in;
       if (in instanceof JsonObject) {
-        JsonObject obj = (JsonObject) in;
+        in = ((JsonObject) in).getMap();
+      }
+      if (in instanceof Map) {
+        Map<String, ?> obj = (Map) in;
         Set<String> unevaluatedItems = computeUnevaluatedProperties(context, obj);
 
         return CompositeFuture.all(
           unevaluatedItems
             .stream()
-            .map(key -> schema.validateAsync(context.lowerLevelContext(), obj.getValue(key)))
+            .map(key -> schema.validateAsync(context.lowerLevelContext(), JsonUtil.wrapJsonValue(obj.get(key))))
             .collect(Collectors.toList())
         )
           .recover(t -> Future.failedFuture(ValidationException.createException(
             "one of the unevaluated properties doesn't match the unevaluatedProperties schema",
             "unevaluatedProperties",
-            in,
+            orig,
             t
           )))
           .mapEmpty();
@@ -84,12 +92,16 @@ public class UnevaluatedPropertiesValidatorFactory implements ValidatorFactory {
     @Override
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
+      final Object orig = in;
       if (in instanceof JsonObject) {
-        JsonObject obj = (JsonObject) in;
+        in = ((JsonObject) in).getMap();
+      }
+      if (in instanceof Map) {
+        Map<String, ?> obj = (Map) in;
         Set<String> unevaluatedProperties = computeUnevaluatedProperties(context, obj);
 
         unevaluatedProperties.forEach(key ->
-          schema.validateSync(context.lowerLevelContext(), obj.getValue(key))
+          schema.validateSync(context.lowerLevelContext(), JsonUtil.wrapJsonValue(obj.get(key)))
         );
       }
     }
@@ -99,9 +111,9 @@ public class UnevaluatedPropertiesValidatorFactory implements ValidatorFactory {
       return ValidatorPriority.CONTEXTUAL_VALIDATOR;
     }
 
-    private Set<String> computeUnevaluatedProperties(ValidatorContext context, JsonObject in) {
+    private Set<String> computeUnevaluatedProperties(ValidatorContext context, Map<String, ?> in) {
       return SetUtils.minus(
-        in.fieldNames(),
+        in.keySet(),
         context.evaluatedProperties()
       );
     }
@@ -111,16 +123,21 @@ public class UnevaluatedPropertiesValidatorFactory implements ValidatorFactory {
 
     @Override
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
+      // attempt to handle JsonObject as Map
+      final Object orig = in;
       if (in instanceof JsonObject) {
-        if (!context.evaluatedProperties().containsAll(((JsonObject) in).fieldNames())) {
+        in = ((JsonObject) in).getMap();
+      }
+      if (in instanceof Map) {
+        if (!context.evaluatedProperties().containsAll(((Map<String, ?>) in).keySet())) {
           throw ValidationException.createException(
             "Expecting no unevaluated properties. Unevaluated properties: " +
               SetUtils.minus(
-                ((JsonObject) in).fieldNames(),
+                ((Map<String, ?>) in).keySet(),
                 context.evaluatedProperties()
               ),
             "unevaluatedProperties",
-            in
+            orig
           );
         }
       }

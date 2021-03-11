@@ -12,7 +12,9 @@ package io.vertx.json.schema.common;
 
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.impl.JsonUtil;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.json.schema.Schema;
 import io.vertx.json.schema.SchemaException;
@@ -151,22 +153,26 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
     @Override
     public Future<Void> validateAsync(ValidatorContext context, Object in) {
       if (isSync()) return validateSyncAsAsync(context, in);
+      final Object orig = in;
       if (in instanceof JsonObject) {
-        JsonObject obj = (JsonObject) in;
+        in = ((JsonObject) in).getMap();
+      }
+      if (in instanceof Map) {
+        Map<String, ?> obj = (Map) in;
         List<Future> futs = new ArrayList<>();
-        for (String key : obj.fieldNames()) {
+        for (String key : obj.keySet()) {
           boolean found = false;
           if (properties != null && properties.containsKey(key)) {
             SchemaInternal s = properties.get(key);
             context.markEvaluatedProperty(key);
             if (s.isSync()) {
               try {
-                s.validateSync(context.lowerLevelContext(), obj.getValue(key));
+                s.validateSync(context.lowerLevelContext(), JsonUtil.wrapJsonValue(obj.get(key)));
               } catch (ValidationException e) {
                 return Future.failedFuture(e);
               }
             } else {
-              futs.add(s.validateAsync(context.lowerLevelContext(), obj.getValue(key)));
+              futs.add(s.validateAsync(context.lowerLevelContext(), JsonUtil.wrapJsonValue(obj.get(key))));
             }
             found = true;
           }
@@ -177,12 +183,12 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
                 context.markEvaluatedProperty(key);
                 if (s.isSync()) {
                   try {
-                    s.validateSync(context.lowerLevelContext(), obj.getValue(key));
+                    s.validateSync(context.lowerLevelContext(), JsonUtil.wrapJsonValue(obj.get(key)));
                   } catch (ValidationException e) {
                     return Future.failedFuture(e);
                   }
                 } else {
-                  futs.add(s.validateAsync(context.lowerLevelContext(), obj.getValue(key)));
+                  futs.add(s.validateAsync(context.lowerLevelContext(), JsonUtil.wrapJsonValue(obj.get(key))));
                 }
                 found = true;
               }
@@ -194,19 +200,19 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
                 context.markEvaluatedProperty(key);
                 if (additionalPropertiesSchema.isSync()) {
                   try {
-                    additionalPropertiesSchema.validateSync(context.lowerLevelContext(), obj.getValue(key));
+                    additionalPropertiesSchema.validateSync(context.lowerLevelContext(), JsonUtil.wrapJsonValue(obj.get(key)));
                   } catch (ValidationException e) {
-                    return fillAdditionalPropertyException(e, in);
+                    return fillAdditionalPropertyException(e, orig);
                   }
                 } else {
                   futs.add(additionalPropertiesSchema
-                    .validateAsync(context.lowerLevelContext(), obj.getValue(key))
-                    .recover(t -> fillAdditionalPropertyException(t, in))
+                    .validateAsync(context.lowerLevelContext(), JsonUtil.wrapJsonValue(obj.get(key)))
+                    .recover(t -> fillAdditionalPropertyException(t, orig))
                   );
                 }
               }
             } else {
-              return Future.failedFuture(createException("provided object should not contain additional properties", "additionalProperties", in));
+              return Future.failedFuture(createException("provided object should not contain additional properties", "additionalProperties", orig));
             }
           }
         }
@@ -218,14 +224,18 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
     @Override
     public void validateSync(ValidatorContext context, Object in) throws ValidationException {
       this.checkSync();
+      final Object orig = in;
       if (in instanceof JsonObject) {
-        JsonObject obj = (JsonObject) in;
-        for (String key : obj.fieldNames()) {
+        in = ((JsonObject) in).getMap();
+      }
+      if (in instanceof Map) {
+        Map<String, ?> obj = (Map) in;
+        for (String key : obj.keySet()) {
           boolean found = false;
           if (properties != null && properties.containsKey(key)) {
             SchemaInternal s = properties.get(key);
             context.markEvaluatedProperty(key);
-            s.validateSync(context.lowerLevelContext(), obj.getValue(key));
+            s.validateSync(context.lowerLevelContext(), JsonUtil.wrapJsonValue(obj.get(key)));
             found = true;
           }
           if (patternProperties != null) {
@@ -233,7 +243,7 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
               if (patternProperty.getKey().matcher(key).find()) {
                 SchemaInternal s = patternProperty.getValue();
                 context.markEvaluatedProperty(key);
-                s.validateSync(context.lowerLevelContext(), obj.getValue(key));
+                s.validateSync(context.lowerLevelContext(), JsonUtil.wrapJsonValue(obj.get(key)));
                 found = true;
               }
             }
@@ -242,10 +252,10 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
             if (allowAdditionalProperties) {
               if (additionalPropertiesSchema != null) {
                 context.markEvaluatedProperty(key);
-                additionalPropertiesSchema.validateSync(context.lowerLevelContext(), obj.getValue(key));
+                additionalPropertiesSchema.validateSync(context.lowerLevelContext(), JsonUtil.wrapJsonValue(obj.get(key)));
               }
             } else {
-              throw createException("provided object should not contain additional properties", "additionalProperties", in);
+              throw createException("provided object should not contain additional properties", "additionalProperties", orig);
             }
           }
         }
@@ -253,13 +263,18 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public Future<Void> applyDefaultValue(Object value) {
-      if (!(value instanceof JsonObject && properties != null)) {
-        return Future.succeededFuture();
+    public Future<Void> applyDefaultValue(Object in) {
+      final Object orig = in;
+      if (in instanceof JsonObject) {
+        in = ((JsonObject) in).getMap();
       }
 
+      if (!(in instanceof Map && properties != null)) {
+        return Future.succeededFuture();
+      }
+      Map<String, Object> obj = (Map) in;
+
       List<Future> futs = new ArrayList<>();
-      JsonObject obj = (JsonObject) value;
       for (Map.Entry<String, SchemaInternal> e : properties.entrySet()) {
         final String key = e.getKey();
         final SchemaInternal schema = e.getValue();
@@ -281,10 +296,10 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
           }
         } else {
           if (schema.isSync()) {
-            schema.getOrApplyDefaultSync(obj.getValue(key));
+            schema.getOrApplyDefaultSync(JsonUtil.wrapJsonValue(obj.get(key)));
           } else {
             futs.add(
-              schema.getOrApplyDefaultAsync(obj.getValue(key))
+              schema.getOrApplyDefaultAsync(JsonUtil.wrapJsonValue(obj.get(key)))
             );
           }
         }

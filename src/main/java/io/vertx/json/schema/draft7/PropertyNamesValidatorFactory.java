@@ -20,6 +20,7 @@ import io.vertx.json.schema.common.BaseSingleSchemaValidatorFactory;
 import io.vertx.json.schema.common.MutableStateValidator;
 import io.vertx.json.schema.common.ValidatorContext;
 
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class PropertyNamesValidatorFactory extends BaseSingleSchemaValidatorFactory {
@@ -43,23 +44,32 @@ public class PropertyNamesValidatorFactory extends BaseSingleSchemaValidatorFact
     @Override
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
+      // attempt to handle JsonObject as Map
       if (in instanceof JsonObject) {
-        ((JsonObject) in).getMap().keySet().forEach(k -> schema.validateSync(context.lowerLevelContext(), k));
+        in = ((JsonObject) in).getMap();
+      }
+      if (in instanceof Map) {
+        ((Map<String, ?>) in).keySet().forEach(k -> schema.validateSync(context.lowerLevelContext(), k));
       }
     }
 
     @Override
     public Future<Void> validateAsync(ValidatorContext context, Object in) {
       if (isSync()) return validateSyncAsAsync(context, in);
+      // attempt to handle JsonObject as Map
+      final Object orig = in;
       if (in instanceof JsonObject) {
+        in = ((JsonObject) in).getMap();
+      }
+      if (in instanceof Map) {
         return CompositeFuture.all(
-          ((JsonObject) in).getMap().keySet()
+          ((Map<String, ?>) in).keySet()
             .stream()
             .map(k -> schema.validateAsync(context.lowerLevelContext(), k))
             .collect(Collectors.toList())
         ).compose(
           cf -> Future.succeededFuture(),
-          err -> Future.failedFuture(ValidationException.createException("provided object contains a key not matching the propertyNames schema", "propertyNames", in, err))
+          err -> Future.failedFuture(ValidationException.createException("provided object contains a key not matching the propertyNames schema", "propertyNames", orig, err))
         );
       } else return Future.succeededFuture();
     }

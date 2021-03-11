@@ -74,8 +74,8 @@ public class DependenciesValidatorFactory implements ValidatorFactory {
       initializeIsSync();
     }
 
-    private void checkKeyDeps(JsonObject obj) {
-      Set<String> objKeys = obj.getMap().keySet();
+    private void checkKeyDeps(Map<String, ?> obj) {
+      Set<String> objKeys = obj.keySet();
       for (Map.Entry<String, Set<String>> dependency : keyDeps.entrySet()) {
         if (obj.containsKey(dependency.getKey()) && !objKeys.containsAll(dependency.getValue()))
           throw ValidationException.createException("dependencies of key " + dependency.getKey() + " are not satisfied: " + dependency.getValue().toString(), "dependencies", obj);
@@ -85,8 +85,12 @@ public class DependenciesValidatorFactory implements ValidatorFactory {
     @Override
     public Future<Void> validateAsync(ValidatorContext context, Object in) {
       if (isSync()) return validateSyncAsAsync(context, in);
+      final Object orig = in;
       if (in instanceof JsonObject) {
-        JsonObject obj = (JsonObject) in;
+        in = ((JsonObject) in).getMap();
+      }
+      if (in instanceof Map) {
+        Map<String, ?> obj = (Map) in;
         try {
           checkKeyDeps(obj);
         } catch (ValidationException e) {
@@ -96,7 +100,7 @@ public class DependenciesValidatorFactory implements ValidatorFactory {
           .entrySet()
           .stream()
           .filter(e -> obj.containsKey(e.getKey()))
-          .map(e -> e.getValue().validateAsync(context, in))
+          .map(e -> e.getValue().validateAsync(context, orig))
           .collect(Collectors.toList());
         if (futs.isEmpty()) return Future.succeededFuture();
         else return CompositeFuture.all(futs).mapEmpty();
@@ -106,14 +110,18 @@ public class DependenciesValidatorFactory implements ValidatorFactory {
     @Override
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
+      final Object orig = in;
       if (in instanceof JsonObject) {
-        JsonObject obj = (JsonObject) in;
+        in = ((JsonObject) in).getMap();
+      }
+      if (in instanceof Map) {
+        Map<String, ?> obj = (Map) in;
         checkKeyDeps(obj);
         keySchemaDeps
           .entrySet()
           .stream()
           .filter(e -> obj.containsKey(e.getKey()))
-          .forEach(e -> e.getValue().validateSync(context, in));
+          .forEach(e -> e.getValue().validateSync(context, orig));
       }
     }
 
