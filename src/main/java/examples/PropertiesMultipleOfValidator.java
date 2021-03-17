@@ -8,7 +8,7 @@ import io.vertx.json.schema.common.ValidatorContext;
 
 public class PropertiesMultipleOfValidator extends BaseSyncValidator {
 
-  private int multipleOf;
+  private final int multipleOf;
 
   public PropertiesMultipleOfValidator(int multipleOf) {
     this.multipleOf = multipleOf;

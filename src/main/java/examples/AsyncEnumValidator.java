@@ -12,8 +12,8 @@ import static io.vertx.json.schema.ValidationException.createException;
 
 class AsyncEnumValidator extends BaseAsyncValidator {
 
-  private Vertx vertx;
-  private String address;
+  private final Vertx vertx;
+  private final String address;
 
   public AsyncEnumValidator(Vertx vertx, String address) {
     this.vertx = vertx;

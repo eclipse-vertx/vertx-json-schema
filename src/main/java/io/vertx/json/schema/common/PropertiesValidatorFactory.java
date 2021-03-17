@@ -13,7 +13,6 @@ package io.vertx.json.schema.common;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.json.impl.JsonUtil;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.json.schema.Schema;
 import io.vertx.json.schema.SchemaException;

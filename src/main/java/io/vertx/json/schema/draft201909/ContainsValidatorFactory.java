@@ -14,7 +14,6 @@ import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.json.impl.JsonUtil;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.json.schema.NoSyncValidationException;
 import io.vertx.json.schema.SchemaException;

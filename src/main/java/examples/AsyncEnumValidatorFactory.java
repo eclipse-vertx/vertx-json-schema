@@ -13,7 +13,7 @@ public class AsyncEnumValidatorFactory implements ValidatorFactory {
 
   public final static String KEYWORD_NAME = "asyncEnum";
 
-  private Vertx vertx;
+  private final Vertx vertx;
 
   public AsyncEnumValidatorFactory(Vertx vertx) {
     this.vertx = vertx;
