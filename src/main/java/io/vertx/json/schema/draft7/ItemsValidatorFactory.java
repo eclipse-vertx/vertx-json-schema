@@ -81,11 +81,11 @@ public class ItemsValidatorFactory extends io.vertx.json.schema.common.ItemsVali
           if (i >= schemas.length) {
             if (additionalItems != null) {
               context.markEvaluatedItem(i);
-              additionalItems.validateSync(context.lowerLevelContext(), JsonUtil.wrapJsonValue(arr.get(i)));
+              additionalItems.validateSync(context.lowerLevelContext(), arr.get(i));
             }
           } else {
             context.markEvaluatedItem(i);
-            schemas[i].validateSync(context.lowerLevelContext(), JsonUtil.wrapJsonValue(arr.get(i)));
+            schemas[i].validateSync(context.lowerLevelContext(), arr.get(i));
           }
         }
       }
@@ -105,11 +105,11 @@ public class ItemsValidatorFactory extends io.vertx.json.schema.common.ItemsVali
           if (i >= schemas.length) {
             if (additionalItems != null) {
               context.markEvaluatedItem(i);
-              fut = additionalItems.validateAsync(context.lowerLevelContext(), JsonUtil.wrapJsonValue(arr.get(i)));
+              fut = additionalItems.validateAsync(context.lowerLevelContext(), arr.get(i));
             } else continue;
           } else {
             context.markEvaluatedItem(i);
-            fut = schemas[i].validateAsync(context.lowerLevelContext(), JsonUtil.wrapJsonValue(arr.get(i)));
+            fut = schemas[i].validateAsync(context.lowerLevelContext(), arr.get(i));
           }
           if (fut.isComplete()) {
             if (fut.failed()) return Future.failedFuture(fut.cause());
@@ -140,7 +140,7 @@ public class ItemsValidatorFactory extends io.vertx.json.schema.common.ItemsVali
       List<Future> futures = new ArrayList<>();
       List<?> arr = (List<?>) in;
       for (int i = 0; i < arr.size(); i++) {
-        Object valToDefault = JsonUtil.wrapJsonValue(arr.get(i));
+        Object valToDefault = arr.get(i);
         if (i >= schemas.length) {
           if (additionalItems != null) {
             if (additionalItems.isSync()) {

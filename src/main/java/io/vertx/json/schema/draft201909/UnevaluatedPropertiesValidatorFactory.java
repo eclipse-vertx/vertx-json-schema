@@ -72,7 +72,7 @@ public class UnevaluatedPropertiesValidatorFactory implements ValidatorFactory {
         return CompositeFuture.all(
           unevaluatedItems
             .stream()
-            .map(key -> schema.validateAsync(context.lowerLevelContext(), JsonUtil.wrapJsonValue(obj.get(key))))
+            .map(key -> schema.validateAsync(context.lowerLevelContext(), obj.get(key)))
             .collect(Collectors.toList())
         )
           .recover(t -> Future.failedFuture(ValidationException.createException(
@@ -99,7 +99,7 @@ public class UnevaluatedPropertiesValidatorFactory implements ValidatorFactory {
         Set<String> unevaluatedProperties = computeUnevaluatedProperties(context, obj);
 
         unevaluatedProperties.forEach(key ->
-          schema.validateSync(context.lowerLevelContext(), JsonUtil.wrapJsonValue(obj.get(key)))
+          schema.validateSync(context.lowerLevelContext(), obj.get(key))
         );
       }
     }

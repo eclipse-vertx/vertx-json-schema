@@ -110,7 +110,7 @@ public class ContainsValidatorFactory implements ValidatorFactory {
         List<?> arr = (List<?>) in;
         for (int i = 0; i < arr.size(); i++) {
           try {
-            schema.validateSync(context.lowerLevelContext(), JsonUtil.wrapJsonValue(arr.get(i)));
+            schema.validateSync(context.lowerLevelContext(), arr.get(i));
             context.markEvaluatedItem(i);
             matches++;
           } catch (ValidationException e) {
