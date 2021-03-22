@@ -61,7 +61,7 @@ public class AsyncEnumValidatorFactory implements ValidatorFactory {
       vertx.eventBus().request(address, new JsonObject(), ar -> {
         JsonArray enumValues = (JsonArray) ar.result().body();
         if (!enumValues.contains(in))
-          fut.fail(ValidationException.createException("Not matching async enum", "asyncEnum", in));
+          fut.fail(ValidationException.create("Not matching async enum", "asyncEnum", in));
         else fut.complete();
       });
       return fut.future();

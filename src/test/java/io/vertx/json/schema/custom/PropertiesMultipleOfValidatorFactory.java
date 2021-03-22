@@ -47,7 +47,7 @@ public class PropertiesMultipleOfValidatorFactory implements ValidatorFactory {
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       if (in instanceof JsonObject) {
         if (((JsonObject) in).size() % multipleOf != 0)
-          throw ValidationException.createException("The provided object size is not a multiple of " + multipleOf, "propertiesMultipleOf", in);
+          throw ValidationException.create("The provided object size is not a multiple of " + multipleOf, "propertiesMultipleOf", in);
       }
     }
   }

@@ -70,7 +70,7 @@ public class CachedAsyncEnumValidatorFactory implements ValidatorFactory {
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
       if (!this.cache.get().get().contains(in))
-        throw ValidationException.createException("Not matching cached async enum", "asyncEnum", in);
+        throw ValidationException.create("Not matching cached async enum", "asyncEnum", in);
     }
 
     @Override
@@ -85,7 +85,7 @@ public class CachedAsyncEnumValidatorFactory implements ValidatorFactory {
         this.triggerUpdateIsSync();
 
         if (!enumValues.contains(in))
-          promise.fail(ValidationException.createException("Not matching async enum", "asyncEnum", in));
+          promise.fail(ValidationException.create("Not matching async enum", "asyncEnum", in));
         else promise.complete();
       });
       return promise.future();

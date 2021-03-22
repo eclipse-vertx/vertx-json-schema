@@ -50,8 +50,23 @@ public class RecursiveAnchorValidatorContextDecorator implements ValidatorContex
   }
 
   @Override
-  public ValidatorContext lowerLevelContext() {
-    return wrapNewContext(this.context.lowerLevelContext());
+  public ValidatorContext lowerLevelContext(String key) {
+    return wrapNewContext(this.context.lowerLevelContext(key));
+  }
+
+  @Override
+  public ValidatorContext lowerLevelContext(int key) {
+    return wrapNewContext(this.context.lowerLevelContext(key));
+  }
+
+  @Override
+  public ValidatorContext parent() {
+    return this.context.parent();
+  }
+
+  @Override
+  public String inputKey() {
+    return this.context.inputKey();
   }
 
   public JsonPointer getRecursiveAnchor() {

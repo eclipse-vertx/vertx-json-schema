@@ -19,7 +19,7 @@ import io.vertx.json.schema.ValidationException;
 
 import java.util.HashSet;
 
-import static io.vertx.json.schema.ValidationException.createException;
+import static io.vertx.json.schema.ValidationException.create;
 
 public class UniqueItemsValidatorFactory implements ValidatorFactory {
 
@@ -29,7 +29,7 @@ public class UniqueItemsValidatorFactory implements ValidatorFactory {
       if (in instanceof JsonArray) {
         JsonArray arr = (JsonArray) in;
         if (new HashSet(arr.getList()).size() != arr.size())
-          throw createException("array elements must be unique", "uniqueItems", in);
+          throw create("array elements must be unique", "uniqueItems", in);
       }
     }
   };

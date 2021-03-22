@@ -16,8 +16,15 @@ import java.util.Set;
 
 public class RecordingValidatorContext implements ValidatorContext {
 
-  Set<Integer> evaluatedItems;
-  Set<String> evaluatedProperties;
+  final private ValidatorContext parent;
+  final private String inputKey;
+  private Set<Integer> evaluatedItems;
+  private Set<String> evaluatedProperties;
+
+  public RecordingValidatorContext(ValidatorContext parent, String key) {
+    this.parent = parent;
+    this.inputKey = key;
+  }
 
   @Override
   public ValidatorContext startRecording() {
@@ -51,8 +58,23 @@ public class RecordingValidatorContext implements ValidatorContext {
   }
 
   @Override
-  public ValidatorContext lowerLevelContext() {
-    return NoopValidatorContext.getInstance();
+  public ValidatorContext lowerLevelContext(String key) {
+    return new NoopValidatorContext(this, key);
+  }
+
+  @Override
+  public ValidatorContext lowerLevelContext(int key) {
+    return new NoopValidatorContext(this, Integer.toString(key));
+  }
+
+  @Override
+  public ValidatorContext parent() {
+    return this.parent;
+  }
+
+  @Override
+  public String inputKey() {
+    return this.inputKey;
   }
 
 }

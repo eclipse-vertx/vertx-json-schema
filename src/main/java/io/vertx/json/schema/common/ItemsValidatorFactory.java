@@ -44,7 +44,7 @@ public class ItemsValidatorFactory extends BaseSingleSchemaValidatorFactory {
         JsonArray arr = (JsonArray) in;
         for (int i = 0; i < arr.size(); i++) {
           context.markEvaluatedItem(i);
-          schema.validateSync(context.lowerLevelContext(), arr.getValue(i));
+          schema.validateSync(context.lowerLevelContext(i), arr.getValue(i));
         }
       }
     }
@@ -57,7 +57,7 @@ public class ItemsValidatorFactory extends BaseSingleSchemaValidatorFactory {
         List<Future> futs = new ArrayList<>();
         for (int i = 0; i < arr.size(); i++) {
           context.markEvaluatedItem(i);
-          Future<Void> f = schema.validateAsync(context.lowerLevelContext(), arr.getValue(i));
+          Future<Void> f = schema.validateAsync(context.lowerLevelContext(i), arr.getValue(i));
           if (f.isComplete()) {
             if (f.failed()) return Future.failedFuture(f.cause());
           } else {

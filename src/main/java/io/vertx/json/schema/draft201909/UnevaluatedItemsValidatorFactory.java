@@ -67,10 +67,10 @@ public class UnevaluatedItemsValidatorFactory implements ValidatorFactory {
         return CompositeFuture.all(
           unevaluatedItems
             .stream()
-            .map(index -> schema.validateAsync(context.lowerLevelContext(), array.getValue(index)))
+            .map(index -> schema.validateAsync(context.lowerLevelContext(index), array.getValue(index)))
             .collect(Collectors.toList())
         )
-          .recover(t -> Future.failedFuture(ValidationException.createException(
+          .recover(t -> Future.failedFuture(ValidationException.create(
             "one of the unevaluated items doesn't match the unevaluatedItems schema",
             "unevaluatedItems",
             in,
@@ -90,7 +90,7 @@ public class UnevaluatedItemsValidatorFactory implements ValidatorFactory {
         Set<Integer> unevaluatedProperties = computeUnevaluatedItems(context, array);
 
         unevaluatedProperties.forEach(index ->
-          schema.validateSync(context.lowerLevelContext(), array.getValue(index))
+          schema.validateSync(context.lowerLevelContext(index), array.getValue(index))
         );
       }
     }
@@ -114,7 +114,7 @@ public class UnevaluatedItemsValidatorFactory implements ValidatorFactory {
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       if (in instanceof JsonArray) {
         if (((JsonArray) in).size() != context.evaluatedItems().size()) {
-          throw ValidationException.createException(
+          throw ValidationException.create(
             "Expecting no unevaluated items. Unevaluated items: " +
               SetUtils.minus(
                 SetUtils.range(0, (((JsonArray) in).size())),

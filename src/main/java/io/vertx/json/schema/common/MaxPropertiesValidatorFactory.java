@@ -47,7 +47,7 @@ public class MaxPropertiesValidatorFactory implements ValidatorFactory {
     public void validateSync(ValidatorContext context, Object in) throws ValidationException {
       if (in instanceof JsonObject) {
         if (((JsonObject) in).size() > maximum) {
-          throw ValidationException.createException("provided object should have size <= " + maximum, "maxProperties", in);
+          throw ValidationException.create("provided object should have size <= " + maximum, "maxProperties", in);
         }
       }
     }

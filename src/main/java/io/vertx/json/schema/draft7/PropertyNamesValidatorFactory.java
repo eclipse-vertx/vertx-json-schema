@@ -44,7 +44,7 @@ public class PropertyNamesValidatorFactory extends BaseSingleSchemaValidatorFact
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
       if (in instanceof JsonObject) {
-        ((JsonObject) in).getMap().keySet().forEach(k -> schema.validateSync(context.lowerLevelContext(), k));
+        ((JsonObject) in).getMap().keySet().forEach(k -> schema.validateSync(context, k));
       }
     }
 
@@ -55,11 +55,11 @@ public class PropertyNamesValidatorFactory extends BaseSingleSchemaValidatorFact
         return CompositeFuture.all(
           ((JsonObject) in).getMap().keySet()
             .stream()
-            .map(k -> schema.validateAsync(context.lowerLevelContext(), k))
+            .map(k -> schema.validateAsync(context, k))
             .collect(Collectors.toList())
         ).compose(
           cf -> Future.succeededFuture(),
-          err -> Future.failedFuture(ValidationException.createException("provided object contains a key not matching the propertyNames schema", "propertyNames", in, err))
+          err -> Future.failedFuture(ValidationException.create("provided object contains a key not matching the propertyNames schema", "propertyNames", in, err))
         );
       } else return Future.succeededFuture();
     }

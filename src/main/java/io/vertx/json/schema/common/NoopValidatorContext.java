@@ -18,17 +18,22 @@ import java.util.Set;
  */
 public class NoopValidatorContext implements ValidatorContext {
 
-  private static class NoopValidatorContextHolder {
-    static final NoopValidatorContext INSTANCE = new NoopValidatorContext();
+  final private ValidatorContext parent;
+  final private String inputKey;
+
+  public NoopValidatorContext() {
+    this.parent = null;
+    this.inputKey = null;
   }
 
-  public static NoopValidatorContext getInstance() {
-    return NoopValidatorContext.NoopValidatorContextHolder.INSTANCE;
+  public NoopValidatorContext(ValidatorContext parent, String inputKey) {
+    this.parent = parent;
+    this.inputKey = inputKey;
   }
 
   @Override
   public ValidatorContext startRecording() {
-    return new RecordingValidatorContext();
+    return new RecordingValidatorContext(parent, inputKey);
   }
 
   @Override
@@ -50,7 +55,22 @@ public class NoopValidatorContext implements ValidatorContext {
   }
 
   @Override
-  public ValidatorContext lowerLevelContext() {
-    return this;
+  public ValidatorContext lowerLevelContext(String key) {
+    return new NoopValidatorContext(this, key);
+  }
+
+  @Override
+  public ValidatorContext lowerLevelContext(int key) {
+    return new NoopValidatorContext(this, Integer.toString(key));
+  }
+
+  @Override
+  public ValidatorContext parent() {
+    return parent;
+  }
+
+  @Override
+  public String inputKey() {
+    return inputKey;
   }
 }

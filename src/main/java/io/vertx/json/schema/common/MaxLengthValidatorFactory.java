@@ -47,7 +47,7 @@ public class MaxLengthValidatorFactory implements ValidatorFactory {
     public void validateSync(ValidatorContext context, Object in) throws ValidationException {
       if (in instanceof String) {
         if (((String) in).codePointCount(0, ((String) in).length()) > maximum) {
-          throw ValidationException.createException("provided string should have size <= " + maximum, "maxLength", in);
+          throw ValidationException.create("provided string should have size <= " + maximum, "maxLength", in);
         }
       }
     }

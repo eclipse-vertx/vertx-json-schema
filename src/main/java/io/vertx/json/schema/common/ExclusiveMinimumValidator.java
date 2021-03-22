@@ -23,7 +23,7 @@ public class ExclusiveMinimumValidator extends BaseSyncValidator {
   public void validateSync(ValidatorContext context, Object in) throws ValidationException {
     if (in instanceof Number) {
       if (((Number) in).doubleValue() <= minimum) {
-        throw ValidationException.createException("value should be > " + minimum, "minimum", in);
+        throw ValidationException.create("value should be > " + minimum, "minimum", in);
       }
     }
   }

@@ -19,7 +19,7 @@ public class PropertiesMultipleOfValidator extends BaseSyncValidator {
     if (in instanceof JsonObject) { // If it's not an object, we skip the validation
       if (((JsonObject) in).size() % multipleOf != 0) {
         throw ValidationException
-          .createException(
+          .create(
             "The provided object size is not a multiple of " + multipleOf,
             "propertiesMultipleOf",
             in

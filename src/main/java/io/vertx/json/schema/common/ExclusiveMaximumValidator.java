@@ -12,7 +12,7 @@ package io.vertx.json.schema.common;
 
 import io.vertx.json.schema.ValidationException;
 
-import static io.vertx.json.schema.ValidationException.createException;
+import static io.vertx.json.schema.ValidationException.create;
 
 public class ExclusiveMaximumValidator extends BaseSyncValidator {
   private final double maximum;
@@ -25,7 +25,7 @@ public class ExclusiveMaximumValidator extends BaseSyncValidator {
   public void validateSync(ValidatorContext context, Object in) throws ValidationException {
     if (in instanceof Number) {
       if (((Number) in).doubleValue() >= maximum) {
-        throw createException("value should be < " + maximum, "maximum", in);
+        throw create("value should be < " + maximum, "maximum", in);
       }
     }
   }

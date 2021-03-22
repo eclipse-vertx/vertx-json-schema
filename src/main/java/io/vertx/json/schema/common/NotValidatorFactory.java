@@ -44,7 +44,7 @@ public class NotValidatorFactory extends BaseSingleSchemaValidatorFactory {
     @Override
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
-      if (isValidSync(context, in)) throw ValidationException.createException("input should be invalid", "not", in);
+      if (isValidSync(context, in)) throw ValidationException.create("input should be invalid", "not", in);
     }
 
     @Override
@@ -53,7 +53,7 @@ public class NotValidatorFactory extends BaseSingleSchemaValidatorFactory {
       return schema
         .validateAsync(context, in)
         .compose(
-          res -> Future.failedFuture(ValidationException.createException("input should be invalid", "not", in)),
+          res -> Future.failedFuture(ValidationException.create("input should be invalid", "not", in)),
           err -> Future.succeededFuture()
         );
     }

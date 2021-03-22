@@ -45,12 +45,12 @@ public class SchemaImpl extends BaseMutableStateValidator implements SchemaInter
 
   @Override
   public Future<Void> validateAsync(Object json) {
-    return this.validateAsync(NoopValidatorContext.getInstance(), json);
+    return this.validateAsync(new NoopValidatorContext(), json);
   }
 
   @Override
   public void validateSync(Object json) throws ValidationException, NoSyncValidationException {
-    this.validateSync(NoopValidatorContext.getInstance(), json);
+    this.validateSync(new NoopValidatorContext(), json);
   }
 
   @Override
@@ -143,17 +143,6 @@ public class SchemaImpl extends BaseMutableStateValidator implements SchemaInter
     this.initializeIsSync();
   }
 
-  private Future<Void> fillException(Throwable e, Object in) {
-    if (e instanceof ValidationException) {
-      ValidationException ve = (ValidationException) e;
-      ve.setSchema(this);
-      ve.setScope(this.scope);
-      return Future.failedFuture(ve);
-    } else {
-      return Future.failedFuture(ValidationException.createException("Error while validating", null, in, e));
-    }
-  }
-
   void registerReferredSchema(RefSchema ref) {
     referringSchemas.add(ref);
     if (log.isTraceEnabled()) {
@@ -182,13 +171,12 @@ public class SchemaImpl extends BaseMutableStateValidator implements SchemaInter
     for (Validator validator : validators) {
       if (!validator.isSync()) {
         Future<Void> asyncValidate = ((AsyncValidator) validator).validateAsync(context, in);
-        asyncValidate = asyncValidate.recover(t -> fillException(t, in));
+        asyncValidate = asyncValidate.recover(t -> fillException(t, context, in));
         futures.add(asyncValidate);
       } else try {
         ((SyncValidator) validator).validateSync(context, in);
       } catch (ValidationException e) {
-        e.setSchema(this);
-        e.setScope(this.scope);
+        fillValidationException(e, context);
         return Future.failedFuture(e);
       }
     }
@@ -204,10 +192,38 @@ public class SchemaImpl extends BaseMutableStateValidator implements SchemaInter
       try {
         ((SyncValidator) validator).validateSync(context, in);
       } catch (ValidationException e) {
-        e.setSchema(this);
-        e.setScope(this.scope);
+        fillValidationException(e, context);
         throw e;
       }
     }
+  }
+
+  private void fillValidationException(ValidationException e, ValidatorContext context) {
+    if (e.inputScope() == null) { // We need to fill the exception only if it's not filled
+      ((ValidationExceptionImpl) e).setSchema(this);
+      // Compute the input scope pointer
+      List<String> pointerChunks = new ArrayList<>();
+      recursiveWalkBackTheValidationContext(context, pointerChunks);
+      ((ValidationExceptionImpl) e).setInputScope(JsonPointer.create().append(pointerChunks));
+    }
+  }
+
+  private Future<Void> fillException(Throwable e, ValidatorContext ctx, Object in) {
+    if (e instanceof ValidationException) {
+      ValidationException ve = (ValidationException) e;
+      fillValidationException(ve, ctx);
+      return Future.failedFuture(ve);
+    } else {
+      return Future.failedFuture(ValidationException.create("Error while validating", null, in, e));
+    }
+  }
+
+  private void recursiveWalkBackTheValidationContext(ValidatorContext context, List<String> pointerElements) {
+    ValidatorContext parent = context.parent();
+    if (parent == null) {
+      return;
+    }
+    recursiveWalkBackTheValidationContext(parent, pointerElements);
+    pointerElements.add(context.inputKey());
   }
 }

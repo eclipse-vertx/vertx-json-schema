@@ -13,7 +13,7 @@ package io.vertx.json.schema.common;
 import java.util.Set;
 
 /**
- * Validator context is an interface used to process contextual keywords (like unevaluatedProperties, unevaluatedItems)
+ * Validator context is an interface used to process contextual keywords (like unevaluatedProperties, unevaluatedItems) and trace the execution
  */
 public interface ValidatorContext {
 
@@ -27,6 +27,12 @@ public interface ValidatorContext {
 
   ValidatorContext startRecording();
 
-  ValidatorContext lowerLevelContext();
+  ValidatorContext lowerLevelContext(String key);
+
+  ValidatorContext lowerLevelContext(int key);
+
+  ValidatorContext parent();
+
+  String inputKey();
 
 }

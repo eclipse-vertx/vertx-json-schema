@@ -78,7 +78,7 @@ public class DependenciesValidatorFactory implements ValidatorFactory {
       Set<String> objKeys = obj.getMap().keySet();
       for (Map.Entry<String, Set<String>> dependency : keyDeps.entrySet()) {
         if (obj.containsKey(dependency.getKey()) && !objKeys.containsAll(dependency.getValue()))
-          throw ValidationException.createException("dependencies of key " + dependency.getKey() + " are not satisfied: " + dependency.getValue().toString(), "dependencies", obj);
+          throw ValidationException.create("dependencies of key " + dependency.getKey() + " are not satisfied: " + dependency.getValue().toString(), "dependencies", obj);
       }
     }
 

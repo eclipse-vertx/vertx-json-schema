@@ -89,9 +89,9 @@ public class TypeValidatorFactory implements ValidatorFactory {
     public void validateSync(ValidatorContext context, Object in) throws ValidationException {
       if (in != null) {
         for (JsonSchemaType type : types) if (type.checkInstance(in)) return;
-        throw ValidationException.createException("input don't match any of types " + Arrays.deepToString(types), "type", in);
+        throw ValidationException.create("input don't match any of types " + Arrays.deepToString(types), "type", in);
       } else if (!nullIsValid)
-        throw ValidationException.createException("input don't match any of types " + Arrays.deepToString(types), "type", in);
+        throw ValidationException.create("input don't match any of types " + Arrays.deepToString(types), "type", in);
     }
   }
 }

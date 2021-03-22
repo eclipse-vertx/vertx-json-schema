@@ -100,7 +100,7 @@ public abstract class BaseFormatValidatorFactory implements ValidatorFactory {
     public void validateSync(ValidatorContext context, Object in) throws ValidationException {
       if (in instanceof String) {
         if (!validator.test((String) in)) {
-          throw ValidationException.createException("Provided value don't match pattern", "pattern", in);
+          throw ValidationException.create("Provided value don't match pattern", "pattern", in);
         }
       }
     }

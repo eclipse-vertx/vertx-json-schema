@@ -65,7 +65,7 @@ public class RefSchema extends SchemaImpl {
         .compose(
           s -> {
             if (s == null)
-              return Future.failedFuture(ValidationException.createException("Cannot resolve reference " + this.refPointer.toURI(), "$ref", in));
+              return Future.failedFuture(ValidationException.create("Cannot resolve reference " + this.refPointer.toURI(), "$ref", in));
             SchemaInternal solvedSchema = (SchemaInternal) s;
             registerCachedSchema(solvedSchema);
             if (solvedSchema instanceof RefSchema) {
@@ -79,7 +79,7 @@ public class RefSchema extends SchemaImpl {
               return solvedSchema.validateAsync(context, in);
             }
           },
-          err -> Future.failedFuture(ValidationException.createException("Error while resolving reference " + this.refPointer.toURI(), "$ref", in, err))
+          err -> Future.failedFuture(ValidationException.create("Error while resolving reference " + this.refPointer.toURI(), "$ref", in, err))
         );
       if (executeSchemaValidators) {
         return fut.compose(v -> this.runAsyncValidators(context, in));
@@ -139,7 +139,7 @@ public class RefSchema extends SchemaImpl {
         .compose(
           s -> {
             if (s == null)
-              return Future.failedFuture(ValidationException.createException("Cannot resolve reference " + this.refPointer.toURI(), "$ref", null));
+              return Future.failedFuture(ValidationException.create("Cannot resolve reference " + this.refPointer.toURI(), "$ref", null));
             registerCachedSchema((SchemaInternal) s);
             if (s instanceof RefSchema) {
               // We need to call solved schema validateAsync to solve upper ref, then we can update sync status
@@ -152,7 +152,7 @@ public class RefSchema extends SchemaImpl {
               return Future.succeededFuture(cachedSchema);
             }
           },
-          err -> Future.failedFuture(ValidationException.createException("Error while resolving reference " + this.refPointer.toURI(), "$ref", null, err))
+          err -> Future.failedFuture(ValidationException.create("Error while resolving reference " + this.refPointer.toURI(), "$ref", null, err))
         );
     } else return Future.succeededFuture(cachedSchema);
   }

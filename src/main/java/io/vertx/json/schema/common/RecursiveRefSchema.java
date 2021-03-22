@@ -22,7 +22,7 @@ import io.vertx.json.schema.ValidationException;
 
 import java.net.URI;
 
-import static io.vertx.json.schema.ValidationException.createException;
+import static io.vertx.json.schema.ValidationException.create;
 
 public class RecursiveRefSchema extends SchemaImpl {
 
@@ -54,10 +54,10 @@ public class RecursiveRefSchema extends SchemaImpl {
     try {
       solvedSchema = resolveSchema(inContext);
     } catch (SchemaException e) {
-      return Future.failedFuture(createException("Error while resolving $recursiveRef " + refPointer.toURI(), "$recursiveRef", in, e));
+      return Future.failedFuture(ValidationException.create("Error while resolving $recursiveRef " + refPointer.toURI(), "$recursiveRef", in, e));
     }
     if (solvedSchema == null) {
-      return Future.failedFuture(createException("Cannot resolve $recursiveRef " + refPointer.toURI(), "$recursiveRef", in));
+      return Future.failedFuture(create("Cannot resolve $recursiveRef " + refPointer.toURI(), "$recursiveRef", in));
     }
 
     ValidatorContext newContext = generateValidationContext(solvedSchema, inContext);
