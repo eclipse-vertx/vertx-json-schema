@@ -60,12 +60,11 @@ public class UnevaluatedPropertiesValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public Future<Void> validateAsync(ValidatorContext context, Object in) {
+    public Future<Void> validateAsync(ValidatorContext context, final Object in) {
       if (isSync()) return validateSyncAsAsync(context, in);
-      final Object orig = in;
-      in = unwrap(in);
-      if (in instanceof Map<?, ?>) {
-        Map<String, ?> obj = (Map<String, ?>) in;
+      Object o = unwrap(in);
+      if (o instanceof Map<?, ?>) {
+        Map<String, ?> obj = (Map<String, ?>) o;
         Set<String> unevaluatedItems = computeUnevaluatedProperties(context, obj);
 
         return CompositeFuture.all(
@@ -77,7 +76,7 @@ public class UnevaluatedPropertiesValidatorFactory implements ValidatorFactory {
           .recover(t -> Future.failedFuture(ValidationException.create(
             "one of the unevaluated properties doesn't match the unevaluatedProperties schema",
             "unevaluatedProperties",
-            orig,
+            in,
             t
           )))
           .mapEmpty();
@@ -116,11 +115,10 @@ public class UnevaluatedPropertiesValidatorFactory implements ValidatorFactory {
   static class NoUnevaluatedPropertiesValidator extends BaseSyncValidator {
 
     @Override
-    public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
-      final Object orig = in;
-      in = unwrap(in);
-      if (in instanceof Map<?, ?>) {
-        Map<String, ?> obj = (Map<String, ?>) in;
+    public void validateSync(ValidatorContext context, final Object in) throws ValidationException, NoSyncValidationException {
+      Object o = unwrap(in);
+      if (o instanceof Map<?, ?>) {
+        Map<String, ?> obj = (Map<String, ?>) o;
         if (!context.evaluatedProperties().containsAll(obj.keySet())) {
           throw ValidationException.create(
             "Expecting no unevaluated properties. Unevaluated properties: " +
@@ -129,7 +127,7 @@ public class UnevaluatedPropertiesValidatorFactory implements ValidatorFactory {
                 context.evaluatedProperties()
               ),
             "unevaluatedProperties",
-            orig
+            in
           );
         }
       }

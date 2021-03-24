@@ -58,17 +58,16 @@ public class ContainsValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public Future<Void> validateAsync(ValidatorContext context, Object in) {
+    public Future<Void> validateAsync(ValidatorContext context, final Object in) {
       if (isSync()) return validateSyncAsAsync(context, in);
       if (min == 0) {
         return Future.succeededFuture();
       }
-      final Object orig = in;
-      in = unwrap(in);
-      if (in instanceof List<?>) {
-        List<?> arr = (List<?>) in;
+      Object o = unwrap(in);
+      if (o instanceof List<?>) {
+        List<?> arr = (List<?>) o;
         if (arr.isEmpty()) {
-          return Future.failedFuture(ValidationException.create("provided array should not be empty", "contains", orig));
+          return Future.failedFuture(ValidationException.create("provided array should not be empty", "contains", in));
         } else {
           List<Future> futs = new ArrayList<>();
           for (int i = 0; i < arr.size(); i++) {
@@ -84,31 +83,30 @@ public class ContainsValidatorFactory implements ValidatorFactory {
                 });
               int matches = cf.size();
               if (matches < min) {
-                return Future.failedFuture(ValidationException.create("provided array doesn't contain " + min + " elements matching the contains schema", "contains", orig));
+                return Future.failedFuture(ValidationException.create("provided array doesn't contain " + min + " elements matching the contains schema", "contains", in));
               }
               if (max != null && matches > max) {
-                return Future.failedFuture(ValidationException.create("provided array contains more than " + max + " elements matching the contains schema", "contains", orig));
+                return Future.failedFuture(ValidationException.create("provided array contains more than " + max + " elements matching the contains schema", "contains", in));
               }
               return Future.succeededFuture();
             },
-            err -> Future.failedFuture(ValidationException.create("provided array doesn't contain any element matching the contains schema", "contains", orig, err))
+            err -> Future.failedFuture(ValidationException.create("provided array doesn't contain any element matching the contains schema", "contains", in, err))
           );
         }
       } else return Future.succeededFuture();
     }
 
     @Override
-    public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
+    public void validateSync(ValidatorContext context, final Object in) throws ValidationException, NoSyncValidationException {
       if (min == 0) {
         return;
       }
       this.checkSync();
       ValidationException t = null;
       int matches = 0;
-      final Object orig = in;
-      in = unwrap(in);
-      if (in instanceof List<?>) {
-        List<?> arr = (List<?>) in;
+      Object o = unwrap(in);
+      if (o instanceof List<?>) {
+        List<?> arr = (List<?>) o;
         for (int i = 0; i < arr.size(); i++) {
           try {
             schema.validateSync(context.lowerLevelContext(i), arr.get(i));
@@ -120,10 +118,10 @@ public class ContainsValidatorFactory implements ValidatorFactory {
         }
       }
       if (matches < min) {
-        throw ValidationException.create("provided array doesn't contain " + min + " elements matching the contains schema", "contains", orig, t);
+        throw ValidationException.create("provided array doesn't contain " + min + " elements matching the contains schema", "contains", in, t);
       }
       if (max != null && matches > max) {
-        throw ValidationException.create("provided array contains more than " + max + " elements matching the contains schema", "contains", orig, t);
+        throw ValidationException.create("provided array contains more than " + max + " elements matching the contains schema", "contains", in, t);
       }
     }
   }

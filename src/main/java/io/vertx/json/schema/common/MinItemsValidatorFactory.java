@@ -48,13 +48,12 @@ public class MinItemsValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public void validateSync(ValidatorContext context, Object in) throws ValidationException {
-      final Object orig = in;
-      in = unwrap(in);
-      if (in instanceof List<?>) {
-        List<?> arr = (List<?>) in;
+    public void validateSync(ValidatorContext context, final Object in) throws ValidationException {
+      Object o = unwrap(in);
+      if (o instanceof List<?>) {
+        List<?> arr = (List<?>) o;
         if (arr.size() < minimum) {
-          throw ValidationException.create("provided array should have size >= " + minimum, "minItems", orig);
+          throw ValidationException.create("provided array should have size >= " + minimum, "minItems", in);
         }
       }
     }

@@ -48,12 +48,11 @@ public class MinPropertiesValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public void validateSync(ValidatorContext context, Object in) throws ValidationException {
-      final Object orig = in;
-      in = unwrap(in);
-      if (in instanceof Map<?, ?>) {
-        if (((Map<?, ?>) in).size() < minimum) {
-          throw ValidationException.create("provided object should have size >= " + minimum, "minProperties", orig);
+    public void validateSync(ValidatorContext context, final Object in) throws ValidationException {
+      Object o = unwrap(in);
+      if (o instanceof Map<?, ?>) {
+        if (((Map<?, ?>) o).size() < minimum) {
+          throw ValidationException.create("provided object should have size >= " + minimum, "minProperties", in);
         }
       }
     }

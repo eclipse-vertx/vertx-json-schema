@@ -53,12 +53,11 @@ public class PropertyNamesValidatorFactory extends BaseSingleSchemaValidatorFact
     }
 
     @Override
-    public Future<Void> validateAsync(ValidatorContext context, Object in) {
+    public Future<Void> validateAsync(ValidatorContext context, final Object in) {
       if (isSync()) return validateSyncAsAsync(context, in);
-      final Object orig = in;
-      in = unwrap(in);
-      if (in instanceof Map<?, ?>) {
-        Map<String, ?> obj = (Map<String, ?>) in;
+      Object o = unwrap(in);
+      if (o instanceof Map<?, ?>) {
+        Map<String, ?> obj = (Map<String, ?>) o;
         return CompositeFuture.all(
           obj.keySet()
             .stream()
@@ -66,7 +65,7 @@ public class PropertyNamesValidatorFactory extends BaseSingleSchemaValidatorFact
             .collect(Collectors.toList())
         ).compose(
           cf -> Future.succeededFuture(),
-          err -> Future.failedFuture(ValidationException.create("provided object contains a key not matching the propertyNames schema", "propertyNames", orig, err))
+          err -> Future.failedFuture(ValidationException.create("provided object contains a key not matching the propertyNames schema", "propertyNames", in, err))
         );
       } else return Future.succeededFuture();
     }

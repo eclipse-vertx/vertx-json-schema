@@ -66,17 +66,16 @@ public class DependentSchemasValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public Future<Void> validateAsync(ValidatorContext context, Object in) {
+    public Future<Void> validateAsync(ValidatorContext context, final Object in) {
       if (isSync()) return validateSyncAsAsync(context, in);
-      final Object orig = in;
-      in = unwrap(in);
-      if (in instanceof Map<?, ?>) {
-        Map<String, ?> obj = (Map<String, ?>) in;
+      Object o = unwrap(in);
+      if (o instanceof Map<?, ?>) {
+        Map<String, ?> obj = (Map<String, ?>) o;
         List<Future> futs = keySchemaDeps
           .entrySet()
           .stream()
           .filter(e -> obj.containsKey(e.getKey()))
-          .map(e -> e.getValue().validateAsync(context, orig))
+          .map(e -> e.getValue().validateAsync(context, in))
           .collect(Collectors.toList());
         if (futs.isEmpty()) return Future.succeededFuture();
         else return CompositeFuture.all(futs).mapEmpty();
@@ -84,17 +83,16 @@ public class DependentSchemasValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
+    public void validateSync(ValidatorContext context, final Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
-      final Object orig = in;
-      in = unwrap(in);
-      if (in instanceof Map<?, ?>) {
-        Map<String, ?> obj = (Map<String, ?>) in;
+      Object o = unwrap(in);
+      if (o instanceof Map<?, ?>) {
+        Map<String, ?> obj = (Map<String, ?>) o;
         keySchemaDeps
           .entrySet()
           .stream()
           .filter(e -> obj.containsKey(e.getKey()))
-          .forEach(e -> e.getValue().validateSync(context, orig));
+          .forEach(e -> e.getValue().validateSync(context, in));
       }
     }
 

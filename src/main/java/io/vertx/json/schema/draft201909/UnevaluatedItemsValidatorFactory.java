@@ -60,12 +60,11 @@ public class UnevaluatedItemsValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public Future<Void> validateAsync(ValidatorContext context, Object in) {
+    public Future<Void> validateAsync(ValidatorContext context, final Object in) {
       if (isSync()) return validateSyncAsAsync(context, in);
-      final Object orig = in;
-      in = unwrap(in);
-      if (in instanceof List<?>) {
-        List<?> arr = (List<?>) in;
+      Object o = unwrap(in);
+      if (o instanceof List<?>) {
+        List<?> arr = (List<?>) o;
         Set<Integer> unevaluatedItems = computeUnevaluatedItems(context, arr);
 
         return CompositeFuture.all(
@@ -77,7 +76,7 @@ public class UnevaluatedItemsValidatorFactory implements ValidatorFactory {
           .recover(t -> Future.failedFuture(ValidationException.create(
             "one of the unevaluated items doesn't match the unevaluatedItems schema",
             "unevaluatedItems",
-            orig,
+            in,
             t
           )))
           .mapEmpty();
@@ -116,11 +115,10 @@ public class UnevaluatedItemsValidatorFactory implements ValidatorFactory {
   static class NoUnevaluatedItemsValidator extends BaseSyncValidator {
 
     @Override
-    public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
-      final Object orig = in;
-      in = unwrap(in);
-      if (in instanceof List<?>) {
-        List<?> arr = (List<?>) in;
+    public void validateSync(ValidatorContext context, final Object in) throws ValidationException, NoSyncValidationException {
+      Object o = unwrap(in);
+      if (o instanceof List<?>) {
+        List<?> arr = (List<?>) o;
         if (arr.size() != context.evaluatedItems().size()) {
           throw ValidationException.create(
             "Expecting no unevaluated items. Unevaluated items: " +
@@ -129,7 +127,7 @@ public class UnevaluatedItemsValidatorFactory implements ValidatorFactory {
                 context.evaluatedItems()
               ),
             "unevaluatedItems",
-            orig
+            in
           );
         }
       }

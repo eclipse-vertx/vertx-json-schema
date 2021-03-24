@@ -26,13 +26,12 @@ public class UniqueItemsValidatorFactory implements ValidatorFactory {
 
   private final static BaseSyncValidator UNIQUE_VALIDATOR = new BaseSyncValidator() {
     @Override
-    public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
-      final Object orig = in;
-      in = unwrap(in);
-      if (in instanceof List<?>) {
-        List<?> arr = (List<?>) in;
+    public void validateSync(ValidatorContext context, final Object in) throws ValidationException, NoSyncValidationException {
+      Object o = unwrap(in);
+      if (o instanceof List<?>) {
+        List<?> arr = (List<?>) o;
         if (new HashSet<>(arr).size() != arr.size())
-          throw create("array elements must be unique", "uniqueItems", orig);
+          throw create("array elements must be unique", "uniqueItems", in);
       }
     }
   };

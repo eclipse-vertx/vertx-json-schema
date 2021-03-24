@@ -48,13 +48,12 @@ public class MaxItemsValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public void validateSync(ValidatorContext context, Object in) throws ValidationException {
-      final Object orig = in;
-      in = unwrap(in);
-      if (in instanceof List<?>) {
-        List<?> arr = (List<?>) in;
+    public void validateSync(ValidatorContext context, final Object in) throws ValidationException {
+      Object o = unwrap(in);
+      if (o instanceof List<?>) {
+        List<?> arr = (List<?>) o;
         if (arr.size() > maximum) {
-          throw ValidationException.create("provided array should have size <= " + maximum, "maxItems", orig);
+          throw ValidationException.create("provided array should have size <= " + maximum, "maxItems", in);
         }
       }
     }

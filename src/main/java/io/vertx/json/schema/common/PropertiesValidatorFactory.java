@@ -150,12 +150,11 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public Future<Void> validateAsync(ValidatorContext context, Object in) {
+    public Future<Void> validateAsync(ValidatorContext context, final Object in) throws ValidationException {
       if (isSync()) return validateSyncAsAsync(context, in);
-      final Object orig = in;
-      in = unwrap(in);
-      if (in instanceof Map<?, ?>) {
-        Map<String, ?> obj = (Map<String, ?>) in;
+      Object o = unwrap(in);
+      if (o instanceof Map<?, ?>) {
+        Map<String, ?> obj = (Map<String, ?>) o;
         List<Future> futs = new ArrayList<>();
         for (String key : obj.keySet()) {
           boolean found = false;
@@ -199,17 +198,17 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
                   try {
                     additionalPropertiesSchema.validateSync(context.lowerLevelContext(key), obj.get(key));
                   } catch (ValidationException e) {
-                    return fillAdditionalPropertyException(e, orig);
+                    return fillAdditionalPropertyException(e, in);
                   }
                 } else {
                   futs.add(additionalPropertiesSchema
                     .validateAsync(context.lowerLevelContext(key), obj.get(key))
-                    .recover(t -> fillAdditionalPropertyException(t, orig))
+                    .recover(t -> fillAdditionalPropertyException(t, in))
                   );
                 }
               }
             } else {
-              return Future.failedFuture(create("provided object should not contain additional properties", "additionalProperties", orig));
+              return Future.failedFuture(create("provided object should not contain additional properties", "additionalProperties", in));
             }
           }
         }
@@ -219,12 +218,11 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public void validateSync(ValidatorContext context, Object in) throws ValidationException {
+    public void validateSync(ValidatorContext context, final Object in) throws ValidationException {
       this.checkSync();
-      final Object orig = in;
-      in = unwrap(in);
-      if (in instanceof Map<?, ?>) {
-        Map<String, ?> obj = (Map<String, ?>) in;
+      Object o = unwrap(in);
+      if (o instanceof Map<?, ?>) {
+        Map<String, ?> obj = (Map<String, ?>) o;
         for (String key : obj.keySet()) {
           boolean found = false;
           if (properties != null && properties.containsKey(key)) {
@@ -250,7 +248,7 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
                 additionalPropertiesSchema.validateSync(context.lowerLevelContext(key), obj.get(key));
               }
             } else {
-              throw create("provided object should not contain additional properties", "additionalProperties", orig);
+              throw create("provided object should not contain additional properties", "additionalProperties", in);
             }
           }
         }

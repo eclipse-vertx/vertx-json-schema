@@ -50,14 +50,13 @@ public class RequiredValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public void validateSync(ValidatorContext context, Object in) throws ValidationException {
-      final Object orig = in;
-      in = unwrap(in);
-      if (in instanceof Map<?, ?>) {
-        Map<String, ?> obj = (Map<String, ?>) in;
+    public void validateSync(ValidatorContext context, final Object in) throws ValidationException {
+      Object o = unwrap(in);
+      if (o instanceof Map<?, ?>) {
+        Map<String, ?> obj = (Map<String, ?>) o;
         for (String k : requiredKeys) {
           if (!obj.containsKey(k))
-            throw create("provided object should contain property " + k, "required", orig);
+            throw create("provided object should contain property " + k, "required", in);
         }
       }
     }
