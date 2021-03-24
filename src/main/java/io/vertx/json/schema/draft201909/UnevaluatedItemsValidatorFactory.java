@@ -20,8 +20,11 @@ import io.vertx.json.schema.SchemaException;
 import io.vertx.json.schema.ValidationException;
 import io.vertx.json.schema.common.*;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static io.vertx.json.schema.common.JsonUtil.unwrap;
 
 public class UnevaluatedItemsValidatorFactory implements ValidatorFactory {
   @Override
@@ -60,20 +63,22 @@ public class UnevaluatedItemsValidatorFactory implements ValidatorFactory {
     @Override
     public Future<Void> validateAsync(ValidatorContext context, Object in) {
       if (isSync()) return validateSyncAsAsync(context, in);
-      if (in instanceof JsonArray) {
-        JsonArray array = (JsonArray) in;
-        Set<Integer> unevaluatedItems = computeUnevaluatedItems(context, array);
+      final Object orig = in;
+      in = unwrap(in);
+      if (in instanceof List<?>) {
+        List<?> arr = (List<?>) in;
+        Set<Integer> unevaluatedItems = computeUnevaluatedItems(context, arr);
 
         return CompositeFuture.all(
           unevaluatedItems
             .stream()
-            .map(index -> schema.validateAsync(context.lowerLevelContext(index), array.getValue(index)))
+            .map(index -> schema.validateAsync(context.lowerLevelContext(index), arr.get(index)))
             .collect(Collectors.toList())
         )
           .recover(t -> Future.failedFuture(ValidationException.create(
             "one of the unevaluated items doesn't match the unevaluatedItems schema",
             "unevaluatedItems",
-            in,
+            orig,
             t
           )))
           .mapEmpty();
@@ -85,12 +90,13 @@ public class UnevaluatedItemsValidatorFactory implements ValidatorFactory {
     @Override
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
-      if (in instanceof JsonArray) {
-        JsonArray array = (JsonArray) in;
-        Set<Integer> unevaluatedProperties = computeUnevaluatedItems(context, array);
+      in = unwrap(in);
+      if (in instanceof List<?>) {
+        List<?> arr = (List<?>) in;
+        Set<Integer> unevaluatedProperties = computeUnevaluatedItems(context, arr);
 
         unevaluatedProperties.forEach(index ->
-          schema.validateSync(context.lowerLevelContext(index), array.getValue(index))
+          schema.validateSync(context.lowerLevelContext(index), arr.get(index))
         );
       }
     }
@@ -100,7 +106,7 @@ public class UnevaluatedItemsValidatorFactory implements ValidatorFactory {
       return ValidatorPriority.CONTEXTUAL_VALIDATOR;
     }
 
-    private Set<Integer> computeUnevaluatedItems(ValidatorContext context, JsonArray in) {
+    private Set<Integer> computeUnevaluatedItems(ValidatorContext context, List<?> in) {
       return SetUtils.minus(
         SetUtils.range(0, in.size()),
         context.evaluatedItems()
@@ -112,16 +118,19 @@ public class UnevaluatedItemsValidatorFactory implements ValidatorFactory {
 
     @Override
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
-      if (in instanceof JsonArray) {
-        if (((JsonArray) in).size() != context.evaluatedItems().size()) {
+      final Object orig = in;
+      in = unwrap(in);
+      if (in instanceof List<?>) {
+        List<?> arr = (List<?>) in;
+        if (arr.size() != context.evaluatedItems().size()) {
           throw ValidationException.create(
             "Expecting no unevaluated items. Unevaluated items: " +
               SetUtils.minus(
-                SetUtils.range(0, (((JsonArray) in).size())),
+                SetUtils.range(0, arr.size()),
                 context.evaluatedItems()
               ),
             "unevaluatedItems",
-            in
+            orig
           );
         }
       }

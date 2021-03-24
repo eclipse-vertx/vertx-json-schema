@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static io.vertx.json.schema.common.JsonUtil.unwrap;
+
 public class DependentSchemasValidatorFactory implements ValidatorFactory {
   @Override
   public Validator createValidator(JsonObject schema, JsonPointer scope, SchemaParserInternal parser, MutableStateValidator parent) {
@@ -66,13 +68,15 @@ public class DependentSchemasValidatorFactory implements ValidatorFactory {
     @Override
     public Future<Void> validateAsync(ValidatorContext context, Object in) {
       if (isSync()) return validateSyncAsAsync(context, in);
-      if (in instanceof JsonObject) {
-        JsonObject obj = (JsonObject) in;
+      final Object orig = in;
+      in = unwrap(in);
+      if (in instanceof Map<?, ?>) {
+        Map<String, ?> obj = (Map<String, ?>) in;
         List<Future> futs = keySchemaDeps
           .entrySet()
           .stream()
           .filter(e -> obj.containsKey(e.getKey()))
-          .map(e -> e.getValue().validateAsync(context, in))
+          .map(e -> e.getValue().validateAsync(context, orig))
           .collect(Collectors.toList());
         if (futs.isEmpty()) return Future.succeededFuture();
         else return CompositeFuture.all(futs).mapEmpty();
@@ -82,13 +86,15 @@ public class DependentSchemasValidatorFactory implements ValidatorFactory {
     @Override
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
-      if (in instanceof JsonObject) {
-        JsonObject obj = (JsonObject) in;
+      final Object orig = in;
+      in = unwrap(in);
+      if (in instanceof Map<?, ?>) {
+        Map<String, ?> obj = (Map<String, ?>) in;
         keySchemaDeps
           .entrySet()
           .stream()
           .filter(e -> obj.containsKey(e.getKey()))
-          .forEach(e -> e.getValue().validateSync(context, in));
+          .forEach(e -> e.getValue().validateSync(context, orig));
       }
     }
 

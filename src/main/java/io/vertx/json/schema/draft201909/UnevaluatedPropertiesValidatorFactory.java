@@ -19,8 +19,11 @@ import io.vertx.json.schema.SchemaException;
 import io.vertx.json.schema.ValidationException;
 import io.vertx.json.schema.common.*;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static io.vertx.json.schema.common.JsonUtil.unwrap;
 
 public class UnevaluatedPropertiesValidatorFactory implements ValidatorFactory {
   @Override
@@ -59,20 +62,22 @@ public class UnevaluatedPropertiesValidatorFactory implements ValidatorFactory {
     @Override
     public Future<Void> validateAsync(ValidatorContext context, Object in) {
       if (isSync()) return validateSyncAsAsync(context, in);
-      if (in instanceof JsonObject) {
-        JsonObject obj = (JsonObject) in;
+      final Object orig = in;
+      in = unwrap(in);
+      if (in instanceof Map<?, ?>) {
+        Map<String, ?> obj = (Map<String, ?>) in;
         Set<String> unevaluatedItems = computeUnevaluatedProperties(context, obj);
 
         return CompositeFuture.all(
           unevaluatedItems
             .stream()
-            .map(key -> schema.validateAsync(context.lowerLevelContext(key), obj.getValue(key)))
+            .map(key -> schema.validateAsync(context.lowerLevelContext(key), obj.get(key)))
             .collect(Collectors.toList())
         )
           .recover(t -> Future.failedFuture(ValidationException.create(
             "one of the unevaluated properties doesn't match the unevaluatedProperties schema",
             "unevaluatedProperties",
-            in,
+            orig,
             t
           )))
           .mapEmpty();
@@ -84,12 +89,13 @@ public class UnevaluatedPropertiesValidatorFactory implements ValidatorFactory {
     @Override
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
-      if (in instanceof JsonObject) {
-        JsonObject obj = (JsonObject) in;
+      in = unwrap(in);
+      if (in instanceof Map<?, ?>) {
+        Map<String, ?> obj = (Map<String, ?>) in;
         Set<String> unevaluatedProperties = computeUnevaluatedProperties(context, obj);
 
         unevaluatedProperties.forEach(key ->
-          schema.validateSync(context.lowerLevelContext(key), obj.getValue(key))
+          schema.validateSync(context.lowerLevelContext(key), obj.get(key))
         );
       }
     }
@@ -99,9 +105,9 @@ public class UnevaluatedPropertiesValidatorFactory implements ValidatorFactory {
       return ValidatorPriority.CONTEXTUAL_VALIDATOR;
     }
 
-    private Set<String> computeUnevaluatedProperties(ValidatorContext context, JsonObject in) {
+    private Set<String> computeUnevaluatedProperties(ValidatorContext context, Map<String, ?> in) {
       return SetUtils.minus(
-        in.fieldNames(),
+        in.keySet(),
         context.evaluatedProperties()
       );
     }
@@ -111,16 +117,19 @@ public class UnevaluatedPropertiesValidatorFactory implements ValidatorFactory {
 
     @Override
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
-      if (in instanceof JsonObject) {
-        if (!context.evaluatedProperties().containsAll(((JsonObject) in).fieldNames())) {
+      final Object orig = in;
+      in = unwrap(in);
+      if (in instanceof Map<?, ?>) {
+        Map<String, ?> obj = (Map<String, ?>) in;
+        if (!context.evaluatedProperties().containsAll(obj.keySet())) {
           throw ValidationException.create(
             "Expecting no unevaluated properties. Unevaluated properties: " +
               SetUtils.minus(
-                ((JsonObject) in).fieldNames(),
+                obj.keySet(),
                 context.evaluatedProperties()
               ),
             "unevaluatedProperties",
-            in
+            orig
           );
         }
       }

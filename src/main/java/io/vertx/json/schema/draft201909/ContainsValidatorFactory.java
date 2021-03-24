@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import static io.vertx.json.schema.common.JsonUtil.unwrap;
+
 public class ContainsValidatorFactory implements ValidatorFactory {
 
   @Override
@@ -62,14 +64,16 @@ public class ContainsValidatorFactory implements ValidatorFactory {
       if (min == 0) {
         return Future.succeededFuture();
       }
-      if (in instanceof JsonArray) {
-        JsonArray arr = (JsonArray) in;
+      final Object orig = in;
+      in = unwrap(in);
+      if (in instanceof List<?>) {
+        List<?> arr = (List<?>) in;
         if (arr.isEmpty()) {
-          return Future.failedFuture(ValidationException.create("provided array should not be empty", "contains", in));
+          return Future.failedFuture(ValidationException.create("provided array should not be empty", "contains", orig));
         } else {
           List<Future> futs = new ArrayList<>();
           for (int i = 0; i < arr.size(); i++) {
-            futs.add(schema.validateAsync(context.lowerLevelContext(i), arr.getValue(i)));
+            futs.add(schema.validateAsync(context.lowerLevelContext(i), arr.get(i)));
           }
           return CompositeFuture.any(futs).compose(
             cf -> {
@@ -81,14 +85,14 @@ public class ContainsValidatorFactory implements ValidatorFactory {
                 });
               int matches = cf.size();
               if (matches < min) {
-                return Future.failedFuture(ValidationException.create("provided array doesn't contain " + min + " elements matching the contains schema", "contains", in));
+                return Future.failedFuture(ValidationException.create("provided array doesn't contain " + min + " elements matching the contains schema", "contains", orig));
               }
               if (max != null && matches > max) {
-                return Future.failedFuture(ValidationException.create("provided array contains more than " + max + " elements matching the contains schema", "contains", in));
+                return Future.failedFuture(ValidationException.create("provided array contains more than " + max + " elements matching the contains schema", "contains", orig));
               }
               return Future.succeededFuture();
             },
-            err -> Future.failedFuture(ValidationException.create("provided array doesn't contain any element matching the contains schema", "contains", in, err))
+            err -> Future.failedFuture(ValidationException.create("provided array doesn't contain any element matching the contains schema", "contains", orig, err))
           );
         }
       } else return Future.succeededFuture();
@@ -102,11 +106,13 @@ public class ContainsValidatorFactory implements ValidatorFactory {
       this.checkSync();
       ValidationException t = null;
       int matches = 0;
-      if (in instanceof JsonArray) {
-        JsonArray arr = (JsonArray) in;
+      final Object orig = in;
+      in = unwrap(in);
+      if (in instanceof List<?>) {
+        List<?> arr = (List<?>) in;
         for (int i = 0; i < arr.size(); i++) {
           try {
-            schema.validateSync(context.lowerLevelContext(i), arr.getValue(i));
+            schema.validateSync(context.lowerLevelContext(i), arr.get(i));
             context.markEvaluatedItem(i);
             matches++;
           } catch (ValidationException e) {
@@ -115,10 +121,10 @@ public class ContainsValidatorFactory implements ValidatorFactory {
         }
       }
       if (matches < min) {
-        throw ValidationException.create("provided array doesn't contain " + min + " elements matching the contains schema", "contains", in, t);
+        throw ValidationException.create("provided array doesn't contain " + min + " elements matching the contains schema", "contains", orig, t);
       }
       if (max != null && matches > max) {
-        throw ValidationException.create("provided array contains more than " + max + " elements matching the contains schema", "contains", in, t);
+        throw ValidationException.create("provided array contains more than " + max + " elements matching the contains schema", "contains", orig, t);
       }
     }
   }

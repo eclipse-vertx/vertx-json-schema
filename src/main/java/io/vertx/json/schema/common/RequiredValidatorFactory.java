@@ -17,9 +17,11 @@ import io.vertx.json.schema.SchemaException;
 import io.vertx.json.schema.ValidationException;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static io.vertx.json.schema.ValidationException.create;
+import static io.vertx.json.schema.common.JsonUtil.unwrap;
 
 public class RequiredValidatorFactory implements ValidatorFactory {
 
@@ -49,11 +51,13 @@ public class RequiredValidatorFactory implements ValidatorFactory {
 
     @Override
     public void validateSync(ValidatorContext context, Object in) throws ValidationException {
-      if (in instanceof JsonObject) {
-        JsonObject obj = (JsonObject) in;
+      final Object orig = in;
+      in = unwrap(in);
+      if (in instanceof Map<?, ?>) {
+        Map<String, ?> obj = (Map<String, ?>) in;
         for (String k : requiredKeys) {
           if (!obj.containsKey(k))
-            throw create("provided object should contain property " + k, "required", in);
+            throw create("provided object should contain property " + k, "required", orig);
         }
       }
     }

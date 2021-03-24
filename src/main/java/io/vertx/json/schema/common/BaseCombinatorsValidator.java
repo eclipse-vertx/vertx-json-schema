@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static io.vertx.json.schema.common.JsonUtil.isArray;
+import static io.vertx.json.schema.common.JsonUtil.isObject;
+
 public abstract class BaseCombinatorsValidator extends BaseMutableStateValidator implements DefaultApplier {
 
   protected SchemaInternal[] schemas;
@@ -41,7 +44,7 @@ public abstract class BaseCombinatorsValidator extends BaseMutableStateValidator
 
   @Override
   public Future<Void> applyDefaultValue(Object obj) {
-    if (!(obj instanceof JsonObject || obj instanceof JsonArray)) {
+    if (!(isObject(obj) || isArray(obj))) {
       return Future.succeededFuture();
     }
 

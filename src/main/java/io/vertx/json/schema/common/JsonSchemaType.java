@@ -16,11 +16,13 @@ import io.vertx.core.json.JsonObject;
 import java.util.Objects;
 import java.util.function.Predicate;
 
+import static io.vertx.json.schema.common.JsonUtil.isObject;
+
 public enum JsonSchemaType {
   NULL(Objects::isNull),
   BOOLEAN(o -> o instanceof Boolean),
-  OBJECT(o -> o instanceof JsonObject),
-  ARRAY(o -> o instanceof JsonArray),
+  OBJECT(JsonUtil::isObject),
+  ARRAY(JsonUtil::isArray),
   NUMBER(o -> o instanceof Number),
   NUMBER_DECIMAL(o -> o instanceof Double || o instanceof Float),
   INTEGER(o -> o instanceof Long || o instanceof Integer),

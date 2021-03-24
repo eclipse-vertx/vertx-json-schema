@@ -18,18 +18,22 @@ import io.vertx.json.schema.SchemaException;
 import io.vertx.json.schema.ValidationException;
 
 import java.util.HashSet;
+import java.util.List;
 
 import static io.vertx.json.schema.ValidationException.create;
+import static io.vertx.json.schema.common.JsonUtil.unwrap;
 
 public class UniqueItemsValidatorFactory implements ValidatorFactory {
 
   private final static BaseSyncValidator UNIQUE_VALIDATOR = new BaseSyncValidator() {
     @Override
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
-      if (in instanceof JsonArray) {
-        JsonArray arr = (JsonArray) in;
-        if (new HashSet(arr.getList()).size() != arr.size())
-          throw create("array elements must be unique", "uniqueItems", in);
+      final Object orig = in;
+      in = unwrap(in);
+      if (in instanceof List<?>) {
+        List<?> arr = (List<?>) in;
+        if (new HashSet<>(arr).size() != arr.size())
+          throw create("array elements must be unique", "uniqueItems", orig);
       }
     }
   };

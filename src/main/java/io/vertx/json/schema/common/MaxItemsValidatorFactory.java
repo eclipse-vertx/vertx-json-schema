@@ -16,6 +16,10 @@ import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.json.schema.SchemaException;
 import io.vertx.json.schema.ValidationException;
 
+import java.util.List;
+
+import static io.vertx.json.schema.common.JsonUtil.unwrap;
+
 public class MaxItemsValidatorFactory implements ValidatorFactory {
 
   @Override
@@ -46,9 +50,12 @@ public class MaxItemsValidatorFactory implements ValidatorFactory {
 
     @Override
     public void validateSync(ValidatorContext context, Object in) throws ValidationException {
-      if (in instanceof JsonArray) {
-        if (((JsonArray) in).size() > maximum) {
-          throw ValidationException.create("provided array should have size <= " + maximum, "maxItems", in);
+      final Object orig = in;
+      in = unwrap(in);
+      if (in instanceof List<?>) {
+        List<?> arr = (List<?>) in;
+        if (arr.size() > maximum) {
+          throw ValidationException.create("provided array should have size <= " + maximum, "maxItems", orig);
         }
       }
     }

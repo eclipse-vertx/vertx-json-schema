@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import static io.vertx.json.schema.common.JsonUtil.unwrap;
+
 public class ContainsValidatorFactory extends BaseSingleSchemaValidatorFactory {
 
   @Override
@@ -45,14 +47,16 @@ public class ContainsValidatorFactory extends BaseSingleSchemaValidatorFactory {
     @Override
     public Future<Void> validateAsync(ValidatorContext context, Object in) {
       if (isSync()) return validateSyncAsAsync(context, in);
-      if (in instanceof JsonArray) {
-        JsonArray arr = (JsonArray) in;
+      final Object orig = in;
+      in = unwrap(in);
+      if (in instanceof List<?>) {
+        List<?> arr = (List<?>) in;
         if (arr.isEmpty()) {
-          return Future.failedFuture(ValidationException.create("provided array should not be empty", "contains", in));
+          return Future.failedFuture(ValidationException.create("provided array should not be empty", "contains", orig));
         } else {
           List<Future> futs = new ArrayList<>();
           for (int i = 0; i < arr.size(); i++) {
-            futs.add(schema.validateAsync(context.lowerLevelContext(i), arr.getValue(i)));
+            futs.add(schema.validateAsync(context.lowerLevelContext(i), arr.get(i)));
           }
           return CompositeFuture.any(futs).compose(
             cf -> {
@@ -64,7 +68,7 @@ public class ContainsValidatorFactory extends BaseSingleSchemaValidatorFactory {
                 });
               return Future.succeededFuture();
             },
-            err -> Future.failedFuture(ValidationException.create("provided array doesn't contain an element matching the contains schema", "contains", in, err))
+            err -> Future.failedFuture(ValidationException.create("provided array doesn't contain an element matching the contains schema", "contains", orig, err))
           );
         }
       } else return Future.succeededFuture();
@@ -74,18 +78,20 @@ public class ContainsValidatorFactory extends BaseSingleSchemaValidatorFactory {
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
       ValidationException t = null;
-      if (in instanceof JsonArray) {
-        JsonArray arr = (JsonArray) in;
+      final Object orig = in;
+      in = unwrap(in);
+      if (in instanceof List<?>) {
+        List<?> arr = (List<?>) in;
         for (int i = 0; i < arr.size(); i++) {
           try {
-            schema.validateSync(context.lowerLevelContext(i), arr.getValue(i));
+            schema.validateSync(context.lowerLevelContext(i), arr.get(i));
             context.markEvaluatedItem(i);
             return;
           } catch (ValidationException e) {
             t = e;
           }
         }
-        throw ValidationException.create("provided array doesn't contain an element matching the contains schema", "contains", in, t);
+        throw ValidationException.create("provided array doesn't contain an element matching the contains schema", "contains", orig, t);
       }
     }
 
