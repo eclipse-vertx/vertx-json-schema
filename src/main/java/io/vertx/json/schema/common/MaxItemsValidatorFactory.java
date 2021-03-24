@@ -10,7 +10,6 @@
  */
 package io.vertx.json.schema.common;
 
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.json.schema.SchemaException;
@@ -41,7 +40,7 @@ public class MaxItemsValidatorFactory implements ValidatorFactory {
     return schema.containsKey("maxItems");
   }
 
-  public class MaxItemsValidator extends BaseSyncValidator {
+  public static class MaxItemsValidator extends BaseSyncValidator {
     private final int maximum;
 
     public MaxItemsValidator(int maximum) {

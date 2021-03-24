@@ -53,7 +53,7 @@ public class UnevaluatedPropertiesValidatorFactory implements ValidatorFactory {
     return schema.containsKey("unevaluatedProperties");
   }
 
-  class SchemedUnevaluatedPropertiesValidator extends BaseSingleSchemaValidator {
+  static class SchemedUnevaluatedPropertiesValidator extends BaseSingleSchemaValidator {
 
     public SchemedUnevaluatedPropertiesValidator(MutableStateValidator parent) {
       super(parent);
@@ -113,7 +113,7 @@ public class UnevaluatedPropertiesValidatorFactory implements ValidatorFactory {
     }
   }
 
-  class NoUnevaluatedPropertiesValidator extends BaseSyncValidator {
+  static class NoUnevaluatedPropertiesValidator extends BaseSyncValidator {
 
     @Override
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {

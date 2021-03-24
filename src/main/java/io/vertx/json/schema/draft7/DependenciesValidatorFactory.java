@@ -20,10 +20,7 @@ import io.vertx.json.schema.SchemaException;
 import io.vertx.json.schema.ValidationException;
 import io.vertx.json.schema.common.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.vertx.json.schema.common.JsonUtil.unwrap;
@@ -43,8 +40,8 @@ public class DependenciesValidatorFactory implements ValidatorFactory {
         if (entry.getValue() instanceof Map || entry.getValue() instanceof Boolean) {
           keySchemaDeps.put(entry.getKey(), parser.parse((entry.getValue() instanceof Map) ? new JsonObject((Map<String, Object>) entry.getValue()) : entry.getValue(), baseScope.copy().append(entry.getKey()), validator));
         } else {
-          if (!((List) entry.getValue()).isEmpty())
-            keyDeps.put(entry.getKey(), ((List<String>) entry.getValue()).stream().collect(Collectors.toSet()));
+          if (!((List<?>) entry.getValue()).isEmpty())
+            keyDeps.put(entry.getKey(), new HashSet<>(((List<String>) entry.getValue())));
         }
       }
       validator.configure(keyDeps, keySchemaDeps);
@@ -61,7 +58,7 @@ public class DependenciesValidatorFactory implements ValidatorFactory {
     return schema.containsKey("dependencies");
   }
 
-  class DependenciesValidator extends BaseMutableStateValidator {
+  static class DependenciesValidator extends BaseMutableStateValidator {
 
     Map<String, Set<String>> keyDeps;
     Map<String, SchemaInternal> keySchemaDeps;

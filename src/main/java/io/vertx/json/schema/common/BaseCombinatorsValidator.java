@@ -12,8 +12,6 @@ package io.vertx.json.schema.common;
 
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.Schema;
 
 import java.util.Arrays;
@@ -37,7 +35,7 @@ public abstract class BaseCombinatorsValidator extends BaseMutableStateValidator
   }
 
   void setSchemas(List<SchemaInternal> schemas) {
-    this.schemas = schemas.toArray(new SchemaInternal[schemas.size()]);
+    this.schemas = schemas.toArray(new SchemaInternal[0]);
     Arrays.sort(this.schemas, ValidatorPriority.COMPARATOR);
     this.initializeIsSync();
   }

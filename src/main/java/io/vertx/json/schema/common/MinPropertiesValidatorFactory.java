@@ -40,7 +40,7 @@ public class MinPropertiesValidatorFactory implements ValidatorFactory {
     return schema.containsKey("minProperties");
   }
 
-  public class MinPropertiesValidator extends BaseSyncValidator {
+  public static class MinPropertiesValidator extends BaseSyncValidator {
     private final int minimum;
 
     public MinPropertiesValidator(int minimum) {

@@ -12,7 +12,6 @@ package io.vertx.json.schema.draft7;
 
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
-import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.NoSyncValidationException;
 import io.vertx.json.schema.ValidationException;
 import io.vertx.json.schema.common.BaseSingleSchemaValidator;
@@ -37,7 +36,7 @@ public class PropertyNamesValidatorFactory extends BaseSingleSchemaValidatorFact
     return "propertyNames";
   }
 
-  class PropertyNamesValidator extends BaseSingleSchemaValidator {
+  static class PropertyNamesValidator extends BaseSingleSchemaValidator {
 
     public PropertyNamesValidator(MutableStateValidator parent) {
       super(parent);

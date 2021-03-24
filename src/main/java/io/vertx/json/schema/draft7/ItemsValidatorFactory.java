@@ -44,9 +44,9 @@ public class ItemsValidatorFactory extends io.vertx.json.schema.common.ItemsVali
           parsedSchemas.add(i, parser.parse(itemsList.getValue(i), baseScope.copy().append(Integer.toString(i)), validator));
         }
         if (schema.containsKey("additionalItems"))
-          validator.configure(parsedSchemas.toArray(new SchemaInternal[parsedSchemas.size()]), parser.parse(schema.getValue("additionalItems"), scope.copy().append("additionalItems"), validator));
+          validator.configure(parsedSchemas.toArray(new SchemaInternal[0]), parser.parse(schema.getValue("additionalItems"), scope.copy().append("additionalItems"), validator));
         else
-          validator.configure(parsedSchemas.toArray(new SchemaInternal[parsedSchemas.size()]), null);
+          validator.configure(parsedSchemas.toArray(new SchemaInternal[0]), null);
         return validator;
       } catch (NullPointerException e) {
         throw new SchemaException(schema, "Null items keyword", e);
@@ -56,7 +56,7 @@ public class ItemsValidatorFactory extends io.vertx.json.schema.common.ItemsVali
     }
   }
 
-  class ItemByItemValidator extends BaseMutableStateValidator implements DefaultApplier {
+  static class ItemByItemValidator extends BaseMutableStateValidator implements DefaultApplier {
 
     SchemaInternal[] schemas;
     SchemaInternal additionalItems;

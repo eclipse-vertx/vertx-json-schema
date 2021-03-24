@@ -34,7 +34,7 @@ public class AnyOfValidatorFactory extends BaseCombinatorsValidatorFactory {
     return "anyOf";
   }
 
-  class AnyOfValidator extends BaseCombinatorsValidator {
+  static class AnyOfValidator extends BaseCombinatorsValidator {
 
     public AnyOfValidator(MutableStateValidator parent) {
       super(parent);

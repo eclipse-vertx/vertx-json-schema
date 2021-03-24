@@ -10,13 +10,8 @@
  */
 package io.vertx.json.schema.common;
 
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
-
 import java.util.Objects;
 import java.util.function.Predicate;
-
-import static io.vertx.json.schema.common.JsonUtil.isObject;
 
 public enum JsonSchemaType {
   NULL(Objects::isNull),

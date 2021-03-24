@@ -42,7 +42,7 @@ public class RequiredValidatorFactory implements ValidatorFactory {
     return schema.containsKey("required");
   }
 
-  public class RequiredValidator extends BaseSyncValidator {
+  public static class RequiredValidator extends BaseSyncValidator {
     private final Set<String> requiredKeys;
 
     public RequiredValidator(Set<String> requiredKeys) {

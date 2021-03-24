@@ -36,7 +36,7 @@ public class TypeValidatorFactory implements ValidatorFactory {
       }
       boolean allowNull = allowedTypes.contains(JsonSchemaType.NULL);
       if (allowNull) allowedTypes.remove(JsonSchemaType.NULL);
-      return new TypeValidator(allowedTypes.toArray(new JsonSchemaType[allowedTypes.size()]), allowNull);
+      return new TypeValidator(allowedTypes.toArray(new JsonSchemaType[0]), allowNull);
     } catch (NullPointerException e) {
       throw new SchemaException(schema, "Null type keyword", e);
     } catch (ClassCastException e) {
@@ -70,7 +70,7 @@ public class TypeValidatorFactory implements ValidatorFactory {
     }
   }
 
-  class TypeValidator extends BaseSyncValidator {
+  static class TypeValidator extends BaseSyncValidator {
 
     final JsonSchemaType[] types;
     final boolean nullIsValid;
@@ -91,7 +91,7 @@ public class TypeValidatorFactory implements ValidatorFactory {
         for (JsonSchemaType type : types) if (type.checkInstance(in)) return;
         throw ValidationException.create("input don't match any of types " + Arrays.deepToString(types), "type", in);
       } else if (!nullIsValid)
-        throw ValidationException.create("input don't match any of types " + Arrays.deepToString(types), "type", in);
+        throw ValidationException.create("input don't match any of types " + Arrays.deepToString(types), "type", null);
     }
   }
 }

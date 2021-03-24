@@ -12,7 +12,6 @@ package io.vertx.json.schema.draft201909;
 
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.json.schema.NoSyncValidationException;
@@ -47,7 +46,7 @@ public class ContainsValidatorFactory implements ValidatorFactory {
     return schema.containsKey("contains");
   }
 
-  class BoundedContainsValidator extends BaseSingleSchemaValidator {
+  static class BoundedContainsValidator extends BaseSingleSchemaValidator {
 
     private final int min;
     private final Integer max;

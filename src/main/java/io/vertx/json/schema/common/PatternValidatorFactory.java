@@ -40,7 +40,7 @@ public class PatternValidatorFactory implements ValidatorFactory {
     return schema.containsKey("pattern");
   }
 
-  public class PatternValidator extends BaseSyncValidator {
+  public static class PatternValidator extends BaseSyncValidator {
     private final Pattern pattern;
 
     public PatternValidator(Pattern pattern) {

@@ -10,7 +10,6 @@
  */
 package io.vertx.json.schema.common;
 
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.json.schema.SchemaException;
@@ -41,7 +40,7 @@ public class MinItemsValidatorFactory implements ValidatorFactory {
     return schema.containsKey("minItems");
   }
 
-  public class MinItemsValidator extends BaseSyncValidator {
+  public static class MinItemsValidator extends BaseSyncValidator {
     private final int minimum;
 
     public MinItemsValidator(int minimum) {

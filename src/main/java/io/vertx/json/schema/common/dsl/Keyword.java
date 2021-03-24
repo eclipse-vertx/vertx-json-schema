@@ -14,8 +14,8 @@ import java.util.function.Supplier;
 
 public class Keyword {
 
-  private String keyword;
-  private Supplier<Object> value;
+  private final String keyword;
+  private final Supplier<Object> value;
 
   public Keyword(String keyword, Supplier<Object> value) {
     this.keyword = keyword;

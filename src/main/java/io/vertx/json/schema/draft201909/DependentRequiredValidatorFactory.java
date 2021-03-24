@@ -46,7 +46,7 @@ public class DependentRequiredValidatorFactory implements ValidatorFactory {
     return schema.containsKey("dependentRequired");
   }
 
-  class DependentRequiredValidator extends BaseSyncValidator {
+  static class DependentRequiredValidator extends BaseSyncValidator {
 
     public final Map<String, Set<String>> keyDeps;
 

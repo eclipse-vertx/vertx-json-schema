@@ -27,7 +27,6 @@ import java.util.regex.PatternSyntaxException;
 import java.util.stream.Stream;
 
 import static io.vertx.json.schema.ValidationException.create;
-import static io.vertx.json.schema.common.JsonUtil.isObject;
 import static io.vertx.json.schema.common.JsonUtil.unwrap;
 
 public class PropertiesValidatorFactory implements ValidatorFactory {

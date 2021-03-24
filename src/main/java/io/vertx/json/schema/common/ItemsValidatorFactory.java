@@ -12,14 +12,11 @@ package io.vertx.json.schema.common;
 
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.NoSyncValidationException;
 import io.vertx.json.schema.ValidationException;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static io.vertx.json.schema.common.JsonUtil.unwrap;
 
@@ -35,7 +32,7 @@ public class ItemsValidatorFactory extends BaseSingleSchemaValidatorFactory {
     return "items";
   }
 
-  class ItemsValidator extends BaseSingleSchemaValidator implements DefaultApplier {
+  static class ItemsValidator extends BaseSingleSchemaValidator implements DefaultApplier {
 
     public ItemsValidator(MutableStateValidator parent) {
       super(parent);
@@ -86,8 +83,7 @@ public class ItemsValidatorFactory extends BaseSingleSchemaValidatorFactory {
 
       List<Future> futures = new ArrayList<>();
       List<?> arr = (List<?>) value;
-      for (int i = 0; i < arr.size(); i++) {
-        Object valToDefault = arr.get(i);
+      for (Object valToDefault : arr) {
         if (schema.isSync()) {
           schema.getOrApplyDefaultSync(valToDefault);
         } else {

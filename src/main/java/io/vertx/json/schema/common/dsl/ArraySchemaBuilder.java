@@ -11,7 +11,6 @@
 package io.vertx.json.schema.common.dsl;
 
 import io.vertx.codegen.annotations.Fluent;
-import io.vertx.core.json.JsonObject;
 
 import java.util.Objects;
 
@@ -26,10 +25,5 @@ public final class ArraySchemaBuilder extends SchemaBuilder<ArraySchemaBuilder, 
     Objects.requireNonNull(schemaBuilder);
     this.keywords.put("items", schemaBuilder::toJson);
     return this;
-  }
-
-  @Override
-  public JsonObject toJson() {
-    return super.toJson();
   }
 }

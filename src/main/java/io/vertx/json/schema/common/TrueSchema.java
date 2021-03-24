@@ -25,7 +25,7 @@ public class TrueSchema implements SchemaInternal {
     return TrueSchemaHolder.INSTANCE;
   }
 
-  MutableStateValidator parent;
+  final MutableStateValidator parent;
 
   public TrueSchema(MutableStateValidator parent) {
     this.parent = parent;

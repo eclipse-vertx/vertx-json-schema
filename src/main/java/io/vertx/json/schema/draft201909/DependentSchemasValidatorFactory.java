@@ -52,7 +52,7 @@ public class DependentSchemasValidatorFactory implements ValidatorFactory {
     return schema.containsKey("dependentSchemas");
   }
 
-  class DependentSchemasValidator extends BaseMutableStateValidator {
+  static class DependentSchemasValidator extends BaseMutableStateValidator {
 
     Map<String, SchemaInternal> keySchemaDeps;
 
