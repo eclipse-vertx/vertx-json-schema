@@ -22,7 +22,7 @@ public class NullableValidatorFactory implements ValidatorFactory {
   private final static BaseSyncValidator NULL_VALIDATOR = new BaseSyncValidator() {
     @Override
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
-      if (in == null) throw ValidationException.create("input cannot be null", "nullable", in);
+      if (in == null) throw ValidationException.create("input cannot be null", "nullable", null);
     }
   };
 

@@ -12,7 +12,6 @@ package io.vertx.json.schema.draft7;
 
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
-import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.NoSyncValidationException;
 import io.vertx.json.schema.ValidationException;
 import io.vertx.json.schema.common.BaseSingleSchemaValidator;
@@ -20,7 +19,10 @@ import io.vertx.json.schema.common.BaseSingleSchemaValidatorFactory;
 import io.vertx.json.schema.common.MutableStateValidator;
 import io.vertx.json.schema.common.ValidatorContext;
 
+import java.util.Map;
 import java.util.stream.Collectors;
+
+import static io.vertx.json.schema.common.JsonUtil.unwrap;
 
 public class PropertyNamesValidatorFactory extends BaseSingleSchemaValidatorFactory {
 
@@ -34,7 +36,7 @@ public class PropertyNamesValidatorFactory extends BaseSingleSchemaValidatorFact
     return "propertyNames";
   }
 
-  class PropertyNamesValidator extends BaseSingleSchemaValidator {
+  static class PropertyNamesValidator extends BaseSingleSchemaValidator {
 
     public PropertyNamesValidator(MutableStateValidator parent) {
       super(parent);
@@ -43,17 +45,21 @@ public class PropertyNamesValidatorFactory extends BaseSingleSchemaValidatorFact
     @Override
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
-      if (in instanceof JsonObject) {
-        ((JsonObject) in).getMap().keySet().forEach(k -> schema.validateSync(context, k));
+      in = unwrap(in);
+      if (in instanceof Map<?, ?>) {
+        Map<?, ?> obj = (Map<?, ?>) in;
+        obj.keySet().forEach(k -> schema.validateSync(context, k));
       }
     }
 
     @Override
-    public Future<Void> validateAsync(ValidatorContext context, Object in) {
+    public Future<Void> validateAsync(ValidatorContext context, final Object in) {
       if (isSync()) return validateSyncAsAsync(context, in);
-      if (in instanceof JsonObject) {
+      Object o = unwrap(in);
+      if (o instanceof Map<?, ?>) {
+        Map<String, ?> obj = (Map<String, ?>) o;
         return CompositeFuture.all(
-          ((JsonObject) in).getMap().keySet()
+          obj.keySet()
             .stream()
             .map(k -> schema.validateAsync(context, k))
             .collect(Collectors.toList())

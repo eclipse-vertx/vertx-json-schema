@@ -12,7 +12,6 @@ package io.vertx.json.schema.draft7;
 
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
-import io.vertx.core.json.JsonArray;
 import io.vertx.json.schema.NoSyncValidationException;
 import io.vertx.json.schema.ValidationException;
 import io.vertx.json.schema.common.BaseSingleSchemaValidator;
@@ -23,6 +22,8 @@ import io.vertx.json.schema.common.ValidatorContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
+
+import static io.vertx.json.schema.common.JsonUtil.unwrap;
 
 public class ContainsValidatorFactory extends BaseSingleSchemaValidatorFactory {
 
@@ -36,23 +37,24 @@ public class ContainsValidatorFactory extends BaseSingleSchemaValidatorFactory {
     return "contains";
   }
 
-  class ContainsValidator extends BaseSingleSchemaValidator {
+  static class ContainsValidator extends BaseSingleSchemaValidator {
 
     public ContainsValidator(MutableStateValidator parent) {
       super(parent);
     }
 
     @Override
-    public Future<Void> validateAsync(ValidatorContext context, Object in) {
+    public Future<Void> validateAsync(ValidatorContext context, final Object in) {
       if (isSync()) return validateSyncAsAsync(context, in);
-      if (in instanceof JsonArray) {
-        JsonArray arr = (JsonArray) in;
+      Object o = unwrap(in);
+      if (o instanceof List<?>) {
+        List<?> arr = (List<?>) o;
         if (arr.isEmpty()) {
           return Future.failedFuture(ValidationException.create("provided array should not be empty", "contains", in));
         } else {
           List<Future> futs = new ArrayList<>();
           for (int i = 0; i < arr.size(); i++) {
-            futs.add(schema.validateAsync(context.lowerLevelContext(i), arr.getValue(i)));
+            futs.add(schema.validateAsync(context.lowerLevelContext(i), arr.get(i)));
           }
           return CompositeFuture.any(futs).compose(
             cf -> {
@@ -71,14 +73,15 @@ public class ContainsValidatorFactory extends BaseSingleSchemaValidatorFactory {
     }
 
     @Override
-    public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
+    public void validateSync(ValidatorContext context, final Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
       ValidationException t = null;
-      if (in instanceof JsonArray) {
-        JsonArray arr = (JsonArray) in;
+      Object o = unwrap(in);
+      if (o instanceof List<?>) {
+        List<?> arr = (List<?>) o;
         for (int i = 0; i < arr.size(); i++) {
           try {
-            schema.validateSync(context.lowerLevelContext(i), arr.getValue(i));
+            schema.validateSync(context.lowerLevelContext(i), arr.get(i));
             context.markEvaluatedItem(i);
             return;
           } catch (ValidationException e) {

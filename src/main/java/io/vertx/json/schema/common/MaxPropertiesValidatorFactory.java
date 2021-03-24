@@ -15,6 +15,10 @@ import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.json.schema.SchemaException;
 import io.vertx.json.schema.ValidationException;
 
+import java.util.Map;
+
+import static io.vertx.json.schema.common.JsonUtil.unwrap;
+
 public class MaxPropertiesValidatorFactory implements ValidatorFactory {
 
   @Override
@@ -36,7 +40,7 @@ public class MaxPropertiesValidatorFactory implements ValidatorFactory {
     return schema.containsKey("maxProperties");
   }
 
-  public class MaxPropertiesValidator extends BaseSyncValidator {
+  public static class MaxPropertiesValidator extends BaseSyncValidator {
     private final int maximum;
 
     public MaxPropertiesValidator(int maximum) {
@@ -44,9 +48,10 @@ public class MaxPropertiesValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public void validateSync(ValidatorContext context, Object in) throws ValidationException {
-      if (in instanceof JsonObject) {
-        if (((JsonObject) in).size() > maximum) {
+    public void validateSync(ValidatorContext context, final Object in) throws ValidationException {
+      Object o = unwrap(in);
+      if (o instanceof Map<?, ?>) {
+        if (((Map<?, ?>) o).size() > maximum) {
           throw ValidationException.create("provided object should have size <= " + maximum, "maxProperties", in);
         }
       }

@@ -17,9 +17,11 @@ import io.vertx.json.schema.SchemaException;
 import io.vertx.json.schema.ValidationException;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static io.vertx.json.schema.ValidationException.create;
+import static io.vertx.json.schema.common.JsonUtil.unwrap;
 
 public class RequiredValidatorFactory implements ValidatorFactory {
 
@@ -40,7 +42,7 @@ public class RequiredValidatorFactory implements ValidatorFactory {
     return schema.containsKey("required");
   }
 
-  public class RequiredValidator extends BaseSyncValidator {
+  public static class RequiredValidator extends BaseSyncValidator {
     private final Set<String> requiredKeys;
 
     public RequiredValidator(Set<String> requiredKeys) {
@@ -48,9 +50,10 @@ public class RequiredValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public void validateSync(ValidatorContext context, Object in) throws ValidationException {
-      if (in instanceof JsonObject) {
-        JsonObject obj = (JsonObject) in;
+    public void validateSync(ValidatorContext context, final Object in) throws ValidationException {
+      Object o = unwrap(in);
+      if (o instanceof Map<?, ?>) {
+        Map<String, ?> obj = (Map<String, ?>) o;
         for (String k : requiredKeys) {
           if (!obj.containsKey(k))
             throw create("provided object should contain property " + k, "required", in);

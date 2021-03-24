@@ -21,7 +21,7 @@ import java.util.Objects;
 public final class TupleSchemaBuilder extends SchemaBuilder<TupleSchemaBuilder, ArrayKeyword> {
 
   // For items keyword as list of schemas
-  private List<SchemaBuilder> itemList;
+  private final List<SchemaBuilder> itemList;
   private SchemaBuilder additionalItems;
 
   TupleSchemaBuilder() {

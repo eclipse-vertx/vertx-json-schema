@@ -15,6 +15,10 @@ import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.json.schema.SchemaException;
 import io.vertx.json.schema.ValidationException;
 
+import java.util.Map;
+
+import static io.vertx.json.schema.common.JsonUtil.unwrap;
+
 public class MinPropertiesValidatorFactory implements ValidatorFactory {
 
   @Override
@@ -36,7 +40,7 @@ public class MinPropertiesValidatorFactory implements ValidatorFactory {
     return schema.containsKey("minProperties");
   }
 
-  public class MinPropertiesValidator extends BaseSyncValidator {
+  public static class MinPropertiesValidator extends BaseSyncValidator {
     private final int minimum;
 
     public MinPropertiesValidator(int minimum) {
@@ -44,9 +48,10 @@ public class MinPropertiesValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public void validateSync(ValidatorContext context, Object in) throws ValidationException {
-      if (in instanceof JsonObject) {
-        if (((JsonObject) in).size() < minimum) {
+    public void validateSync(ValidatorContext context, final Object in) throws ValidationException {
+      Object o = unwrap(in);
+      if (o instanceof Map<?, ?>) {
+        if (((Map<?, ?>) o).size() < minimum) {
           throw ValidationException.create("provided object should have size >= " + minimum, "minProperties", in);
         }
       }

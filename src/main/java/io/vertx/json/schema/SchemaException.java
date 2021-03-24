@@ -19,7 +19,7 @@ import io.vertx.core.VertxException;
  */
 public class SchemaException extends VertxException {
 
-  private Object schema;
+  private final Object schema;
 
   public SchemaException(Object schema, String message, Throwable cause) {
     super(message, cause);
@@ -43,7 +43,7 @@ public class SchemaException extends VertxException {
   @Override
   public String toString() {
     return "SchemaException{" +
-      "message=\'" + getMessage() + "\'" +
+      "message='" + getMessage() + "'" +
       ", schema=" + schema +
       '}';
   }

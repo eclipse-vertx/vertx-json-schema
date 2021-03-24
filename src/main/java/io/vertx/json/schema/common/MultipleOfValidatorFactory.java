@@ -34,7 +34,7 @@ public class MultipleOfValidatorFactory implements ValidatorFactory {
     return schema.containsKey("multipleOf");
   }
 
-  class MultipleOfValidator extends BaseSyncValidator {
+  static class MultipleOfValidator extends BaseSyncValidator {
     private final double multipleOf;
 
     public MultipleOfValidator(double multipleOf) {
