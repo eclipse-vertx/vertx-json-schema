@@ -19,7 +19,6 @@ import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -46,6 +45,12 @@ public class CBORTest {
         .put("type", "object")
         .put("required", new JsonArray().add("fmt").add("authData").add("attStmt")));
 
+    // This is a simple webauthn CBOR dump
+    // {
+    //   fmt: none
+    //   authData: {}
+    //   attStmt: "very long string..."
+    // }
     String data = "o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YVjEfxV8VVBPmz66RLzscHpg5yjRhO28Y_fPwYO5AVwzBEJBAAAAAwAAAAAAAAAAAAAAAAAAAAAAQEPjBz9F6ttAijOS1t6gbfYLub3TmCzWXN4wnIMsi53EWr-SL3e09XWr93lqyOwk_B5s1P8gGCa5o2uIp_DhS9ylAQIDJiABIVggN_D3u-03a0GzONOHfaML881QZtOCc5oTNRB2wlyqUEUiWCD3878XoO_bIJf0mEPDILODFhVmkc4QeR6hOIDvwvXzYQ";
 
     Map<String, ?> cbor = parse(FACTORY.createParser(B64DEC.decode(data)));
@@ -58,8 +63,8 @@ public class CBORTest {
         .put("type", "object")
         .put("required", new JsonArray().add("fmt2")));
 
-    // OK
     try {
+      // NOT OK
       schema.validateSync(cbor);
       fail("Should have failed: fmt2 isn't present in the CBOR data");
     } catch (ValidationException e) {
