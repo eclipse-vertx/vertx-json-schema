@@ -19,13 +19,15 @@ import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @ExtendWith(VertxExtension.class)
 public class CBORTest {
@@ -34,17 +36,10 @@ public class CBORTest {
   private static final Base64.Decoder B64DEC = Base64.getUrlDecoder();
   private static final CBORFactory FACTORY = new CBORFactory();
 
-  @Test
-  public void schemaAndValidationUsingCBOR(Vertx vertx) throws IOException {
+  private static Map<String, ?> CBOR;
 
-    SchemaRouter router = SchemaRouter.create(vertx, new SchemaRouterOptions());
-    SchemaParser parser = SchemaParser.createDraft7SchemaParser(router);
-
-    Schema schema = parser.parse(
-      new JsonObject()
-        .put("type", "object")
-        .put("required", new JsonArray().add("fmt").add("authData").add("attStmt")));
-
+  @BeforeAll
+  public static void init() throws IOException {
     // This is a simple webauthn CBOR dump
     // {
     //   fmt: none
@@ -53,23 +48,41 @@ public class CBORTest {
     // }
     String data = "o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YVjEfxV8VVBPmz66RLzscHpg5yjRhO28Y_fPwYO5AVwzBEJBAAAAAwAAAAAAAAAAAAAAAAAAAAAAQEPjBz9F6ttAijOS1t6gbfYLub3TmCzWXN4wnIMsi53EWr-SL3e09XWr93lqyOwk_B5s1P8gGCa5o2uIp_DhS9ylAQIDJiABIVggN_D3u-03a0GzONOHfaML881QZtOCc5oTNRB2wlyqUEUiWCD3878XoO_bIJf0mEPDILODFhVmkc4QeR6hOIDvwvXzYQ";
 
-    Map<String, ?> cbor = parse(FACTORY.createParser(B64DEC.decode(data)));
+    CBOR = parse(FACTORY.createParser(B64DEC.decode(data)));
+  }
+
+
+  @Test
+  public void schemaAndValidationUsingCBOR(Vertx vertx) {
+
+    SchemaRouter router = SchemaRouter.create(vertx, new SchemaRouterOptions());
+    SchemaParser parser = SchemaParser.createDraft7SchemaParser(router);
+
+    final Schema schema = parser.parse(
+      new JsonObject()
+        .put("type", "object")
+        .put("required", new JsonArray().add("fmt").add("authData").add("attStmt")));
 
     // OK
-    schema.validateSync(cbor);
+    assertThatCode(() -> schema.validateSync(CBOR))
+      .doesNotThrowAnyException();
+  }
 
-    schema = parser.parse(
+  @Test
+  public void schemaAndValidationUsingCBORInvalid(Vertx vertx) {
+
+    SchemaRouter router = SchemaRouter.create(vertx, new SchemaRouterOptions());
+    SchemaParser parser = SchemaParser.createDraft7SchemaParser(router);
+
+    final Schema schema = parser.parse(
       new JsonObject()
         .put("type", "object")
         .put("required", new JsonArray().add("fmt2")));
 
-    try {
-      // NOT OK
-      schema.validateSync(cbor);
-      fail("Should have failed: fmt2 isn't present in the CBOR data");
-    } catch (ValidationException e) {
-      // OK
-    }
+    // OK
+    assertThatThrownBy(() -> schema.validateSync(CBOR))
+      .isInstanceOf(ValidationException.class)
+      .hasMessageContaining("provided object should contain property fmt2");
   }
 
   public static <T> T parse(JsonParser parser) throws DecodeException {
