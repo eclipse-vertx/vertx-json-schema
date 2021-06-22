@@ -172,7 +172,7 @@ Now we can mount the new validator factory:
 
 === Asynchronous keywords
 
-Synchronous validators must implement the interface {@link io.vertx.json.schema.common.AsyncValidator}.
+Asynchronous validators must implement the interface {@link io.vertx.json.schema.common.AsyncValidator}.
 In this example I add a keyword that retrieves from the Vert.x Event bus an enum of values:
 
 [source,$lang]
