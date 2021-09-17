@@ -18,11 +18,14 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
+import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.json.schema.*;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -32,6 +35,7 @@ import java.util.stream.Stream;
 
 public class SchemaRouterImpl implements SchemaRouter {
 
+  private final Vertx vertx;
   private final Map<URI, RouterNode> absolutePaths;
   private final Map<URI, Object> rootJsons;
   private final HttpClient client;
@@ -39,13 +43,26 @@ public class SchemaRouterImpl implements SchemaRouter {
   private final Map<URI, Future<Schema>> externalSchemasSolving;
   private final SchemaRouterOptions options;
 
-  public SchemaRouterImpl(HttpClient client, FileSystem fs, SchemaRouterOptions options) {
+  private final String cacheDir;
+
+  private static String resolveCanonical(Vertx vertx, String path) {
+    try {
+      File canonicalFile = ((VertxInternal) vertx).resolveFile(path).getCanonicalFile();
+      return slashify(canonicalFile.getPath(), canonicalFile.isDirectory());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public SchemaRouterImpl(Vertx vertx, HttpClient client, FileSystem fs, SchemaRouterOptions options) {
+    this.vertx = vertx;
     this.client = client;
     this.fs = fs;
     this.absolutePaths = new HashMap<>();
     this.rootJsons = new HashMap<>();
     this.externalSchemasSolving = new ConcurrentHashMap<>();
     this.options = options;
+    this.cacheDir = resolveCanonical(vertx, "");
   }
 
   @Override
@@ -227,7 +244,7 @@ public class SchemaRouterImpl implements SchemaRouter {
           getScopeParentAliases(scope)
             .map(e -> URIUtils.resolvePath(e, refURI.getPath())),
           Stream.of(
-            getResourceAbsoluteURIFromClasspath(refURI),
+            getResourceAbsoluteURI(refURI),
             refURI
           )
         ).filter(Objects::nonNull);
@@ -278,10 +295,16 @@ public class SchemaRouterImpl implements SchemaRouter {
         }));
   }
 
+  private String relativizePathToBase(String filePath) {
+    return
+      filePath.startsWith(cacheDir) ?
+        filePath.substring(cacheDir.length()) :
+        filePath;
+  }
+
   private Future<String> solveLocalRef(final URI ref) {
     Promise<String> promise = Promise.promise();
-    String filePath = ("jar".equals(ref.getScheme())) ? ref.getSchemeSpecificPart().split("!")[1].substring(1) : ref.getPath();
-    fs.readFile(filePath, res -> {
+    fs.readFile(relativizePathToBase(ref.getPath()), res -> {
       if (res.succeeded()) {
         promise.complete(res.result().toString());
       } else {
@@ -304,7 +327,7 @@ public class SchemaRouterImpl implements SchemaRouter {
             .filter(u -> URIUtils.isRemoteURI(u) || URIUtils.isLocalURI(u)) // Remove aliases not resolvable
             .sorted((u1, u2) -> (URIUtils.isLocalURI(u1) && !URIUtils.isLocalURI(u2)) ? 1 : (u1.equals(u2)) ? 0 : -1), // Try to solve local refs before
           Stream.of(
-            getResourceAbsoluteURIFromClasspath(refURI) // Last hope: try to solve from class loader
+            getResourceAbsoluteURI(refURI) // Last hope: try to solve from class loader
           )
         );
       }
@@ -328,27 +351,33 @@ public class SchemaRouterImpl implements SchemaRouter {
     });
   }
 
-  private URI getResourceAbsoluteURIFromClasspath(URI u) {
-    try {
-      return getClassLoader().getResource(u.toString()).toURI();
-    } catch (NullPointerException | URISyntaxException e) {
-      return null;
+  private URI getResourceAbsoluteURI(URI source) {
+    String path = source.getPath();
+    File resolved = ((VertxInternal) vertx).resolveFile(path);
+    URI uri = null;
+    if (resolved != null) {
+      if (resolved.exists()) {
+        try {
+          resolved = resolved.getCanonicalFile();
+          uri = new URI("file://" + slashify(resolved.getPath(), resolved.isDirectory()));
+        } catch (URISyntaxException | IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
     }
+
+    return uri;
   }
 
-  private ClassLoader getClassLoader() {
-    ClassLoader cl = Thread.currentThread().getContextClassLoader();
-    if (cl == null) {
-      cl = getClass().getClassLoader();
-    }
-    // when running on substratevm (graal) the access to class loaders
-    // is very limited and might be only available from compile time
-    // known classes. (Object is always known, so we do a final attempt
-    // to get it here).
-    if (cl == null) {
-      cl = Object.class.getClassLoader();
-    }
-    return cl;
+  private static String slashify(String path, boolean isDirectory) {
+    String p = path;
+    if (File.separatorChar != '/')
+      p = p.replace(File.separatorChar, '/');
+    if (!p.startsWith("/"))
+      p = "/" + p;
+    if (!p.endsWith("/") && isDirectory)
+      p = p + "/";
+    return p;
   }
 
   public void insertSchema(JsonPointer pointer, RouterNode initialNode, Schema schema) {

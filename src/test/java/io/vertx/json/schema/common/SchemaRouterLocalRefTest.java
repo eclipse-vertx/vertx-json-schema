@@ -11,6 +11,7 @@
 package io.vertx.json.schema.common;
 
 import io.vertx.core.Vertx;
+import io.vertx.core.impl.VertxInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.json.schema.Schema;
@@ -36,11 +37,14 @@ import static org.assertj.core.api.Assertions.fail;
 @ExtendWith(VertxExtension.class)
 public class SchemaRouterLocalRefTest {
 
+  private VertxInternal vertx;
+
   public SchemaParserInternal parser;
   public SchemaRouter router;
 
   @BeforeEach
-  public void setUp(Vertx vertx) throws Exception {
+  public void setUp(Vertx vertx) {
+    this.vertx = (VertxInternal) vertx;
     router = SchemaRouter.create(vertx, new SchemaRouterOptions());
     parser = OpenAPI3SchemaParser.create(router);
   }
@@ -74,8 +78,8 @@ public class SchemaRouterLocalRefTest {
   }
 
   @Test
-  public void relativeLocalRefFromResources(VertxTestContext context) throws URISyntaxException {
-    URI sampleURI = getClass().getResource("/ref_test/sample.json").toURI();
+  public void relativeLocalRefFromResources(VertxTestContext context) {
+    URI sampleURI = vertx.resolveFile("ref_test/sample.json").toURI();
     JsonObject mainSchemaUnparsed = new JsonObject().put("$ref", sampleURI.toString());
     Schema mainSchema = parser.parse(mainSchemaUnparsed, sampleURI.resolve("test_1.json"));
     mainSchema.validateAsync("").onComplete(context.succeeding(o -> { // Trigger validation to start solve refs
@@ -88,24 +92,20 @@ public class SchemaRouterLocalRefTest {
   }
 
   @Test
-  public void jarURIRelativization(VertxTestContext context) throws URISyntaxException {
-    URI sampleURI = getClass().getClassLoader().getResource("sample_in_jar.json").toURI();
+  public void jarURIRelativization(VertxTestContext context) {
+    URI sampleURI = vertx.resolveFile("sample_in_jar.json").toURI();
     URI replaced1 = URIUtils.resolvePath(sampleURI, "empty_in_jar.json");
     URI replaced2 = URIUtils.resolvePath(sampleURI, "./empty_in_jar.json");
     context.verify(() -> {
-      try {
-        assertThat(getClass().getClassLoader().getResource("empty_in_jar.json").toURI()).isEqualTo(replaced1);
-        assertThat(getClass().getClassLoader().getResource("empty_in_jar.json").toURI()).isEqualTo(replaced2);
-      } catch (URISyntaxException e) {
-        fail("Wrong URI syntax", e);
-      }
+      assertThat(vertx.resolveFile("empty_in_jar.json").toURI()).isEqualTo(replaced1);
+      assertThat(vertx.resolveFile("empty_in_jar.json").toURI()).isEqualTo(replaced2);
     });
     context.completeNow();
   }
 
   @Test
-  public void relativeLocalRefFromClassLoader(VertxTestContext context) throws URISyntaxException {
-    URI sampleURI = getClass().getClassLoader().getResource("sample_in_jar.json").toURI();
+  public void relativeLocalRefFromClassLoader(VertxTestContext context) {
+    URI sampleURI = vertx.resolveFile("sample_in_jar.json").toURI();
     JsonObject mainSchemaUnparsed = new JsonObject().put("$ref", sampleURI.toString());
     Schema mainSchema = parser.parse(mainSchemaUnparsed, URIUtils.resolvePath(sampleURI, "test_1.json"));
     mainSchema.validateAsync("").onComplete(context.succeeding(o -> { // Trigger validation to start solve refs

@@ -62,7 +62,7 @@ public class OAS3IntegrationTest extends BaseIntegrationTest {
 
   @Override
   public SchemaParserInternal getSchemaParser(Vertx vertx) {
-    return OpenAPI3SchemaParser.create(new SchemaRouterImpl(vertx.createHttpClient(), vertx.fileSystem(), new SchemaRouterOptions()));
+    return OpenAPI3SchemaParser.create(new SchemaRouterImpl(vertx, vertx.createHttpClient(), vertx.fileSystem(), new SchemaRouterOptions()));
   }
 
   @Override
