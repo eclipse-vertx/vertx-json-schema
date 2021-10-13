@@ -43,17 +43,6 @@ public class SchemaRouterImpl implements SchemaRouter {
   private final Map<URI, Future<Schema>> externalSchemasSolving;
   private final SchemaRouterOptions options;
 
-  private final String cacheDir;
-
-  private static String resolveCanonical(Vertx vertx, String path) {
-    try {
-      File canonicalFile = ((VertxInternal) vertx).resolveFile(path).getCanonicalFile();
-      return slashify(canonicalFile.getPath(), canonicalFile.isDirectory());
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   public SchemaRouterImpl(Vertx vertx, HttpClient client, FileSystem fs, SchemaRouterOptions options) {
     this.vertx = vertx;
     this.client = client;
@@ -62,7 +51,6 @@ public class SchemaRouterImpl implements SchemaRouter {
     this.rootJsons = new HashMap<>();
     this.externalSchemasSolving = new ConcurrentHashMap<>();
     this.options = options;
-    this.cacheDir = resolveCanonical(vertx, "");
   }
 
   @Override
@@ -295,16 +283,9 @@ public class SchemaRouterImpl implements SchemaRouter {
         }));
   }
 
-  private String relativizePathToBase(String filePath) {
-    return
-      filePath.startsWith(cacheDir) ?
-        filePath.substring(cacheDir.length()) :
-        filePath;
-  }
-
   private Future<String> solveLocalRef(final URI ref) {
     Promise<String> promise = Promise.promise();
-    fs.readFile(relativizePathToBase(ref.getPath()), res -> {
+    fs.readFile(ref.getPath(), res -> {
       if (res.succeeded()) {
         promise.complete(res.result().toString());
       } else {
