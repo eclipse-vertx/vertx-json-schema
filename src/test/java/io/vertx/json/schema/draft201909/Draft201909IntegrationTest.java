@@ -33,7 +33,7 @@ public class Draft201909IntegrationTest extends BaseIntegrationTest {
 
   @Override
   public Map.Entry<SchemaParser, Schema> buildSchemaFunction(Vertx vertx, Object schema, String testFileName) {
-    Draft201909SchemaParser parser = Draft201909SchemaParser.create(new SchemaRouterImpl(vertx.createHttpClient(), vertx.fileSystem(), new SchemaRouterOptions()));
+    Draft201909SchemaParser parser = Draft201909SchemaParser.create(new SchemaRouterImpl(vertx, vertx.createHttpClient(), vertx.fileSystem(), new SchemaRouterOptions()));
     Schema s = parser.parse(schema, Paths.get(this.getTckPath() + "/" + testFileName + ".json").toAbsolutePath().toUri());
     return new AbstractMap.SimpleImmutableEntry<>(parser, s);
   }
@@ -89,7 +89,7 @@ public class Draft201909IntegrationTest extends BaseIntegrationTest {
 
   @Override
   public SchemaParserInternal getSchemaParser(Vertx vertx) {
-    return Draft201909SchemaParser.create(new SchemaRouterImpl(vertx.createHttpClient(), vertx.fileSystem(), new SchemaRouterOptions()));
+    return Draft201909SchemaParser.create(new SchemaRouterImpl(vertx, vertx.createHttpClient(), vertx.fileSystem(), new SchemaRouterOptions()));
   }
 
   @Override
