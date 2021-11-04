@@ -29,13 +29,13 @@
 
     <artifactId>vertx-json-schema</artifactId>
 
-    <version>4.1.6</version>
+    <version>4.1.7-SNAPSHOT</version>
 
     <name>Vert.x JSON Schema</name>
 
     <properties>
 
-        <stack.version>4.1.6</stack.version>
+        <stack.version>4.1.7-SNAPSHOT</stack.version>
 
         <mockito.version>3.3.0</mockito.version>
 
