@@ -1,44 +1,48 @@
 [
-    {
-        "description": "by int",
-        "schema": {"multipleOf": 2},
-        "tests": [
-            {
-                "description": "int by int",
-                "data": 10,
-                "valid": true
-            },
-            {
-                "description": "int by int fail",
-                "data": 7,
-                "valid": false
-            },
-            {
-                "description": "ignores non-numbers",
-                "data": "foo",
-                "valid": true
-            }
-        ]
+  {
+    "description": "by int",
+    "schema": {
+      "multipleOf": 2
     },
-    {
-        "description": "by number",
-        "schema": {"multipleOf": 1.5},
-        "tests": [
-            {
-                "description": "zero is multiple of anything",
-                "data": 0,
-                "valid": true
-            },
-            {
-                "description": "4.5 is multiple of 1.5",
-                "data": 4.5,
-                "valid": true
-            },
-            {
-                "description": "35 is not multiple of 1.5",
-                "data": 35,
-                "valid": false
-            }
-        ]
-    }
+    "tests": [
+      {
+        "description": "int by int",
+        "data": 10,
+        "valid": true
+      },
+      {
+        "description": "int by int fail",
+        "data": 7,
+        "valid": false
+      },
+      {
+        "description": "ignores non-numbers",
+        "data": "foo",
+        "valid": true
+      }
+    ]
+  },
+  {
+    "description": "by number",
+    "schema": {
+      "multipleOf": 1.5
+    },
+    "tests": [
+      {
+        "description": "zero is multiple of anything",
+        "data": 0,
+        "valid": true
+      },
+      {
+        "description": "4.5 is multiple of 1.5",
+        "data": 4.5,
+        "valid": true
+      },
+      {
+        "description": "35 is not multiple of 1.5",
+        "data": 35,
+        "valid": false
+      }
+    ]
+  }
 ]

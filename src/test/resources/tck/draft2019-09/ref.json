@@ -530,5 +530,185 @@
         "valid": false
       }
     ]
+  },
+  {
+    "description": "naive replacement of $ref with its destination is not correct",
+    "schema": {
+      "$defs": {
+        "a_string": {
+          "type": "string"
+        }
+      },
+      "enum": [
+        {
+          "$ref": "#/$defs/a_string"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "description": "do not evaluate the $ref inside the enum, matching any string",
+        "data": "this is a string",
+        "valid": false
+      },
+      {
+        "description": "do not evaluate the $ref inside the enum, definition exact match",
+        "data": {
+          "type": "string"
+        },
+        "valid": false
+      },
+      {
+        "description": "match the enum exactly",
+        "data": {
+          "$ref": "#/$defs/a_string"
+        },
+        "valid": true
+      }
+    ]
+  },
+  {
+    "description": "refs with relative uris and defs",
+    "schema": {
+      "$id": "http://example.com/schema-relative-uri-defs1.json",
+      "properties": {
+        "foo": {
+          "$id": "schema-relative-uri-defs2.json",
+          "$defs": {
+            "inner": {
+              "properties": {
+                "bar": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "$ref": "#/$defs/inner"
+        }
+      },
+      "$ref": "schema-relative-uri-defs2.json"
+    },
+    "tests": [
+      {
+        "description": "invalid on inner field",
+        "data": {
+          "foo": {
+            "bar": 1
+          },
+          "bar": "a"
+        },
+        "valid": false
+      },
+      {
+        "description": "invalid on outer field",
+        "data": {
+          "foo": {
+            "bar": "a"
+          },
+          "bar": 1
+        },
+        "valid": false
+      },
+      {
+        "description": "valid on both fields",
+        "data": {
+          "foo": {
+            "bar": "a"
+          },
+          "bar": "a"
+        },
+        "valid": true
+      }
+    ]
+  },
+  {
+    "description": "relative refs with absolute uris and defs",
+    "schema": {
+      "$id": "http://example.com/schema-refs-absolute-uris-defs1.json",
+      "properties": {
+        "foo": {
+          "$id": "http://example.com/schema-refs-absolute-uris-defs2.json",
+          "$defs": {
+            "inner": {
+              "properties": {
+                "bar": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "$ref": "#/$defs/inner"
+        }
+      },
+      "$ref": "schema-refs-absolute-uris-defs2.json"
+    },
+    "tests": [
+      {
+        "description": "invalid on inner field",
+        "data": {
+          "foo": {
+            "bar": 1
+          },
+          "bar": "a"
+        },
+        "valid": false
+      },
+      {
+        "description": "invalid on outer field",
+        "data": {
+          "foo": {
+            "bar": "a"
+          },
+          "bar": 1
+        },
+        "valid": false
+      },
+      {
+        "description": "valid on both fields",
+        "data": {
+          "foo": {
+            "bar": "a"
+          },
+          "bar": "a"
+        },
+        "valid": true
+      }
+    ]
+  },
+  {
+    "description": "$id must be resolved against nearest parent, not just immediate parent",
+    "schema": {
+      "$id": "http://example.com/a.json",
+      "$defs": {
+        "x": {
+          "$id": "http://example.com/b/c.json",
+          "not": {
+            "$defs": {
+              "y": {
+                "$id": "d.json",
+                "type": "number"
+              }
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "http://example.com/b/d.json"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "description": "number should pass",
+        "data": 1,
+        "valid": true
+      },
+      {
+        "description": "non-number should fail",
+        "data": "a",
+        "valid": false
+      }
+    ]
   }
 ]

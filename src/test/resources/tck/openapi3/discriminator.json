@@ -14,7 +14,10 @@
               "type": "string"
             }
           },
-          "required": ["id", "value_a"]
+          "required": [
+            "id",
+            "value_a"
+          ]
         },
         {
           "name": "B",
@@ -27,7 +30,9 @@
               "type": "string"
             }
           },
-          "required": ["id"]
+          "required": [
+            "id"
+          ]
         }
       ],
       "discriminator": {

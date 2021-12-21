@@ -58,7 +58,7 @@
     "schema": {
       "$id": "http://localhost:1234/",
       "items": {
-        "$id": "folder/",
+        "$id": "baseUriChange/",
         "items": {
           "$ref": "folderInteger.json"
         }
@@ -92,12 +92,12 @@
       "type": "object",
       "properties": {
         "list": {
-          "$ref": "folder/"
+          "$ref": "baseUriChangeFolder/"
         }
       },
       "$defs": {
         "baz": {
-          "$id": "folder/",
+          "$id": "baseUriChangeFolder/",
           "type": "array",
           "items": {
             "$ref": "folderInteger.json"
@@ -133,12 +133,12 @@
       "type": "object",
       "properties": {
         "list": {
-          "$ref": "folder/#/$defs/bar"
+          "$ref": "baseUriChangeFolderInSubschema/#/$defs/bar"
         }
       },
       "$defs": {
         "baz": {
-          "$id": "folder/",
+          "$id": "baseUriChangeFolderInSubschema/",
           "$defs": {
             "bar": {
               "type": "array",
@@ -205,6 +205,30 @@
           }
         },
         "valid": false
+      }
+    ]
+  },
+  {
+    "description": "remote ref with ref to defs",
+    "skip": true,
+    "schema": {
+      "$id": "http://localhost:1234/schema-remote-ref-ref-defs1.json",
+      "$ref": "ref-and-defs.json"
+    },
+    "tests": [
+      {
+        "description": "invalid",
+        "data": {
+          "bar": 1
+        },
+        "valid": false
+      },
+      {
+        "description": "valid",
+        "data": {
+          "bar": "a"
+        },
+        "valid": true
       }
     ]
   }

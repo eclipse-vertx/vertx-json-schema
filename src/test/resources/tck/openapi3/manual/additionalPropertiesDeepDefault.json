@@ -20,10 +20,14 @@
                 "type": "string"
               }
             },
-            "required": ["d"]
+            "required": [
+              "d"
+            ]
           }
         },
-        "required": ["c2"]
+        "required": [
+          "c2"
+        ]
       }
     }
   }

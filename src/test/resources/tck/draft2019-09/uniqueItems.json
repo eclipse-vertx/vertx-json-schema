@@ -22,6 +22,15 @@
         "valid": false
       },
       {
+        "description": "non-unique array of more than two integers is invalid",
+        "data": [
+          1,
+          2,
+          1
+        ],
+        "valid": false
+      },
+      {
         "description": "numbers are unique if mathematically unequal",
         "data": [
           1.0,
@@ -45,6 +54,24 @@
           true
         ],
         "valid": true
+      },
+      {
+        "description": "unique array of strings is valid",
+        "data": [
+          "foo",
+          "bar",
+          "baz"
+        ],
+        "valid": true
+      },
+      {
+        "description": "non-unique array of strings is invalid",
+        "data": [
+          "foo",
+          "bar",
+          "foo"
+        ],
+        "valid": false
       },
       {
         "description": "unique array of objects is valid",
@@ -127,6 +154,21 @@
         "data": [
           [
             "foo"
+          ],
+          [
+            "foo"
+          ]
+        ],
+        "valid": false
+      },
+      {
+        "description": "non-unique array of more than two arrays is invalid",
+        "data": [
+          [
+            "foo"
+          ],
+          [
+            "bar"
           ],
           [
             "foo"
@@ -265,6 +307,30 @@
           }
         ],
         "valid": false
+      },
+      {
+        "description": "{\"a\": false} and {\"a\": 0} are unique",
+        "data": [
+          {
+            "a": false
+          },
+          {
+            "a": 0
+          }
+        ],
+        "valid": true
+      },
+      {
+        "description": "{\"a\": true} and {\"a\": 1} are unique",
+        "data": [
+          {
+            "a": true
+          },
+          {
+            "a": 1
+          }
+        ],
+        "valid": true
       }
     ]
   },

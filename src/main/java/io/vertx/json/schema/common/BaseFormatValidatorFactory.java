@@ -17,6 +17,8 @@ import io.vertx.json.schema.ValidationException;
 
 import java.net.IDN;
 import java.net.URI;
+import java.time.Duration;
+import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -84,6 +86,15 @@ public abstract class BaseFormatValidatorFactory implements ValidatorFactory {
       UUID.fromString(in);
       return true;
     } catch (IllegalArgumentException e) {
+      return false;
+    }
+  };
+
+  protected final static Predicate<String> DURATION_VALIDATOR = in -> {
+    try {
+      Duration.parse(in);
+      return true;
+    } catch (DateTimeParseException e) {
       return false;
     }
   };

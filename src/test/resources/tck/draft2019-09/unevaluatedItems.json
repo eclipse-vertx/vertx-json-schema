@@ -104,14 +104,14 @@
     },
     "tests": [
       {
-        "description": "with no unevaluted items",
+        "description": "with no unevaluated items",
         "data": [
           "foo"
         ],
         "valid": true
       },
       {
-        "description": "with unevaluted items",
+        "description": "with unevaluated items",
         "data": [
           "foo",
           "bar"
@@ -166,7 +166,7 @@
     },
     "tests": [
       {
-        "description": "with no unevaluted items",
+        "description": "with no unevaluated items",
         "data": [
           "foo",
           42
@@ -174,7 +174,7 @@
         "valid": true
       },
       {
-        "description": "with unevaluted items",
+        "description": "with unevaluated items",
         "data": [
           "foo",
           42,
@@ -288,7 +288,7 @@
     },
     "tests": [
       {
-        "description": "when one schema matches and has no unevaluted items",
+        "description": "when one schema matches and has no unevaluated items",
         "data": [
           "foo",
           "bar"
@@ -296,7 +296,7 @@
         "valid": true
       },
       {
-        "description": "when one schema matches and has unevaluted items",
+        "description": "when one schema matches and has unevaluated items",
         "data": [
           "foo",
           "bar",
@@ -305,7 +305,7 @@
         "valid": false
       },
       {
-        "description": "when two schemas match and has no unevaluted items",
+        "description": "when two schemas match and has no unevaluated items",
         "data": [
           "foo",
           "bar",
@@ -314,7 +314,7 @@
         "valid": true
       },
       {
-        "description": "when two schemas match and has unevaluted items",
+        "description": "when two schemas match and has unevaluated items",
         "data": [
           "foo",
           "bar",
@@ -356,7 +356,7 @@
     },
     "tests": [
       {
-        "description": "with no unevaluted items",
+        "description": "with no unevaluated items",
         "data": [
           "foo",
           "bar"
@@ -364,11 +364,44 @@
         "valid": true
       },
       {
-        "description": "with unevaluted items",
+        "description": "with unevaluated items",
         "data": [
           "foo",
           "bar",
           42
+        ],
+        "valid": false
+      }
+    ]
+  },
+  {
+    "description": "unevaluatedItems with not",
+    "skip": true,
+    "schema": {
+      "type": "array",
+      "items": [
+        {
+          "const": "foo"
+        }
+      ],
+      "not": {
+        "not": {
+          "items": [
+            true,
+            {
+              "const": "bar"
+            }
+          ]
+        }
+      },
+      "unevaluatedItems": false
+    },
+    "tests": [
+      {
+        "description": "with unevaluated items",
+        "data": [
+          "foo",
+          "bar"
         ],
         "valid": false
       }
@@ -414,7 +447,7 @@
     },
     "tests": [
       {
-        "description": "when if matches and it has no unevaluted items",
+        "description": "when if matches and it has no unevaluated items",
         "data": [
           "foo",
           "bar",
@@ -423,7 +456,7 @@
         "valid": true
       },
       {
-        "description": "when if matches and it has unevaluted items",
+        "description": "when if matches and it has unevaluated items",
         "data": [
           "foo",
           "bar",
@@ -433,7 +466,7 @@
         "valid": false
       },
       {
-        "description": "when if doesn't match and it has no unevaluted items",
+        "description": "when if doesn't match and it has no unevaluated items",
         "data": [
           "foo",
           42,
@@ -443,7 +476,7 @@
         "valid": true
       },
       {
-        "description": "when if doesn't match and it has unevaluted items",
+        "description": "when if doesn't match and it has unevaluated items",
         "data": [
           "foo",
           42,
@@ -541,6 +574,58 @@
         "data": [
           1
         ],
+        "valid": false
+      }
+    ]
+  },
+  {
+    "description": "item is evaluated in an uncle schema to unevaluatedItems",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "foo": {
+          "type": "array",
+          "items": [
+            {
+              "type": "string"
+            }
+          ],
+          "unevaluatedItems": false
+        }
+      },
+      "anyOf": [
+        {
+          "properties": {
+            "foo": {
+              "items": [
+                true,
+                {
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "tests": [
+      {
+        "description": "no extra items",
+        "data": {
+          "foo": [
+            "test"
+          ]
+        },
+        "valid": true
+      },
+      {
+        "description": "uncle keyword evaluation is not significant",
+        "data": {
+          "foo": [
+            "test",
+            "test"
+          ]
+        },
         "valid": false
       }
     ]

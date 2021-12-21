@@ -41,6 +41,7 @@ public class FormatValidatorFactory extends BaseFormatValidatorFactory {
     predicates.put("iri", URI_VALIDATOR);
     predicates.put("iri-reference", URI_REFERENCE_VALIDATOR);
     predicates.put("uuid", UUID_VALIDATOR);
+    predicates.put("duration", DURATION_VALIDATOR);
     return predicates;
   }
 }

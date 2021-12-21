@@ -49,6 +49,7 @@ public class Draft201909IntegrationTest extends BaseIntegrationTest {
       "boolean_schema",
       "const",
       "contains",
+      "content",
       "default",
       "defs",
       "dependentRequired",
@@ -59,6 +60,7 @@ public class Draft201909IntegrationTest extends BaseIntegrationTest {
       "format",
       "id",
       "if-then-else",
+      "infinite-loop-detection",
       "items",
       "maxContains",
       "maximum",
@@ -77,13 +79,17 @@ public class Draft201909IntegrationTest extends BaseIntegrationTest {
       "patternProperties",
       "properties",
       "propertyNames",
+      // TODO: apparently not working
+      // "recursiveRef",
       "ref",
       "refRemote",
       "required",
       "type",
       "unevaluatedItems",
       "unevaluatedProperties",
-      "uniqueItems"
+      "uniqueItems",
+      "unknownKeyword",
+      "vocabulary"
     );
   }
 
@@ -99,7 +105,7 @@ public class Draft201909IntegrationTest extends BaseIntegrationTest {
 
   @Override
   public Path getRemotesPath() {
-    return Paths.get("src", "test", "resources", "tck", "draft2019-09", "remotes");
+    return Paths.get("src", "test", "resources", "tck", "remotes");
   }
 
   @Override
