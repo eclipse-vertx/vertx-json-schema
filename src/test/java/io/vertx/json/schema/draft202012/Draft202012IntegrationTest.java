@@ -31,7 +31,6 @@ import java.util.stream.Stream;
  * @author Francesco Guardiani @slinkydeveloper
  * @author Paulo Lopes @pml0p35
  */
-@Disabled("Implementation missing")
 public class Draft202012IntegrationTest extends BaseIntegrationTest {
 
   @Override
@@ -49,12 +48,12 @@ public class Draft202012IntegrationTest extends BaseIntegrationTest {
       "const",
       "dependentRequired",
       "exclusiveMinimum",
-      "items",
+      //"items",
       "maxProperties",
       "minProperties",
       "pattern",
       "ref",
-      "unevaluatedProperties",
+      //"unevaluatedProperties",
       "allOf",
       "contains",
       "dependentSchemas",
@@ -63,12 +62,12 @@ public class Draft202012IntegrationTest extends BaseIntegrationTest {
       "minContains",
       "multipleOf",
       "patternProperties",
-      "refRemote",
-      "uniqueItems.json",
+      //"refRemote",
+      //"uniqueItems",
       "anchor",
       "content",
-      "dynamicRef",
-      "id",
+      //"dynamicRef",
+      //"id",
       "maximum",
       "minimum",
       "not",
@@ -91,8 +90,8 @@ public class Draft202012IntegrationTest extends BaseIntegrationTest {
       "infinite-loop-detection",
       "maxLength",
       "minLength",
-      "propertyNames",
-      "unevaluatedItems"
+      "propertyNames"
+      //"unevaluatedItems"
     );
   }
 
