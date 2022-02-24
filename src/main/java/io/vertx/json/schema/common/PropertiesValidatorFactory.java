@@ -208,7 +208,7 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
                 }
               }
             } else {
-              return Future.failedFuture(create("provided object should not contain additional properties", "additionalProperties", in));
+              return Future.failedFuture(create("Provided object contains unexpected additional property: " + key, "additionalProperties", in));
             }
           }
         }
@@ -248,7 +248,7 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
                 additionalPropertiesSchema.validateSync(context.lowerLevelContext(key), obj.get(key));
               }
             } else {
-              throw create("provided object should not contain additional properties", "additionalProperties", in);
+              throw create("Provided object contains unexpected additional property: " + key, "additionalProperties", in);
             }
           }
         }
