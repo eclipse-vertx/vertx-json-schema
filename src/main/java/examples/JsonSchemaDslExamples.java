@@ -1,6 +1,5 @@
 package examples;
 
-import io.vertx.docgen.Source;
 import io.vertx.json.schema.Schema;
 import io.vertx.json.schema.SchemaParser;
 import io.vertx.json.schema.common.dsl.SchemaBuilder;
@@ -10,7 +9,6 @@ import io.vertx.json.schema.draft7.dsl.StringFormat;
 import static io.vertx.json.schema.draft7.dsl.Keywords.*;
 import static io.vertx.json.schema.draft7.dsl.Schemas.*;
 
-@Source
 public class JsonSchemaDslExamples {
 
   public void createSchema() {
