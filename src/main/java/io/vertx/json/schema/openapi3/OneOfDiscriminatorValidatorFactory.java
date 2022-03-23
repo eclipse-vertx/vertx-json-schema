@@ -106,14 +106,18 @@ public class OneOfDiscriminatorValidatorFactory extends BaseCombinatorsValidator
     }
 
     private boolean checkDiscriminator(SchemaInternal schema, Object in) {
-      if (propertyName != null) {
-        if (in instanceof JsonObject) {
-          String discriminator = ((JsonObject) in).getString(propertyName);
-          if (mapping != null) discriminator = mapping.get(discriminator);
-
-          String schemaName = schemaNameMap.get(schema);
-          return schemaName!=null && discriminator != null && (discriminator.equals(schemaName) || schemaName.endsWith("/"+discriminator));
+      if (propertyName != null && JsonUtil.isObject(in)) {
+        String discriminator;
+        if (in instanceof Map) {
+          discriminator = (String)((Map) in).get(propertyName);
+        } else {
+          discriminator = ((JsonObject) in).getString(propertyName);
         }
+        String discriminator = ((JsonObject) in).getString(propertyName);
+        if (mapping != null) discriminator = mapping.get(discriminator);
+
+        String schemaName = schemaNameMap.get(schema);
+        return schemaName!=null && discriminator != null && (discriminator.equals(schemaName) || schemaName.endsWith("/"+discriminator));
       }
       return true;
     }
