@@ -32,9 +32,9 @@ import java.util.function.Supplier;
 public abstract class SchemaBuilder<T extends SchemaBuilder<?, ?>, K extends Keyword> {
 
   protected SchemaType type;
-  protected Map<String, Supplier<Object>> keywords;
+  protected final Map<String, Supplier<Object>> keywords;
   protected URI id;
-  T self;
+  final T self;
 
   @SuppressWarnings("unchecked")
   public SchemaBuilder(SchemaType type) {

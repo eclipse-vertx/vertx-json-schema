@@ -10,8 +10,10 @@
  */
 package io.vertx.json.schema.common;
 
+import io.vertx.core.Future;
+
 public interface DefaultApplier {
 
-  void applyDefaultValue(Object value);
+  Future<Void> applyDefaultValue(Object value);
 
 }

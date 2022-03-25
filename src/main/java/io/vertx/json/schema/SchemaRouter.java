@@ -148,7 +148,7 @@ public interface SchemaRouter {
    * @return
    */
   static SchemaRouter create(Vertx vertx, SchemaRouterOptions schemaRouterOptions) {
-    return new SchemaRouterImpl(vertx.createHttpClient(), vertx.fileSystem(), schemaRouterOptions);
+    return new SchemaRouterImpl(vertx, vertx.createHttpClient(), vertx.fileSystem(), schemaRouterOptions);
   }
 
   /**
@@ -159,8 +159,8 @@ public interface SchemaRouter {
    * @param schemaRouterOptions
    * @return
    */
-  static SchemaRouter create(HttpClient client, FileSystem fs, SchemaRouterOptions schemaRouterOptions) {
-    return new SchemaRouterImpl(client, fs, schemaRouterOptions);
+  static SchemaRouter create(Vertx vertx, HttpClient client, FileSystem fs, SchemaRouterOptions schemaRouterOptions) {
+    return new SchemaRouterImpl(vertx, client, fs, schemaRouterOptions);
   }
 
 }

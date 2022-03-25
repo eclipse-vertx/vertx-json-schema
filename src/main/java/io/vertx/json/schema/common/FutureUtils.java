@@ -26,8 +26,8 @@ public class FutureUtils {
     final AtomicBoolean atLeastOneOk = new AtomicBoolean(false);
     final AtomicReference<T> result = new AtomicReference<>();
     final int len = results.size();
-    for (int i = 0; i < len; i++) {
-      results.get(i).onComplete(ar -> {
+    for (Future<T> tFuture : results) {
+      tFuture.onComplete(ar -> {
         int p = processed.incrementAndGet();
         if (ar.succeeded()) {
           if (atLeastOneOk.get())

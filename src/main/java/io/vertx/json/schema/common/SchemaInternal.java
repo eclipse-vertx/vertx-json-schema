@@ -10,10 +10,16 @@
  */
 package io.vertx.json.schema.common;
 
+import io.vertx.core.Future;
 import io.vertx.json.schema.Schema;
 
 /**
  * Schema should implement sync and async validator too
  */
 public interface SchemaInternal extends Schema, AsyncValidator, SyncValidator {
+
+  Future<Object> getOrApplyDefaultAsync(Object input);
+
+  Object getOrApplyDefaultSync(Object input);
+
 }

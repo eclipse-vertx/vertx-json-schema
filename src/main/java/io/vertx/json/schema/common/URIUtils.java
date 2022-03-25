@@ -37,19 +37,14 @@ public class URIUtils {
   }
 
   public static boolean isLocalURI(URI uri) {
-    return "jar".equals(uri.getScheme()) || "file".equals(uri.getScheme());
+    return "file".equals(uri.getScheme());
   }
 
   public static URI resolvePath(URI oldURI, String path) {
-    try {
-      if ("jar".equals(oldURI.getScheme())) {
-        String[] splittedJarURI = oldURI.getSchemeSpecificPart().split("!");
-        String newInternalJarPath = URI.create(splittedJarURI[1]).resolve(path).toString();
-        return new URI(oldURI.getScheme(), splittedJarURI[0] + "!" + newInternalJarPath, oldURI.getFragment());
-      } else if (path.isEmpty()) return oldURI;
-      else return oldURI.resolve(path);
-    } catch (URISyntaxException e) {
-      throw new IllegalArgumentException(e);
+    if (path.isEmpty()) {
+      return oldURI;
+    } else {
+      return oldURI.resolve(path);
     }
   }
 

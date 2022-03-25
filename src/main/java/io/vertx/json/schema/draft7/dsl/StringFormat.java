@@ -26,7 +26,7 @@ public enum StringFormat {
   URI_TEMPLATE("uti-template"),
   TIME("time");
 
-  private String name;
+  private final String name;
 
   StringFormat(String name) {
     this.name = name;

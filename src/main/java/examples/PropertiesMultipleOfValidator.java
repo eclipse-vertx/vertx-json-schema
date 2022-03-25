@@ -6,6 +6,10 @@ import io.vertx.json.schema.ValidationException;
 import io.vertx.json.schema.common.BaseSyncValidator;
 import io.vertx.json.schema.common.ValidatorContext;
 
+import java.util.Map;
+
+import static io.vertx.json.schema.common.JsonUtil.unwrap;
+
 public class PropertiesMultipleOfValidator extends BaseSyncValidator {
 
   private int multipleOf;
@@ -16,13 +20,16 @@ public class PropertiesMultipleOfValidator extends BaseSyncValidator {
 
   @Override
   public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
-    if (in instanceof JsonObject) { // If it's not an object, we skip the validation
-      if (((JsonObject) in).size() % multipleOf != 0) {
+    final Object orig = in;
+    in = unwrap(in);
+    if (in instanceof Map<?, ?>) { // If it's not an object, we skip the validation
+      Map<?, ?> obj = (Map<?, ?>) in;
+      if (obj.size() % multipleOf != 0) {
         throw ValidationException
-          .createException(
+          .create(
             "The provided object size is not a multiple of " + multipleOf,
             "propertiesMultipleOf",
-            in
+            orig
           );
       }
     }

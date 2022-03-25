@@ -10,11 +10,14 @@
  */
 package io.vertx.json.schema.common;
 
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.json.schema.SchemaException;
 import io.vertx.json.schema.ValidationException;
+
+import java.util.List;
+
+import static io.vertx.json.schema.common.JsonUtil.unwrap;
 
 public class MinItemsValidatorFactory implements ValidatorFactory {
 
@@ -37,7 +40,7 @@ public class MinItemsValidatorFactory implements ValidatorFactory {
     return schema.containsKey("minItems");
   }
 
-  public class MinItemsValidator extends BaseSyncValidator {
+  public static class MinItemsValidator extends BaseSyncValidator {
     private final int minimum;
 
     public MinItemsValidator(int minimum) {
@@ -45,10 +48,12 @@ public class MinItemsValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public void validateSync(ValidatorContext context, Object in) throws ValidationException {
-      if (in instanceof JsonArray) {
-        if (((JsonArray) in).size() < minimum) {
-          throw ValidationException.createException("provided array should have size >= " + minimum, "minItems", in);
+    public void validateSync(ValidatorContext context, final Object in) throws ValidationException {
+      Object o = unwrap(in);
+      if (o instanceof List<?>) {
+        List<?> arr = (List<?>) o;
+        if (arr.size() < minimum) {
+          throw ValidationException.create("provided array should have size >= " + minimum, "minItems", in);
         }
       }
     }

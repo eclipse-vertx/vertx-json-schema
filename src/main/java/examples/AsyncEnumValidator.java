@@ -8,7 +8,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.common.BaseAsyncValidator;
 import io.vertx.json.schema.common.ValidatorContext;
 
-import static io.vertx.json.schema.ValidationException.createException;
+import static io.vertx.json.schema.ValidationException.create;
 
 class AsyncEnumValidator extends BaseAsyncValidator {
 
@@ -27,7 +27,7 @@ class AsyncEnumValidator extends BaseAsyncValidator {
     vertx.eventBus().request(address, new JsonObject(), ar -> {
       JsonArray enumValues = (JsonArray) ar.result().body();
       if (!enumValues.contains(in))
-        promise.fail(createException("Not matching async enum " + enumValues, "asyncEnum", in));
+        promise.fail(create("Not matching async enum " + enumValues, "asyncEnum", in));
       else
         promise.complete();
     });

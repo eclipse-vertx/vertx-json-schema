@@ -36,7 +36,7 @@ public class MaxLengthValidatorFactory implements ValidatorFactory {
     return schema.containsKey("maxLength");
   }
 
-  public class MaxLengthValidator extends BaseSyncValidator {
+  public static class MaxLengthValidator extends BaseSyncValidator {
     private final int maximum;
 
     public MaxLengthValidator(int maximum) {
@@ -47,7 +47,7 @@ public class MaxLengthValidatorFactory implements ValidatorFactory {
     public void validateSync(ValidatorContext context, Object in) throws ValidationException {
       if (in instanceof String) {
         if (((String) in).codePointCount(0, ((String) in).length()) > maximum) {
-          throw ValidationException.createException("provided string should have size <= " + maximum, "maxLength", in);
+          throw ValidationException.create("provided string should have size <= " + maximum, "maxLength", in);
         }
       }
     }

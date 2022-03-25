@@ -22,8 +22,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static io.vertx.json.schema.ValidationException.createException;
-
 public class AnyOfValidatorFactory extends BaseCombinatorsValidatorFactory {
 
   @Override
@@ -36,7 +34,7 @@ public class AnyOfValidatorFactory extends BaseCombinatorsValidatorFactory {
     return "anyOf";
   }
 
-  class AnyOfValidator extends BaseCombinatorsValidator {
+  static class AnyOfValidator extends BaseCombinatorsValidator {
 
     public AnyOfValidator(MutableStateValidator parent) {
       super(parent);
@@ -57,7 +55,7 @@ public class AnyOfValidatorFactory extends BaseCombinatorsValidatorFactory {
           res.add(e);
         }
       }
-      throw createException(
+      throw ValidationException.create(
         "anyOf subschemas don't match",
         "anyOf",
         in,
@@ -75,7 +73,7 @@ public class AnyOfValidatorFactory extends BaseCombinatorsValidatorFactory {
             return Future.succeededFuture();
           } else {
             return Future.failedFuture(
-              createException(
+              ValidationException.create(
                 "anyOf subschemas don't match",
                 "anyOf",
                 in,

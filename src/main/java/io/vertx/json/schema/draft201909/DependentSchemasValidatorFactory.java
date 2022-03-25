@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static io.vertx.json.schema.common.JsonUtil.unwrap;
+
 public class DependentSchemasValidatorFactory implements ValidatorFactory {
   @Override
   public Validator createValidator(JsonObject schema, JsonPointer scope, SchemaParserInternal parser, MutableStateValidator parent) {
@@ -50,7 +52,7 @@ public class DependentSchemasValidatorFactory implements ValidatorFactory {
     return schema.containsKey("dependentSchemas");
   }
 
-  class DependentSchemasValidator extends BaseMutableStateValidator {
+  static class DependentSchemasValidator extends BaseMutableStateValidator {
 
     Map<String, SchemaInternal> keySchemaDeps;
 
@@ -64,10 +66,11 @@ public class DependentSchemasValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public Future<Void> validateAsync(ValidatorContext context, Object in) {
+    public Future<Void> validateAsync(ValidatorContext context, final Object in) {
       if (isSync()) return validateSyncAsAsync(context, in);
-      if (in instanceof JsonObject) {
-        JsonObject obj = (JsonObject) in;
+      Object o = unwrap(in);
+      if (o instanceof Map<?, ?>) {
+        Map<String, ?> obj = (Map<String, ?>) o;
         List<Future> futs = keySchemaDeps
           .entrySet()
           .stream()
@@ -80,10 +83,11 @@ public class DependentSchemasValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
+    public void validateSync(ValidatorContext context, final Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
-      if (in instanceof JsonObject) {
-        JsonObject obj = (JsonObject) in;
+      Object o = unwrap(in);
+      if (o instanceof Map<?, ?>) {
+        Map<String, ?> obj = (Map<String, ?>) o;
         keySchemaDeps
           .entrySet()
           .stream()

@@ -25,6 +25,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static io.vertx.json.schema.common.JsonUtil.isArray;
+import static io.vertx.json.schema.common.JsonUtil.unwrap;
+
 public class ItemsValidatorFactory extends io.vertx.json.schema.common.ItemsValidatorFactory {
 
   @Override
@@ -41,9 +44,9 @@ public class ItemsValidatorFactory extends io.vertx.json.schema.common.ItemsVali
           parsedSchemas.add(i, parser.parse(itemsList.getValue(i), baseScope.copy().append(Integer.toString(i)), validator));
         }
         if (schema.containsKey("additionalItems"))
-          validator.configure(parsedSchemas.toArray(new SchemaInternal[parsedSchemas.size()]), parser.parse(schema.getValue("additionalItems"), scope.copy().append("additionalItems"), validator));
+          validator.configure(parsedSchemas.toArray(new SchemaInternal[0]), parser.parse(schema.getValue("additionalItems"), scope.copy().append("additionalItems"), validator));
         else
-          validator.configure(parsedSchemas.toArray(new SchemaInternal[parsedSchemas.size()]), null);
+          validator.configure(parsedSchemas.toArray(new SchemaInternal[0]), null);
         return validator;
       } catch (NullPointerException e) {
         throw new SchemaException(schema, "Null items keyword", e);
@@ -53,7 +56,7 @@ public class ItemsValidatorFactory extends io.vertx.json.schema.common.ItemsVali
     }
   }
 
-  class ItemByItemValidator extends BaseMutableStateValidator implements DefaultApplier {
+  static class ItemByItemValidator extends BaseMutableStateValidator implements DefaultApplier {
 
     SchemaInternal[] schemas;
     SchemaInternal additionalItems;
@@ -71,17 +74,18 @@ public class ItemsValidatorFactory extends io.vertx.json.schema.common.ItemsVali
     @Override
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
       this.checkSync();
-      if (in instanceof JsonArray) {
-        JsonArray arr = (JsonArray) in;
+      in = unwrap(in);
+      if (in instanceof List<?>) {
+        List<?> arr = (List<?>) in;
         for (int i = 0; i < arr.size(); i++) {
           if (i >= schemas.length) {
             if (additionalItems != null) {
               context.markEvaluatedItem(i);
-              additionalItems.validateSync(context.lowerLevelContext(), arr.getValue(i));
+              additionalItems.validateSync(context.lowerLevelContext(i), arr.get(i));
             }
           } else {
             context.markEvaluatedItem(i);
-            schemas[i].validateSync(context.lowerLevelContext(), arr.getValue(i));
+            schemas[i].validateSync(context.lowerLevelContext(i), arr.get(i));
           }
         }
       }
@@ -90,19 +94,20 @@ public class ItemsValidatorFactory extends io.vertx.json.schema.common.ItemsVali
     @Override
     public Future<Void> validateAsync(ValidatorContext context, Object in) {
       if (isSync()) return validateSyncAsAsync(context, in);
-      if (in instanceof JsonArray) {
+      in = unwrap(in);
+      if (in instanceof List<?>) {
+        List<?> arr = (List<?>) in;
         List<Future> futures = new ArrayList<>();
-        JsonArray arr = (JsonArray) in;
         for (int i = 0; i < arr.size(); i++) {
           Future<Void> fut;
           if (i >= schemas.length) {
             if (additionalItems != null) {
               context.markEvaluatedItem(i);
-              fut = additionalItems.validateAsync(context.lowerLevelContext(), arr.getValue(i));
+              fut = additionalItems.validateAsync(context.lowerLevelContext(i), arr.get(i));
             } else continue;
           } else {
             context.markEvaluatedItem(i);
-            fut = schemas[i].validateAsync(context.lowerLevelContext(), arr.getValue(i));
+            fut = schemas[i].validateAsync(context.lowerLevelContext(i), arr.get(i));
           }
           if (fut.isComplete()) {
             if (fut.failed()) return Future.failedFuture(fut.cause());
@@ -121,17 +126,43 @@ public class ItemsValidatorFactory extends io.vertx.json.schema.common.ItemsVali
     }
 
     @Override
-    public void applyDefaultValue(Object value) {
-      if (value instanceof JsonArray) {
-        JsonArray arr = (JsonArray) value;
-        for (int i = 0; i < arr.size(); i++) {
-          if (i >= schemas.length) {
-            if (additionalItems != null)
-              ((SchemaImpl) additionalItems).doApplyDefaultValues(arr.getValue(i));
-          } else
-            ((SchemaImpl) schemas[i]).doApplyDefaultValues(arr.getValue(i));
+    public Future<Void> applyDefaultValue(Object value) {
+      if (!isArray(value)) {
+        return Future.succeededFuture();
+      }
+
+      List<Future> futures = new ArrayList<>();
+      value = unwrap(value);
+      List<?> arr = (List<?>) value;
+      for (int i = 0; i < arr.size(); i++) {
+        Object valToDefault = arr.get(i);
+        if (i >= schemas.length) {
+          if (additionalItems != null) {
+            if (additionalItems.isSync()) {
+              additionalItems.getOrApplyDefaultSync(valToDefault);
+            } else {
+              futures.add(
+                additionalItems.getOrApplyDefaultAsync(valToDefault)
+              );
+            }
+          }
+        } else {
+          SchemaInternal schema = schemas[i];
+          if (schema.isSync()) {
+            schemas[i].getOrApplyDefaultSync(valToDefault);
+          } else {
+            futures.add(
+              schemas[i].getOrApplyDefaultAsync(valToDefault)
+            );
+          }
         }
       }
+
+      if (futures.isEmpty()) {
+        return Future.succeededFuture();
+      }
+
+      return CompositeFuture.all(futures).mapEmpty();
     }
   }
 

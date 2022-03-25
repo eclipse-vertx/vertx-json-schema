@@ -15,6 +15,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.json.schema.asserts.MyAssertions;
+import io.vertx.json.schema.common.SchemaInternal;
 import io.vertx.json.schema.common.SchemaParserInternal;
 import io.vertx.json.schema.common.SchemaRouterImpl;
 import io.vertx.json.schema.draft7.Draft7SchemaParser;
@@ -28,6 +29,8 @@ import java.net.URI;
 
 import static io.vertx.json.schema.TestUtils.buildBaseUri;
 import static io.vertx.json.schema.TestUtils.loadJson;
+import static io.vertx.json.schema.asserts.MyAssertions.assertThatJson;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 @ExtendWith(VertxExtension.class)
@@ -37,7 +40,7 @@ public class DefaultValuesApplyTest {
   public void simpleDefault(Vertx vertx) throws IOException {
     URI u = buildBaseUri("default_test", "simple_default.json");
     JsonObject obj = loadJson(u);
-    Schema schema = Draft7SchemaParser.parse(vertx, obj, u);
+    SchemaInternal schema = (SchemaInternal) Draft7SchemaParser.parse(vertx, obj, u);
 
     MyAssertions.assertThat(schema)
       .isSync();
@@ -45,8 +48,8 @@ public class DefaultValuesApplyTest {
       .doesNotThrowAnyException();
 
     JsonObject objToApplyDefaults = new JsonObject();
-    assertThatCode(() -> schema.applyDefaultValues(objToApplyDefaults)).doesNotThrowAnyException();
-    MyAssertions.assertThatJson(objToApplyDefaults)
+    assertThatCode(() -> schema.getOrApplyDefaultSync(objToApplyDefaults)).doesNotThrowAnyException();
+    assertThatJson(objToApplyDefaults)
       .extracting(JsonPointer.create().append("a"))
       .isEqualTo("hello");
   }
@@ -55,7 +58,7 @@ public class DefaultValuesApplyTest {
   public void nested(Vertx vertx) throws IOException {
     URI u = buildBaseUri("default_test", "nested.json");
     JsonObject obj = loadJson(u);
-    Schema schema = Draft7SchemaParser.parse(vertx, obj, u);
+    SchemaInternal schema = (SchemaInternal) Draft7SchemaParser.parse(vertx, obj, u);
 
     MyAssertions.assertThat(schema)
       .isSync();
@@ -63,11 +66,11 @@ public class DefaultValuesApplyTest {
       .doesNotThrowAnyException();
 
     JsonObject objToApplyDefaults = new JsonObject().put("a", new JsonObject());
-    assertThatCode(() -> schema.applyDefaultValues(objToApplyDefaults)).doesNotThrowAnyException();
-    MyAssertions.assertThatJson(objToApplyDefaults)
+    assertThatCode(() -> schema.getOrApplyDefaultSync(objToApplyDefaults)).doesNotThrowAnyException();
+    assertThatJson(objToApplyDefaults)
       .extracting(JsonPointer.create().append("b"))
       .isEqualTo("b_default");
-    MyAssertions.assertThatJson(objToApplyDefaults)
+    assertThatJson(objToApplyDefaults)
       .extracting(JsonPointer.create().append("a").append("c"))
       .isEqualTo(0);
   }
@@ -76,7 +79,7 @@ public class DefaultValuesApplyTest {
   public void arrays(Vertx vertx) throws IOException {
     URI u = buildBaseUri("default_test", "arrays.json");
     JsonObject obj = loadJson(u);
-    Schema schema = Draft7SchemaParser.parse(vertx, obj, u);
+    SchemaInternal schema = (SchemaInternal) Draft7SchemaParser.parse(vertx, obj, u);
 
     MyAssertions.assertThat(schema)
       .isSync();
@@ -84,11 +87,11 @@ public class DefaultValuesApplyTest {
       .doesNotThrowAnyException();
 
     JsonObject objToApplyDefaults = new JsonObject().put("a", new JsonArray().add(new JsonObject()).add(new JsonObject()));
-    assertThatCode(() -> schema.applyDefaultValues(objToApplyDefaults)).doesNotThrowAnyException();
-    MyAssertions.assertThatJson(objToApplyDefaults)
+    assertThatCode(() -> schema.getOrApplyDefaultSync(objToApplyDefaults)).doesNotThrowAnyException();
+    assertThatJson(objToApplyDefaults)
       .extracting(JsonPointer.create().append("a").append("0").append("inner"))
       .isEqualTo(0);
-    MyAssertions.assertThatJson(objToApplyDefaults)
+    assertThatJson(objToApplyDefaults)
       .extracting(JsonPointer.create().append("a").append("1").append("inner"))
       .isEqualTo(0);
   }
@@ -99,7 +102,7 @@ public class DefaultValuesApplyTest {
     JsonObject obj = loadJson(u);
     SchemaRouterImpl router = (SchemaRouterImpl) SchemaRouter.create(vertx, new SchemaRouterOptions());
     SchemaParserInternal parser = Draft7SchemaParser.create(router);
-    Schema schema = parser.parse(obj, u);
+    SchemaInternal schema = parser.parse(obj, u);
 
     router
       .solveAllSchemaReferences(schema)
@@ -109,8 +112,8 @@ public class DefaultValuesApplyTest {
             .doesNotThrowAnyException();
 
           JsonObject objToApplyDefaults = new JsonObject();
-          assertThatCode(() -> schema.applyDefaultValues(objToApplyDefaults)).doesNotThrowAnyException();
-          MyAssertions.assertThatJson(objToApplyDefaults)
+          assertThatCode(() -> schema.getOrApplyDefaultSync(objToApplyDefaults)).doesNotThrowAnyException();
+          assertThatJson(objToApplyDefaults)
             .extracting(JsonPointer.create().append("hello"))
             .isEqualTo("world");
         });
@@ -119,12 +122,37 @@ public class DefaultValuesApplyTest {
   }
 
   @Test
+  public void refWithoutPreResolution(Vertx vertx, VertxTestContext testContext) throws IOException {
+    URI u = buildBaseUri("default_test", "ref.json");
+    JsonObject obj = loadJson(u);
+    SchemaRouterImpl router = (SchemaRouterImpl) SchemaRouter.create(vertx, new SchemaRouterOptions());
+    SchemaParserInternal parser = Draft7SchemaParser.create(router);
+    SchemaInternal schema = parser.parse(obj, u);
+
+    JsonObject objToApplyDefaults = new JsonObject();
+    testContext.assertComplete(
+      schema.getOrApplyDefaultAsync(objToApplyDefaults)
+    ).onSuccess(defaulted ->
+      testContext.verify(() -> {
+        assertThat(defaulted)
+          .isSameAs(objToApplyDefaults);
+
+        assertThatJson(objToApplyDefaults)
+          .extracting(JsonPointer.create().append("hello"))
+          .isEqualTo("world");
+
+        testContext.completeNow();
+      })
+    );
+  }
+
+  @Test
   public void circularRef(Vertx vertx, VertxTestContext testContext) throws IOException {
     URI u = buildBaseUri("default_test", "circular_ref.json");
     JsonObject obj = loadJson(u);
     SchemaRouterImpl router = (SchemaRouterImpl) SchemaRouter.create(vertx, new SchemaRouterOptions());
     SchemaParserInternal parser = Draft7SchemaParser.create(router);
-    Schema schema = parser.parse(obj, u);
+    SchemaInternal schema = parser.parse(obj, u);
 
     router
       .solveAllSchemaReferences(schema)
@@ -134,11 +162,11 @@ public class DefaultValuesApplyTest {
             .doesNotThrowAnyException();
 
           JsonObject objToApplyDefaults = new JsonObject().put("hello", new JsonObject());
-          assertThatCode(() -> schema.applyDefaultValues(objToApplyDefaults)).doesNotThrowAnyException();
-          MyAssertions.assertThatJson(objToApplyDefaults)
+          assertThatCode(() -> schema.getOrApplyDefaultAsync(objToApplyDefaults)).doesNotThrowAnyException();
+          assertThatJson(objToApplyDefaults)
             .extracting(JsonPointer.create().append("hello").append("name"))
             .isEqualTo("world");
-          MyAssertions.assertThatJson(objToApplyDefaults)
+          assertThatJson(objToApplyDefaults)
             .extracting(JsonPointer.create().append("hello").append("and"))
             .isEqualTo(new JsonObject().put("hello", new JsonObject().put("name", "francesco")));
         });

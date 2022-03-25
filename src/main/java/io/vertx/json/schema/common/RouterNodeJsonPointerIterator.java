@@ -40,7 +40,7 @@ class RouterNodeJsonPointerIterator implements JsonPointerIterator {
   @Override
   public Object getObjectParameter(Object value, String key, boolean createOnMissing) {
     if (isObject(value)) {
-      if (!objectContainsKey(value, key) && createOnMissing) {
+      if (!objectContainsKey(value, key)) {
         if (createOnMissing) {
           RouterNode node = new RouterNode();
           ((RouterNode) value).getChilds().put(key, node);

@@ -18,7 +18,7 @@ import io.vertx.json.schema.common.MutableStateValidator;
  */
 public class NoSyncValidationException extends VertxException {
 
-  private MutableStateValidator validator;
+  private final MutableStateValidator validator;
 
   public NoSyncValidationException(String message, MutableStateValidator validator) {
     super(message);

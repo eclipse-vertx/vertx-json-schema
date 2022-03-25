@@ -69,8 +69,10 @@ public class Draft201909Test {
     Schema schema = parser.parse(schemaUnparsed, schemaURI);
 
     assertThat(schema)
-      .validateAsyncFailure(new JsonObject().put("id_card", 1))
-      .validateAsyncFailure(new JsonObject().put("id_card", "ABC"))
+      .validateAsyncFailure(new JsonObject().put("id_card", 1));
+    assertThat(schema)
+      .validateAsyncFailure(new JsonObject().put("id_card", "ABC"));
+    assertThat(schema)
       .validateAsyncSuccess(new JsonObject().put("id_card", "ABC").put("name", "Paolo").put("surname", "Rossi"))
       .isSync();
   }

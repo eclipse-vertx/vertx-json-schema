@@ -54,7 +54,7 @@ public class TypeValidatorFactory implements ValidatorFactory {
     }
   }
 
-  class TypeValidator extends BaseSyncValidator {
+  static class TypeValidator extends BaseSyncValidator {
 
     final JsonSchemaType type;
 
@@ -71,7 +71,7 @@ public class TypeValidatorFactory implements ValidatorFactory {
     public void validateSync(ValidatorContext context, Object in) throws ValidationException {
       if (in != null) {
         if (!type.checkInstance(in))
-          throw ValidationException.createException("input don't match type " + type.name(), "type", in);
+          throw ValidationException.create("input don't match type " + type.name(), "type", in);
       }
     }
   }

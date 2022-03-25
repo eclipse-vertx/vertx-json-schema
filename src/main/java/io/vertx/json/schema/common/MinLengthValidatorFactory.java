@@ -36,7 +36,7 @@ public class MinLengthValidatorFactory implements ValidatorFactory {
     return schema.containsKey("minLength");
   }
 
-  public class MinLengthValidator extends BaseSyncValidator {
+  public static class MinLengthValidator extends BaseSyncValidator {
     private final int minimum;
 
     public MinLengthValidator(int minimum) {
@@ -47,7 +47,7 @@ public class MinLengthValidatorFactory implements ValidatorFactory {
     public void validateSync(ValidatorContext context, Object in) throws ValidationException {
       if (in instanceof String) {
         if (((String) in).codePointCount(0, ((String) in).length()) < minimum) {
-          throw ValidationException.createException("provided string should have size >= " + minimum, "minLength", in);
+          throw ValidationException.create("provided string should have size >= " + minimum, "minLength", in);
         }
       }
     }

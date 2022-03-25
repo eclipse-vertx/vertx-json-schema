@@ -26,7 +26,8 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Stream;
 
-import static io.vertx.json.schema.ValidationException.createException;
+import static io.vertx.json.schema.ValidationException.create;
+import static io.vertx.json.schema.common.JsonUtil.unwrap;
 
 public class PropertiesValidatorFactory implements ValidatorFactory {
 
@@ -107,7 +108,7 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
   }
 
   private Future<Void> fillAdditionalPropertyException(Throwable t, Object in) {
-    return Future.failedFuture(createException("additionalProperties schema should match", "additionalProperties", in, t));
+    return Future.failedFuture(ValidationException.create("additionalProperties schema should match", "additionalProperties", in, t));
   }
 
   class PropertiesValidator extends BaseMutableStateValidator implements DefaultApplier {
@@ -149,24 +150,25 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public Future<Void> validateAsync(ValidatorContext context, Object in) {
+    public Future<Void> validateAsync(ValidatorContext context, final Object in) throws ValidationException {
       if (isSync()) return validateSyncAsAsync(context, in);
-      if (in instanceof JsonObject) {
-        JsonObject obj = (JsonObject) in;
+      Object o = unwrap(in);
+      if (o instanceof Map<?, ?>) {
+        Map<String, ?> obj = (Map<String, ?>) o;
         List<Future> futs = new ArrayList<>();
-        for (String key : obj.fieldNames()) {
+        for (String key : obj.keySet()) {
           boolean found = false;
           if (properties != null && properties.containsKey(key)) {
             SchemaInternal s = properties.get(key);
             context.markEvaluatedProperty(key);
             if (s.isSync()) {
               try {
-                s.validateSync(context.lowerLevelContext(), obj.getValue(key));
+                s.validateSync(context.lowerLevelContext(key), obj.get(key));
               } catch (ValidationException e) {
                 return Future.failedFuture(e);
               }
             } else {
-              futs.add(s.validateAsync(context.lowerLevelContext(), obj.getValue(key)));
+              futs.add(s.validateAsync(context.lowerLevelContext(key), obj.get(key)));
             }
             found = true;
           }
@@ -177,12 +179,12 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
                 context.markEvaluatedProperty(key);
                 if (s.isSync()) {
                   try {
-                    s.validateSync(context.lowerLevelContext(), obj.getValue(key));
+                    s.validateSync(context.lowerLevelContext(key), obj.get(key));
                   } catch (ValidationException e) {
                     return Future.failedFuture(e);
                   }
                 } else {
-                  futs.add(s.validateAsync(context.lowerLevelContext(), obj.getValue(key)));
+                  futs.add(s.validateAsync(context.lowerLevelContext(key), obj.get(key)));
                 }
                 found = true;
               }
@@ -194,19 +196,19 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
                 context.markEvaluatedProperty(key);
                 if (additionalPropertiesSchema.isSync()) {
                   try {
-                    additionalPropertiesSchema.validateSync(context.lowerLevelContext(), obj.getValue(key));
+                    additionalPropertiesSchema.validateSync(context.lowerLevelContext(key), obj.get(key));
                   } catch (ValidationException e) {
                     return fillAdditionalPropertyException(e, in);
                   }
                 } else {
                   futs.add(additionalPropertiesSchema
-                    .validateAsync(context.lowerLevelContext(), obj.getValue(key))
+                    .validateAsync(context.lowerLevelContext(key), obj.get(key))
                     .recover(t -> fillAdditionalPropertyException(t, in))
                   );
                 }
               }
             } else {
-              return Future.failedFuture(createException("provided object should not contain additional properties", "additionalProperties", in));
+              return Future.failedFuture(create("Provided object contains unexpected additional property: " + key, "additionalProperties", in));
             }
           }
         }
@@ -216,16 +218,17 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public void validateSync(ValidatorContext context, Object in) throws ValidationException {
+    public void validateSync(ValidatorContext context, final Object in) throws ValidationException {
       this.checkSync();
-      if (in instanceof JsonObject) {
-        JsonObject obj = (JsonObject) in;
-        for (String key : obj.fieldNames()) {
+      Object o = unwrap(in);
+      if (o instanceof Map<?, ?>) {
+        Map<String, ?> obj = (Map<String, ?>) o;
+        for (String key : obj.keySet()) {
           boolean found = false;
           if (properties != null && properties.containsKey(key)) {
             SchemaInternal s = properties.get(key);
             context.markEvaluatedProperty(key);
-            s.validateSync(context.lowerLevelContext(), obj.getValue(key));
+            s.validateSync(context.lowerLevelContext(key), obj.get(key));
             found = true;
           }
           if (patternProperties != null) {
@@ -233,7 +236,7 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
               if (patternProperty.getKey().matcher(key).find()) {
                 SchemaInternal s = patternProperty.getValue();
                 context.markEvaluatedProperty(key);
-                s.validateSync(context.lowerLevelContext(), obj.getValue(key));
+                s.validateSync(context.lowerLevelContext(key), obj.get(key));
                 found = true;
               }
             }
@@ -242,10 +245,10 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
             if (allowAdditionalProperties) {
               if (additionalPropertiesSchema != null) {
                 context.markEvaluatedProperty(key);
-                additionalPropertiesSchema.validateSync(context.lowerLevelContext(), obj.getValue(key));
+                additionalPropertiesSchema.validateSync(context.lowerLevelContext(key), obj.get(key));
               }
             } else {
-              throw createException("provided object should not contain additional properties", "additionalProperties", in);
+              throw create("Provided object contains unexpected additional property: " + key, "additionalProperties", in);
             }
           }
         }
@@ -253,17 +256,49 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
     }
 
     @Override
-    public void applyDefaultValue(Object value) {
-      if (value instanceof JsonObject && properties != null) {
-        JsonObject obj = (JsonObject) value;
-        for (Map.Entry<String, SchemaInternal> e : properties.entrySet()) {
-          if (!obj.containsKey(e.getKey()) && e.getValue().hasDefaultValue()) {
-            obj.put(e.getKey(), e.getValue().getDefaultValue());
-          } else if (obj.containsKey(e.getKey())) {
-            ((SchemaImpl) e.getValue()).doApplyDefaultValues(obj.getValue(e.getKey()));
+    public Future<Void> applyDefaultValue(Object value) {
+      value = unwrap(value);
+      if (!(value instanceof Map<?, ?> && properties != null)) {
+        return Future.succeededFuture();
+      }
+
+      List<Future> futs = new ArrayList<>();
+      Map<String, Object> obj = (Map<String, Object>) value;
+      for (Map.Entry<String, SchemaInternal> e : properties.entrySet()) {
+        final String key = e.getKey();
+        final SchemaInternal schema = e.getValue();
+
+        if (!obj.containsKey(key)) {
+          if (schema.isSync()) {
+            Object def = schema.getOrApplyDefaultSync(null);
+            if (def != null) {
+              obj.put(key, def);
+            }
+          } else {
+            futs.add(
+              schema.getOrApplyDefaultAsync(null).onSuccess(def -> {
+                if (def != null) {
+                  obj.put(key, def);
+                }
+              })
+            );
+          }
+        } else {
+          if (schema.isSync()) {
+            schema.getOrApplyDefaultSync(obj.get(key));
+          } else {
+            futs.add(
+              schema.getOrApplyDefaultAsync(obj.get(key))
+            );
           }
         }
       }
+
+      if (futs.isEmpty()) {
+        return Future.succeededFuture();
+      }
+
+      return CompositeFuture.all(futs).mapEmpty();
     }
   }
 

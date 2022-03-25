@@ -88,9 +88,9 @@ public abstract class BaseFormatValidatorFactory implements ValidatorFactory {
     }
   };
 
-  class FormatValidator extends BaseSyncValidator {
+  static class FormatValidator extends BaseSyncValidator {
 
-    Predicate<String> validator;
+    final Predicate<String> validator;
 
     public FormatValidator(Predicate<String> validator) {
       this.validator = validator;
@@ -100,14 +100,14 @@ public abstract class BaseFormatValidatorFactory implements ValidatorFactory {
     public void validateSync(ValidatorContext context, Object in) throws ValidationException {
       if (in instanceof String) {
         if (!validator.test((String) in)) {
-          throw ValidationException.createException("Provided value don't match pattern", "pattern", in);
+          throw ValidationException.create("Provided value don't match pattern", "pattern", in);
         }
       }
     }
   }
 
-  protected Map<String, Predicate<String>> formats;
-  protected List<String> ignoringFormats;
+  protected final Map<String, Predicate<String>> formats;
+  protected final List<String> ignoringFormats;
 
   public BaseFormatValidatorFactory() {
     this.formats = initFormatsMap();

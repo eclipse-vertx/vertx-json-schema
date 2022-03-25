@@ -23,7 +23,7 @@ public class MaximumValidator extends BaseSyncValidator {
   public void validateSync(ValidatorContext context, Object in) throws ValidationException {
     if (in instanceof Number) {
       if (((Number) in).doubleValue() > maximum) {
-        throw ValidationException.createException("value should be <= " + maximum, "maximum", in);
+        throw ValidationException.create("value should be <= " + maximum, "maximum", in);
       }
     }
   }

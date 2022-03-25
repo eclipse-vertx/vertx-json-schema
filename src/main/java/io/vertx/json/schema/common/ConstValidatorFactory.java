@@ -28,7 +28,7 @@ public class ConstValidatorFactory implements ValidatorFactory {
     return schema.containsKey("const");
   }
 
-  public class ConstValidator extends BaseSyncValidator {
+  public static class ConstValidator extends BaseSyncValidator {
 
     private final Object allowedValue;
 
@@ -44,7 +44,7 @@ public class ConstValidatorFactory implements ValidatorFactory {
     @Override
     public void validateSync(ValidatorContext context, Object in) throws ValidationException {
       if (!ComparisonUtils.equalsNumberSafe(allowedValue, in))
-        throw ValidationException.createException("Input doesn't match const: " + allowedValue, "const", in);
+        throw ValidationException.create("Input doesn't match const: " + allowedValue, "const", in);
     }
   }
 

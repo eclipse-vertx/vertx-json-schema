@@ -34,7 +34,7 @@ public class ReproducersDraft7Test extends BaseIntegrationTest {
 
   @Override
   public SchemaParserInternal getSchemaParser(Vertx vertx) {
-    return Draft7SchemaParser.create(new SchemaRouterImpl(vertx.createHttpClient(), vertx.fileSystem(), new SchemaRouterOptions()));
+    return Draft7SchemaParser.create(new SchemaRouterImpl(vertx, vertx.createHttpClient(), vertx.fileSystem(), new SchemaRouterOptions()));
   }
 
   @Override

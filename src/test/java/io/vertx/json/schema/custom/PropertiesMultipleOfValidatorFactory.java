@@ -17,6 +17,10 @@ import io.vertx.json.schema.SchemaException;
 import io.vertx.json.schema.ValidationException;
 import io.vertx.json.schema.common.*;
 
+import java.util.Map;
+
+import static io.vertx.json.schema.common.JsonUtil.unwrap;
+
 public class PropertiesMultipleOfValidatorFactory implements ValidatorFactory {
   @Override
   public Validator createValidator(JsonObject schema, JsonPointer scope, SchemaParserInternal parser, MutableStateValidator parent) {
@@ -45,9 +49,13 @@ public class PropertiesMultipleOfValidatorFactory implements ValidatorFactory {
 
     @Override
     public void validateSync(ValidatorContext context, Object in) throws ValidationException, NoSyncValidationException {
-      if (in instanceof JsonObject) {
-        if (((JsonObject) in).size() % multipleOf != 0)
-          throw ValidationException.createException("The provided object size is not a multiple of " + multipleOf, "propertiesMultipleOf", in);
+      final Object orig = in;
+      in = unwrap(in);
+      if (in instanceof Map<?, ?>) {
+        Map<?, ?> obj = (Map<?, ?>) in;
+        if (obj.size() % multipleOf != 0) {
+          throw ValidationException.create("The provided object size is not a multiple of " + multipleOf, "propertiesMultipleOf", orig);
+        }
       }
     }
   }

@@ -40,7 +40,7 @@ public class PatternValidatorFactory implements ValidatorFactory {
     return schema.containsKey("pattern");
   }
 
-  public class PatternValidator extends BaseSyncValidator {
+  public static class PatternValidator extends BaseSyncValidator {
     private final Pattern pattern;
 
     public PatternValidator(Pattern pattern) {
@@ -52,7 +52,7 @@ public class PatternValidatorFactory implements ValidatorFactory {
       if (in instanceof String) {
         Matcher m = pattern.matcher((String) in);
         if (!(m.matches() || m.lookingAt() || m.find())) {
-          throw ValidationException.createException("provided string should respect pattern " + pattern, "pattern", in);
+          throw ValidationException.create("provided string should respect pattern " + pattern, "pattern", in);
         }
       }
     }

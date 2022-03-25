@@ -11,8 +11,10 @@
 package io.vertx.json.schema.asserts;
 
 import io.vertx.json.schema.Schema;
+import io.vertx.json.schema.ValidationException;
 import io.vertx.json.schema.common.SchemaImpl;
 import org.assertj.core.api.AbstractAssert;
+import org.assertj.core.api.AbstractThrowableAssert;
 import org.assertj.core.api.StringAssert;
 
 import java.util.concurrent.CountDownLatch;
@@ -68,7 +70,7 @@ public class SchemaAssert extends AbstractAssert<SchemaAssert, Schema> {
     return this;
   }
 
-  public SchemaAssert validateAsyncFailure(Object in) {
+  public AbstractThrowableAssert<?, ValidationException> validateAsyncFailure(Object in) {
     CountDownLatch latch = new CountDownLatch(1);
     AtomicReference<Throwable> ex = new AtomicReference<>();
     actual.validateAsync(in).onComplete(ar -> {
@@ -83,7 +85,7 @@ public class SchemaAssert extends AbstractAssert<SchemaAssert, Schema> {
     assertThat(ex.get())
       .withFailMessage("Expecting schema to validate with a failure")
       .isNotNull();
-    return this;
+    return (AbstractThrowableAssert<?, ValidationException>) assertThat((ValidationException) ex.get());
   }
 
 }
