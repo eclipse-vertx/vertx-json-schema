@@ -60,9 +60,6 @@ public class ContainsValidatorFactory implements ValidatorFactory {
     @Override
     public Future<Void> validateAsync(ValidatorContext context, final Object in) {
       if (isSync()) return validateSyncAsAsync(context, in);
-      if (min == 0) {
-        return Future.succeededFuture();
-      }
       Object o = unwrap(in);
       if (o instanceof List<?>) {
         List<?> arr = (List<?>) o;
@@ -93,14 +90,13 @@ public class ContainsValidatorFactory implements ValidatorFactory {
             err -> Future.failedFuture(ValidationException.create("provided array doesn't contain any element matching the contains schema", "contains", in, err))
           );
         }
-      } else return Future.succeededFuture();
+      } else {
+        return Future.succeededFuture();
+      }
     }
 
     @Override
     public void validateSync(ValidatorContext context, final Object in) throws ValidationException, NoSyncValidationException {
-      if (min == 0) {
-        return;
-      }
       this.checkSync();
       ValidationException t = null;
       int matches = 0;
@@ -116,6 +112,8 @@ public class ContainsValidatorFactory implements ValidatorFactory {
             t = e;
           }
         }
+      } else {
+        return;
       }
       if (matches < min) {
         throw ValidationException.create("provided array doesn't contain " + min + " elements matching the contains schema", "contains", in, t);

@@ -10,6 +10,7 @@
  */
 package io.vertx.json.schema.common;
 
+import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.function.Predicate;
 
@@ -20,7 +21,27 @@ public enum JsonSchemaType {
   ARRAY(JsonUtil::isArray),
   NUMBER(o -> o instanceof Number),
   NUMBER_DECIMAL(o -> o instanceof Double || o instanceof Float),
-  INTEGER(o -> o instanceof Long || o instanceof Integer),
+  INTEGER(o -> {
+    if (o instanceof Long || o instanceof Integer) {
+      return true;
+    }
+    // Welcome to JSON world, given that type coercion is a thing
+    // the spec mandates that we allow 1.0 to be treated as 1
+    if (o instanceof Float) {
+      float a = (float) o;
+      return a % 1 == 0.0f;
+    }
+    if (o instanceof Double) {
+      double a = (double) o;
+      return a % 1 == 0.0;
+    }
+    if (o instanceof BigDecimal) {
+      BigDecimal a = (BigDecimal) o;
+      return a.remainder(BigDecimal.ONE).equals(BigDecimal.ZERO);
+    }
+
+    return false;
+  }),
   STRING(o -> o instanceof String);
 
   private final Predicate<Object> checkInstancePredicate;
