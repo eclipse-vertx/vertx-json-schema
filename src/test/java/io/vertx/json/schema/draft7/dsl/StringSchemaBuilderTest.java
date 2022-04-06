@@ -16,8 +16,8 @@ import java.util.regex.Pattern;
 
 import static io.vertx.json.schema.TestUtils.entry;
 import static io.vertx.json.schema.asserts.MyAssertions.assertThat;
+import static io.vertx.json.schema.common.dsl.Schemas.stringSchema;
 import static io.vertx.json.schema.draft7.dsl.Keywords.*;
-import static io.vertx.json.schema.draft7.dsl.Schemas.stringSchema;
 
 public class StringSchemaBuilderTest {
 

@@ -10,15 +10,19 @@
  */
 package io.vertx.json.schema.draft7.dsl;
 
+import io.vertx.codegen.annotations.GenIgnore;
+import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.json.schema.common.dsl.GenericSchemaBuilder;
 import io.vertx.json.schema.common.dsl.Keyword;
 import io.vertx.json.schema.common.dsl.SchemaBuilder;
 
 import java.util.Objects;
 
-public class Schemas extends io.vertx.json.schema.common.dsl.Schemas {
+@VertxGen
+public interface Schemas {
 
-  public static GenericSchemaBuilder ifThenElse(SchemaBuilder ifSchema, SchemaBuilder thenSchema, SchemaBuilder elseSchema) {
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  static GenericSchemaBuilder ifThenElse(SchemaBuilder ifSchema, SchemaBuilder thenSchema, SchemaBuilder elseSchema) {
     Objects.requireNonNull(ifSchema);
     Objects.requireNonNull(thenSchema);
     Objects.requireNonNull(elseSchema);
@@ -30,7 +34,8 @@ public class Schemas extends io.vertx.json.schema.common.dsl.Schemas {
       );
   }
 
-  public static GenericSchemaBuilder ifThen(SchemaBuilder ifSchema, SchemaBuilder thenSchema) {
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  static GenericSchemaBuilder ifThen(SchemaBuilder ifSchema, SchemaBuilder thenSchema) {
     Objects.requireNonNull(ifSchema);
     Objects.requireNonNull(thenSchema);
     return new GenericSchemaBuilder()
@@ -40,7 +45,8 @@ public class Schemas extends io.vertx.json.schema.common.dsl.Schemas {
       );
   }
 
-  public static GenericSchemaBuilder ifElse(SchemaBuilder ifSchema, SchemaBuilder elseSchema) {
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  static GenericSchemaBuilder ifElse(SchemaBuilder ifSchema, SchemaBuilder elseSchema) {
     Objects.requireNonNull(ifSchema);
     Objects.requireNonNull(elseSchema);
     return new GenericSchemaBuilder()

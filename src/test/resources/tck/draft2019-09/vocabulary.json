@@ -28,6 +28,7 @@
       },
       {
         "description": "no validation: invalid number, but it still validates",
+        "skip": true,
         "data": {
           "numberProperty": 1
         },

@@ -27,9 +27,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.net.URI;
 
+import static io.vertx.json.schema.common.dsl.Schemas.*;
 import static io.vertx.json.schema.draft7.dsl.Keywords.exclusiveMaximum;
 import static io.vertx.json.schema.draft7.dsl.Keywords.multipleOf;
-import static io.vertx.json.schema.draft7.dsl.Schemas.*;
 
 @ExtendWith(VertxExtension.class)
 public class BuildedSchemaParsingTest {

@@ -48,12 +48,12 @@ public class Draft202012IntegrationTest extends BaseIntegrationTest {
       "const",
       "dependentRequired",
       "exclusiveMinimum",
-      //"items",
+      "items",
       "maxProperties",
       "minProperties",
       "pattern",
       "ref",
-      //"unevaluatedProperties",
+      "unevaluatedProperties",
       "allOf",
       "contains",
       "dependentSchemas",
@@ -62,12 +62,12 @@ public class Draft202012IntegrationTest extends BaseIntegrationTest {
       "minContains",
       "multipleOf",
       "patternProperties",
-      //"refRemote",
-      //"uniqueItems",
+      "refRemote",
+      "uniqueItems",
       "anchor",
       "content",
-      //"dynamicRef",
-      //"id",
+      "dynamicRef",
+      "id",
       "maximum",
       "minimum",
       "not",
@@ -90,8 +90,8 @@ public class Draft202012IntegrationTest extends BaseIntegrationTest {
       "infinite-loop-detection",
       "maxLength",
       "minLength",
-      "propertyNames"
-      //"unevaluatedItems"
+      "propertyNames",
+      "unevaluatedItems"
     );
   }
 

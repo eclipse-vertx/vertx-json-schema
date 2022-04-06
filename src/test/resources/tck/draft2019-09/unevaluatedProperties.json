@@ -152,6 +152,7 @@
       },
       {
         "description": "with additional properties",
+        "skip": true,
         "data": {
           "foo": "foo",
           "bar": "bar"
@@ -266,6 +267,7 @@
       },
       {
         "description": "with additional properties",
+        "skip": true,
         "data": {
           "foo": "foo",
           "bar": "bar"
@@ -303,6 +305,7 @@
       },
       {
         "description": "with nested unevaluated properties",
+        "skip": true,
         "data": {
           "foo": "foo",
           "bar": "bar"
@@ -374,6 +377,7 @@
       },
       {
         "description": "when two match and has no unevaluated properties",
+        "skip": true,
         "data": {
           "foo": "foo",
           "bar": "bar",
@@ -544,6 +548,7 @@
       },
       {
         "description": "when if is false and has unevaluated properties",
+        "skip": true,
         "data": {
           "foo": "else",
           "baz": "baz"
@@ -605,6 +610,7 @@
       },
       {
         "description": "when if is false and has unevaluated properties",
+        "skip": true,
         "data": {
           "foo": "else",
           "baz": "baz"
@@ -837,6 +843,7 @@
       },
       {
         "description": "with nested unevaluated properties",
+        "skip": true,
         "data": {
           "foo": "foo",
           "bar": "bar"
@@ -871,6 +878,7 @@
       },
       {
         "description": "with nested unevaluated properties",
+        "skip": true,
         "data": {
           "foo": "foo",
           "bar": "bar"
@@ -1558,6 +1566,7 @@
       },
       {
         "description": "all is valid",
+        "skip": true,
         "data": {
           "all": 1
         },
@@ -1565,6 +1574,7 @@
       },
       {
         "description": "all + foo is valid",
+        "skip": true,
         "data": {
           "all": 1,
           "foo": 1

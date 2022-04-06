@@ -14,8 +14,8 @@ import org.junit.jupiter.api.Test;
 
 import static io.vertx.json.schema.TestUtils.entry;
 import static io.vertx.json.schema.asserts.MyAssertions.assertThat;
+import static io.vertx.json.schema.common.dsl.Schemas.numberSchema;
 import static io.vertx.json.schema.draft7.dsl.Keywords.*;
-import static io.vertx.json.schema.draft7.dsl.Schemas.numberSchema;
 
 public class NumberSchemaBuilderTest {
 

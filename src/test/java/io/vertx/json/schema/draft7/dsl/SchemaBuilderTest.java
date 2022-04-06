@@ -24,8 +24,9 @@ import java.util.function.BiFunction;
 
 import static io.vertx.json.schema.TestUtils.entry;
 import static io.vertx.json.schema.asserts.MyAssertions.assertThat;
+import static io.vertx.json.schema.common.dsl.Schemas.*;
 import static io.vertx.json.schema.draft7.dsl.Keywords.type;
-import static io.vertx.json.schema.draft7.dsl.Schemas.*;
+import static io.vertx.json.schema.draft7.dsl.Schemas.ifThenElse;
 
 public class SchemaBuilderTest {
 

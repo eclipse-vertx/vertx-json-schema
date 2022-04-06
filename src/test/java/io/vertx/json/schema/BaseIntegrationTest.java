@@ -117,7 +117,8 @@ public abstract class BaseIntegrationTest {
     Map.Entry<SchemaParser, Schema> t = buildSchema(vertx, testObj.getValue("schema"), testName, testFileName);
     for (Object tc : testObj.getJsonArray("tests").stream().collect(Collectors.toList())) {
       JsonObject testCase = (JsonObject) tc;
-      if (testObj.getBoolean("skip", false)) {
+      // if skip is enabled for the whole case or individual test complete
+      if (testObj.getBoolean("skip", false) || testCase.getBoolean("skip", false)) {
         log.warn("Skipping test: " + testCase.getString("description"));
         context.completeNow();
       } else {

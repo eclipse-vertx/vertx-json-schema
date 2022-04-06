@@ -19,8 +19,8 @@ import java.util.regex.Pattern;
 
 import static io.vertx.core.json.pointer.JsonPointer.create;
 import static io.vertx.json.schema.TestUtils.entry;
+import static io.vertx.json.schema.common.dsl.Schemas.*;
 import static io.vertx.json.schema.draft7.dsl.Keywords.*;
-import static io.vertx.json.schema.draft7.dsl.Schemas.*;
 
 public class ObjectSchemaBuilderTest {
 
