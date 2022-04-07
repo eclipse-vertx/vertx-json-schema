@@ -12,21 +12,21 @@ package io.vertx.json.schema.draft202012;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.json.schema.Schema;
 import io.vertx.json.schema.SchemaException;
 import io.vertx.json.schema.SchemaRouter;
 import io.vertx.json.schema.SchemaRouterOptions;
 import io.vertx.json.schema.common.*;
-import io.vertx.json.schema.draft201909.ContainsValidatorFactory;
 import io.vertx.json.schema.draft201909.*;
-import io.vertx.json.schema.draft7.ItemsValidatorFactory;
+import io.vertx.json.schema.draft201909.ContainsValidatorFactory;
+import io.vertx.json.schema.draft201909.FormatValidatorFactory;
 import io.vertx.json.schema.draft7.*;
+import io.vertx.json.schema.draft7.ItemsValidatorFactory;
 
 import java.net.URI;
 import java.util.*;
 
-public class Draft202012SchemaParser extends BaseSchemaParser {
+public class Draft202012SchemaParser extends Draft201909SchemaParser {
 
   protected Draft202012SchemaParser(SchemaRouter router) {
     super(router);
@@ -36,7 +36,7 @@ public class Draft202012SchemaParser extends BaseSchemaParser {
   protected List<ValidatorFactory> initValidatorFactories() {
     List<ValidatorFactory> factories = new LinkedList<>();
     factories.add(new DefinitionsValidatorFactory("$defs"));
-    factories.add(new io.vertx.json.schema.draft201909.FormatValidatorFactory());
+    factories.add(new FormatValidatorFactory());
     factories.add(new MaximumValidatorFactory());
     factories.add(new MinimumValidatorFactory());
     factories.add(new ContainsValidatorFactory());
@@ -45,6 +45,7 @@ public class Draft202012SchemaParser extends BaseSchemaParser {
     factories.add(new AllOfValidatorFactory());
     factories.add(new AnyOfValidatorFactory());
     factories.add(new EnumValidatorFactory());
+    factories.add(new PrefixItemsValidatorFactory());
     factories.add(new ItemsValidatorFactory());
     factories.add(new MaxItemsValidatorFactory());
     factories.add(new MaxLengthValidatorFactory());
@@ -55,7 +56,7 @@ public class Draft202012SchemaParser extends BaseSchemaParser {
     factories.add(new MultipleOfValidatorFactory());
     factories.add(new NotValidatorFactory());
     factories.add(new OneOfValidatorFactory());
-    factories.add(new PatternValidatorFactory());
+    factories.add(new PatternValidatorFactory(true));
     factories.add(new PropertiesValidatorFactory());
     factories.add(new RequiredValidatorFactory());
     factories.add(new UniqueItemsValidatorFactory());
@@ -71,72 +72,28 @@ public class Draft202012SchemaParser extends BaseSchemaParser {
   }
 
   @Override
-  protected Map.Entry<Optional<JsonPointer>, Optional<String>> resolveIdAndAlias(JsonObject schema, URI scope) {
-    // 2.2 If $anchor, add it as alias ( >= draft2019-09)
-
-    Optional<JsonPointer> id = Optional.empty();
-    Optional<String> alias = Optional.empty();
-
-    // Resolve the scope looking in $id
-    if (schema.containsKey("$id")) {
-      URI originalId = URI.create(schema.getString("$id"));
-      URI idWithoutFragment = URIUtils.removeFragment(originalId);
-      if (originalId.isAbsolute()) {
-        id = Optional.of(JsonPointer.fromURI(idWithoutFragment));
-      } else if (originalId.getPath() != null && !originalId.getPath().isEmpty()) {
-        id = Optional.of(JsonPointer.fromURI(URIUtils.resolvePath(scope, idWithoutFragment.getPath())));
-      }
-
-      if (originalId.getFragment() != null && !originalId.getFragment().isEmpty()) {
-        throw new SchemaException(schema, "$id keyword cannot have a fragment part");
-      }
-    }
-
-    if (schema.containsKey("$anchor")) {
-      alias = Optional.of(schema.getString("$anchor"));
-    }
-
-    return new AbstractMap.SimpleImmutableEntry<>(id, alias);
-  }
-
-  @Override
-  protected SchemaImpl createSchema(JsonObject schema, JsonPointer scope, MutableStateValidator parent) {
-    if (schema.containsKey("$recursiveRef"))
-      return new RecursiveRefSchema(schema, scope, this, parent);
-    else if (schema.containsKey("$ref"))
-      return new RefSchema(schema, scope, this, parent, true);
-    else
-      return new SchemaImpl(schema, scope, parent);
-  }
-
-  /**
-   * Because in draft2019-09 {@code format} keyword is no longer an assertion,
-   * you may turn the validation of the keyword off using this method
-   *
-   * @return a reference to this
-   */
   public Draft202012SchemaParser ignoreFormatKeyword() {
-    validatorFactories.removeIf(vf -> vf instanceof BaseFormatValidatorFactory);
+    super.ignoreFormatKeyword();
     return this;
   }
 
   /**
-   * Instantiate a Draft201909SchemaParser
+   * Instantiate a Draft202012SchemaParser
    *
    * @param router router to associate to read $ref
-   * @return a new instance of Draft201909SchemaParser
+   * @return a new instance of Draft202012SchemaParser
    */
   public static Draft202012SchemaParser create(SchemaRouter router) {
     return new Draft202012SchemaParser(router);
   }
 
   /**
-   * Parse a draft2019-09 schema
+   * Parse a draft2020-12 schema
    *
    * @param vertx  this vertx instance
    * @param schema parsed json schema
    * @param scope  scope of json schema
-   * @return a new instance of Draft201909SchemaParser
+   * @return a new instance of Draft202012SchemaParser
    * @throws SchemaException if schema is invalid
    */
   public static Schema parse(Vertx vertx, JsonObject schema, URI scope) {

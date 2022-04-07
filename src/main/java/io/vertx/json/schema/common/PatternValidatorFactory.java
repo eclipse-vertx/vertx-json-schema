@@ -21,11 +21,21 @@ import java.util.regex.PatternSyntaxException;
 
 public class PatternValidatorFactory implements ValidatorFactory {
 
+  private final boolean unicode;
+
+  public PatternValidatorFactory() {
+    this(false);
+  }
+
+  public PatternValidatorFactory(boolean unicode) {
+    this.unicode = unicode;
+  }
+
   @Override
   public Validator createValidator(JsonObject schema, JsonPointer scope, SchemaParserInternal parser, MutableStateValidator parent) {
     try {
       String pattern = (String) schema.getValue("pattern");
-      return new PatternValidator(Pattern.compile(pattern));
+      return new PatternValidator(Pattern.compile(pattern, unicode ? Pattern.UNICODE_CHARACTER_CLASS : 0));
     } catch (ClassCastException e) {
       throw new SchemaException(schema, "Wrong type for pattern keyword", e);
     } catch (NullPointerException e) {

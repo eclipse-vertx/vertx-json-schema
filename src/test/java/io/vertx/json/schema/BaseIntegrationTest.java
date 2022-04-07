@@ -215,8 +215,6 @@ public abstract class BaseIntegrationTest {
     return new AbstractMap.SimpleImmutableEntry<>(parser, s);
   }
 
-  ;
-
   public abstract Path getTckPath();
 
   public abstract Path getRemotesPath();
