@@ -39,3 +39,6 @@ hs_err_pid*
 vertx-json-validator.iml
 .idea/
 *.iml
+
+# TCK Updater
+src/test/resources/json-schema-org/
