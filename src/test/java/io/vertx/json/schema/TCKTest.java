@@ -103,14 +103,20 @@ public class TCKTest {
       }
     }
 
-    return tests.stream();
+    return tests
+      .stream()
+      .sorted((Arguments arg1, Arguments arg2) -> {
+        Draft d1 = (Draft) arg1.get()[0];
+        Draft d2 = (Draft) arg2.get()[0];
+        return Integer.compare(d1.ordinal(), d2.ordinal());
+      });
   }
 
   @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
   @ParameterizedTest(name = "{1}/{2}/{3}")
   @MethodSource("buildParameters")
   public void test(Draft draft, String suiteName, String suiteDescription, String testDescription, JsonObject value, JsonObject test) {
-    assumeFalse(isUnsupportedTest(suiteName, suiteDescription, testDescription));
+    final boolean unsupported = isUnsupportedTest(suiteName, suiteDescription, testDescription);
 
     final Map<String, io.vertx.json.schema.validator.Schema<?>> schemaLookup = ValidatorImpl.dereference(AbstractSchema.from(value.getValue("schema")), new HashMap<>(), new URL("https://vertx.io"), "");
 
@@ -126,11 +132,21 @@ public class TCKTest {
           .validate(test.getValue("data"), AbstractSchema.from(value.getValue("schema")), draft, lookup, false, null, "#", "#", new HashSet<>());
 
       if (result.valid() != test.getBoolean("valid")) {
-        fail(testDescription);
+        if (unsupported) {
+          // this means we don't really support this and the validation failed, so we will ignore it for now
+          assumeFalse(unsupported, testDescription);
+        } else {
+          fail(testDescription);
+        }
       }
     } catch (IllegalStateException e) {
-      if (!test.getBoolean("valid")) {
-        fail(testDescription);
+      if (test.getBoolean("valid")) {
+        if (unsupported) {
+          // this means we don't really support this and the validation failed, so we will ignore it for now
+          assumeFalse(unsupported, testDescription);
+        } else {
+          fail(testDescription);
+        }
       }
     }
   }

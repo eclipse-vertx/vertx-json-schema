@@ -961,7 +961,7 @@ public class ValidatorImpl implements Validator {
     if (schema.contains("maxLength") && Numbers.gt(length, schema.get("maxLength"))) {
       errors.add(new ErrorUnit(instanceLocation, "maxLength", schemaLocation + "/maxLength", "String is too long (" + length + " > " + schema.get("maxLength") + ")"));
     }
-    if (schema.contains("pattern") && !Pattern.compile(schema.get("pattern")).matcher((String) instance).matches()) {
+    if (schema.contains("pattern") && !Pattern.compile(schema.get("pattern")).matcher((String) instance).find()) {
       errors.add(new ErrorUnit(instanceLocation, "pattern", schemaLocation + "/pattern", "String does not match pattern"));
     }
     if (
