@@ -33,11 +33,11 @@ public abstract class AbstractSchema<T> implements Schema<T> {
   public <R> R get(String key, R fallback) {
     switch (key) {
       case "__absolute_uri__":
-        return (R) __absolute_uri__;
+        return __absolute_uri__ != null ? (R) __absolute_uri__ : fallback;
       case "__absolute_ref__":
-        return (R) __absolute_ref__;
+        return __absolute_ref__ != null ? (R) __absolute_ref__ : fallback;
       case "__absolute_recursive_ref__":
-        return (R) __absolute_recursive_ref__;
+        return __absolute_recursive_ref__ != null ? (R) __absolute_recursive_ref__ : fallback;
       default:
         Object holder = unwrap();
         if (holder instanceof JsonObject) {

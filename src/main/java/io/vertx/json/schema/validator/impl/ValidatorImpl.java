@@ -128,7 +128,7 @@ public class ValidatorImpl implements Validator {
 
     // if a $ref is found, resolve it's absolute URI.
     if (schema.contains("$ref") && !schema.contains("__absolute_ref__")) {
-      final URL url = new URL(schema.<String>get("$ref"), baseURI);
+      final URL url = new URL(schema.get("$ref"), baseURI);
       url.setHash(url.getHash()); // normalize hash https://url.spec.whatwg.org/#dom-url-hash
       schema.annotate("__absolute_ref__", url.href());
     }
@@ -230,7 +230,7 @@ public class ValidatorImpl implements Validator {
     }
 
     if (schema.contains("$ref")) {
-      final String uri = schema.get("__absolute_ref__", schema.<String>get("$ref"));
+      final String uri = schema.get("__absolute_ref__", schema.get("$ref"));
       if (!lookup.containsKey(uri)) {
         String message = "Unresolved $ref " + schema.<String>get("$ref");
         if (schema.contains("__absolute_ref__") && !schema.get("__absolute_ref__").equals(schema.<String>get("$ref"))) {

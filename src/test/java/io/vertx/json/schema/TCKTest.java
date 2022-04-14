@@ -120,12 +120,18 @@ public class TCKTest {
     lookup.putAll(remotesLookup);
     lookup.putAll(schemaLookup);
 
-    ValidationResult result =
-      ValidatorImpl
-        .validate(test.getValue("data"), AbstractSchema.from(value.getValue("schema")), draft, lookup, false, null, "#", "#", new HashSet<>());
+    try {
+      ValidationResult result =
+        ValidatorImpl
+          .validate(test.getValue("data"), AbstractSchema.from(value.getValue("schema")), draft, lookup, false, null, "#", "#", new HashSet<>());
 
-    if (result.valid() != test.getBoolean("valid")) {
-      fail(result.toString());
+      if (result.valid() != test.getBoolean("valid")) {
+        fail(testDescription);
+      }
+    } catch (RuntimeException e) {
+      if (!test.getBoolean("valid")) {
+        fail(testDescription);
+      }
     }
   }
 
