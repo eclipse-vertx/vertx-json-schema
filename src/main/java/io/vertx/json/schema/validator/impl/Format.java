@@ -41,7 +41,8 @@ public class Format {
       case "relative-json-pointer":
         return testRelativeJsonPointer(value);
       default:
-        return false;
+        // unknown formats are assumed true, e.g.: idn-hostname
+        return true;
     }
   }
 
@@ -115,8 +116,8 @@ public class Format {
      final String[] parts = value.split("@");
      if (
        parts.length != 2 ||
-         Utils.Strings.notEmpty(parts[0]) ||
-         Utils.Strings.notEmpty(parts[1]) ||
+         Utils.Strings.empty(parts[0]) ||
+         Utils.Strings.empty(parts[1]) ||
          parts[0].length() > 64 ||
          parts[1].length() > 253
      ) {

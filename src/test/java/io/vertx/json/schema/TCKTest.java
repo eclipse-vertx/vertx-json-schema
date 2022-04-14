@@ -128,7 +128,7 @@ public class TCKTest {
       if (result.valid() != test.getBoolean("valid")) {
         fail(testDescription);
       }
-    } catch (RuntimeException e) {
+    } catch (IllegalStateException e) {
       if (!test.getBoolean("valid")) {
         fail(testDescription);
       }

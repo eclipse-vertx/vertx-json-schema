@@ -112,7 +112,7 @@ public class ValidatorImpl implements Validator {
     // compute the schema's URI and add it to the mapping.
     final String schemaURI = baseURI.href() + (Strings.notEmpty(basePointer) ? '#' + basePointer : "");
     if (lookup.containsKey(schemaURI)) {
-      throw new RuntimeException("Duplicate schema URI \"" + schemaURI + "\".");
+      throw new IllegalStateException("Duplicate schema URI \"" + schemaURI + "\".");
     }
     lookup.put(schemaURI, schema);
 
@@ -211,7 +211,7 @@ public class ValidatorImpl implements Validator {
         recursiveAnchor == null
           ? lookup.get(schema.<String>get("__absolute_recursive_ref__"))
           : recursiveAnchor;
-      final String keywordLocation = schemaLocation + "/" + schema.get("$recursiveRef");
+      final String keywordLocation = schemaLocation + "/$recursiveRef";
       final ValidationResult result = validate(
         instance,
         recursiveAnchor == null ? schema : recursiveAnchor,
@@ -290,17 +290,17 @@ public class ValidatorImpl implements Validator {
         if (!JSON.deepCompare(instance, schema.get("const"))) {
           errors.add(new ErrorUnit(instanceLocation, "const", schemaLocation + "/const", "Instance does not match " + Json.encode(schema.get("const"))));
         }
-      } else if (!schema.get("const").equals(instance)) {
+      } else if (!Utils.Objects.equals(schema.get("const"), instance)) {
         errors.add(new ErrorUnit(instanceLocation, "const", schemaLocation + "/const", "Instance does not match " + Json.encode(schema.get("const"))));
       }
     }
 
     if (schema.contains("enum")) {
       if ("object".equals(instanceType) || "array".equals(instanceType)) {
-        if (schema.<JsonArray>get("enum").stream().noneMatch(value -> JSON.deepCompare(instance, value))) {
+        if (!schema.<JsonArray>get("enum").stream().anyMatch(value -> JSON.deepCompare(instance, value))) {
           errors.add(new ErrorUnit(instanceLocation, "enum", schemaLocation + "/enum", "Instance does not match any of " + Json.encode(schema.get("enum"))));
         }
-      } else if (schema.<JsonArray>get("enum").stream().noneMatch(value -> Utils.Objects.equals(instance, value))) {
+      } else if (!schema.<JsonArray>get("enum").stream().anyMatch(value -> Utils.Objects.equals(instance, value))) {
         errors.add(new ErrorUnit(instanceLocation, "enum", schemaLocation + "/enum", "Instance does not match any of " + Json.encode(schema.get("enum"))));
       }
     }
@@ -499,7 +499,7 @@ public class ValidatorImpl implements Validator {
         final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
         final ValidationResult result = validate(
           key,
-          Schema.fromJson(schema.get("propertyNames")),
+          AbstractSchema.from(schema.get("propertyNames")),
           draft,
           lookup,
           shortCircuit,
@@ -566,7 +566,7 @@ public class ValidatorImpl implements Validator {
           } else {
             final ValidationResult result = validate(
               instance,
-              Schema.fromJson((JsonObject) propsOrSchema),
+              AbstractSchema.from(propsOrSchema),
               draft,
               lookup,
               shortCircuit,
@@ -914,17 +914,17 @@ public class ValidatorImpl implements Validator {
     if (draft == Draft.DRAFT4) {
       if (
         schema.contains("minimum") &&
-        ((schema.<Boolean>get("exclusiveMinimum") && Numbers.lte((Number) instance, schema.get("minimum"))) ||
+        ((schema.<Boolean>get("exclusiveMinimum", false) && Numbers.lte((Number) instance, schema.get("minimum"))) ||
           Numbers.lt((Number) instance, schema.get("minimum")))
       ) {
-        errors.add(new ErrorUnit(instanceLocation, "minimum", schemaLocation + "/minimum", instance + " is less than " + (schema.<Boolean>get("exclusiveMinimum") ? "or equal to " : "") + schema.get("minimum")));
+        errors.add(new ErrorUnit(instanceLocation, "minimum", schemaLocation + "/minimum", instance + " is less than " + (schema.<Boolean>get("exclusiveMinimum", false) ? "or equal to " : "") + schema.get("minimum")));
       }
       if (
         schema.contains("maximum") &&
-        ((schema.<Boolean>get("exclusiveMaximum") && Numbers.gte((Number) instance, schema.get("maximum"))) ||
+        ((schema.<Boolean>get("exclusiveMaximum", false) && Numbers.gte((Number) instance, schema.get("maximum"))) ||
           Numbers.gt((Number) instance, schema.get("maximum")))
       ) {
-        errors.add(new ErrorUnit(instanceLocation, "maximum", schemaLocation + "/maximum", instance + " is greater than " + (schema.<Boolean>get("exclusiveMaximum") ? "or equal to " : "") + schema.get("maximum")));
+        errors.add(new ErrorUnit(instanceLocation, "maximum", schemaLocation + "/maximum", instance + " is greater than " + (schema.<Boolean>get("exclusiveMaximum", false) ? "or equal to " : "") + schema.get("maximum")));
       }
     } else {
       if (schema.contains("minimum") && Numbers.lt((Number) instance, schema.get("minimum"))) {

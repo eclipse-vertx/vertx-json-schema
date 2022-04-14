@@ -56,7 +56,7 @@ public class Utils {
       if (instance instanceof BigDecimal || value instanceof BigDecimal || instance instanceof BigInteger || value instanceof BigInteger) {
         return toBigDecimal(instance).compareTo(toBigDecimal(value)) < 0;
       }
-      // aprox.
+      // approx.
       return instance.doubleValue() < value.doubleValue();
     }
 
@@ -65,7 +65,7 @@ public class Utils {
       if (instance instanceof BigDecimal || value instanceof BigDecimal || instance instanceof BigInteger || value instanceof BigInteger) {
         return toBigDecimal(instance).compareTo(toBigDecimal(value)) <= 0;
       }
-      // aprox.
+      // approx.
       return instance.doubleValue() <= value.doubleValue();
     }
 
@@ -74,7 +74,7 @@ public class Utils {
       if (instance instanceof BigDecimal || value instanceof BigDecimal || instance instanceof BigInteger || value instanceof BigInteger) {
         return toBigDecimal(instance).compareTo(toBigDecimal(value)) > 0;
       }
-      // aprox.
+      // approx.
       return instance.doubleValue() > value.doubleValue();
     }
 
@@ -83,7 +83,7 @@ public class Utils {
       if (instance instanceof BigDecimal || value instanceof BigDecimal || instance instanceof BigInteger || value instanceof BigInteger) {
         return toBigDecimal(instance).compareTo(toBigDecimal(value)) >= 0;
       }
-      // aprox.
+      // approx.
       return instance.doubleValue() >= value.doubleValue();
     }
 
@@ -99,11 +99,35 @@ public class Utils {
       // for integer use long
       return instance.longValue() % value.doubleValue();
     }
+
+    public static boolean equals(Number a, Number b) {
+      if (a == null || b == null) {
+        return false;
+      }
+      if (isInteger(a) && isInteger(b)) {
+        // expensive path
+        if (a instanceof BigInteger || b instanceof BigInteger) {
+          return toBigDecimal(a).equals(toBigDecimal(b));
+        }
+        // compute using long
+        return a.longValue() == b.longValue();
+      }
+      if (a instanceof BigDecimal || b instanceof BigDecimal) {
+        // expensive path
+        return toBigDecimal(a).equals(toBigDecimal(b));
+      }
+      // approx. with double value
+      return a.doubleValue() == b.doubleValue();
+    }
   }
 
   static class Strings {
     public static boolean notEmpty(String string) {
       return string != null && string.length() > 0;
+    }
+
+    public static boolean empty(String string) {
+      return string == null || string.length() == 0;
     }
 
     /**
@@ -238,6 +262,11 @@ public class Utils {
       if (b == null) {
         return false;
       }
+
+      if (a instanceof Number && b instanceof Number) {
+        return Numbers.equals((Number) a, (Number) b);
+      }
+
       return a.equals(b);
     }
   }

@@ -1,7 +1,6 @@
 package io.vertx.json.schema.validator;
 
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.validator.impl.BooleanSchema;
 import io.vertx.json.schema.validator.impl.JsonSchema;
@@ -13,10 +12,6 @@ public interface Schema<T> {
 
   static Schema<JsonObject> fromJson(JsonObject json) {
     return new JsonSchema(json);
-  }
-
-  static Schema<JsonObject> fromBuffer(Buffer buffer) {
-    return new JsonSchema(new JsonObject(buffer));
   }
 
   static Schema<Boolean> fromBoolean(boolean bool) {
