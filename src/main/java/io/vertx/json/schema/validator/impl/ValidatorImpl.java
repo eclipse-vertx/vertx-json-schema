@@ -6,6 +6,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.validator.*;
 
 import java.util.*;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 import static io.vertx.json.schema.validator.impl.Utils.*;
@@ -92,7 +93,7 @@ public class ValidatorImpl implements Validator {
   public static Map<String, Schema<?>> dereference(Schema<?> schema, Map<String, Schema<?>> lookup, URL baseURI, String basePointer) {
     if (schema instanceof JsonSchema) {
       final String id = schema.get("$id", schema.get("id"));
-      if (id != null) {
+      if (Utils.Objects.truthy(id)) {
         final URL url = new URL(id, baseURI.href());
         if (url.getHash().length() > 1) {
           lookup.put(url.href(), schema);
@@ -110,7 +111,7 @@ public class ValidatorImpl implements Validator {
     }
 
     // compute the schema's URI and add it to the mapping.
-    final String schemaURI = baseURI.href() + (Strings.notEmpty(basePointer) ? '#' + basePointer : "");
+    final String schemaURI = baseURI.href() + (Utils.Objects.truthy(basePointer) ? '#' + basePointer : "");
     if (lookup.containsKey(schemaURI)) {
       throw new IllegalStateException("Duplicate schema URI \"" + schemaURI + "\".");
     }
@@ -626,7 +627,7 @@ public class ValidatorImpl implements Validator {
         final Pattern regex = Pattern.compile(pattern);
         final Object subSchema = schema.<JsonObject>get("patternProperties").getValue(pattern);
         for (final String key : ((JsonObject) instance).fieldNames()) {
-          if (!regex.matcher(key).matches()) {
+          if (!regex.matcher(key).find()) {
             continue;
           }
           final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
@@ -892,7 +893,7 @@ public class ValidatorImpl implements Validator {
       }
     }
 
-    if (schema.contains("uniqueItems")) {
+    if (schema.contains("uniqueItems") && Utils.Objects.truthy(schema.get("uniqueItems"))) {
       outer: for (int j = 0; j < length; j++) {
         final Object a = ((JsonArray) instance).getValue(j);
         final boolean ao = "object".equals(JSON.typeOf(a)) && a != null;

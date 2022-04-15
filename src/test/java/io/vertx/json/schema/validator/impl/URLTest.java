@@ -66,4 +66,11 @@ class URLTest {
     assertThat(new URL("//foo.com", "https://example.com").href())
       .isEqualTo("https://foo.com");              // (see relative URLs)
   }
+
+  @Test
+  public void testHashPreserve() {
+    assertThat(new URL("http://json-schema.org/draft-04/schema#", "http://json-schema.org/draft-04/schema").href())
+      .isEqualTo("http://json-schema.org/draft-04/schema#");
+
+  }
 }

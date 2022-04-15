@@ -58,7 +58,7 @@ public class URL {
         setSearch(uri.getQuery());
       }
       if (uri.getFragment() != null) {
-        setHash(uri.getFragment());
+        setHash(uri.getFragment(), strict);
       }
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
@@ -195,7 +195,10 @@ public class URL {
   }
 
   public URL setHash(String hash) {
-    if (hash != null) {
+    return setHash(hash, true);
+  }
+  private URL setHash(String hash, boolean strict) {
+    if (hash != null && strict) {
       // https://url.spec.whatwg.org/#dom-url-hash
       if (hash.startsWith("#")) {
         hash = hash.substring(1);
@@ -222,5 +225,10 @@ public class URL {
   public String href() {
     return
       getProtocol() + "//" + getHost() + getPathname() + getSearch() + getHash();
+  }
+
+  @Override
+  public String toString() {
+    return href();
   }
 }

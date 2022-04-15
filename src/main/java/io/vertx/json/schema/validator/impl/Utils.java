@@ -3,11 +3,11 @@ package io.vertx.json.schema.validator.impl;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -49,6 +49,15 @@ public class Utils {
         return BigDecimal.valueOf(in.doubleValue());
       }
       return BigDecimal.valueOf(in.longValue());
+    }
+
+    public static boolean ze(Number instance) {
+      // for big numbers, go slow
+      if (instance instanceof BigDecimal || instance instanceof BigInteger) {
+        return toBigDecimal(instance).compareTo(BigDecimal.ZERO) == 0;
+      }
+      // approx.
+      return instance.doubleValue() == 0.0;
     }
 
     public static boolean lt(Number instance, Number value) {
@@ -235,18 +244,38 @@ public class Utils {
   }
 
   static class Pointers {
-    public static String encode(String p) {
-      try {
-        return URLEncoder.encode(escape(p), "UTF-8");
-      } catch (UnsupportedEncodingException e) {
-        throw new RuntimeException(e);
-      }
-    }
 
-    private static String escape(String p) {
-      return p
-        .replaceAll("~", "~0")
-        .replaceAll("/", "~1");
+    private static final String genDelims = ":?#[]@"; // except /
+    private static final String subDelims = "!$&'()*+,;=";
+    private static final String unreserved = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._"; // except ~
+    private static final String okChars = genDelims + subDelims + unreserved + "%"; // don't double-escape %-escaped chars!
+
+    public static String encode(String p) {
+
+      StringBuilder encoded = new StringBuilder(p.length());
+
+      byte[] bytes = p.getBytes(StandardCharsets.UTF_8);
+      for (byte aByte : bytes) {
+        if (okChars.indexOf(aByte) >= 0) {
+          encoded.append((char) aByte);
+        } else {
+          // escape
+          if (aByte == '~') {
+            encoded.append("~0");
+            continue;
+          }
+          if (aByte == '/') {
+            encoded.append("~1");
+            continue;
+          }
+          // encode
+          encoded
+            .append('%')
+            .append(Integer.toHexString(Byte.toUnsignedInt(aByte)).toUpperCase(Locale.ROOT));
+        }
+      }
+
+      return encoded.toString();
     }
   }
 
@@ -268,6 +297,23 @@ public class Utils {
       }
 
       return a.equals(b);
+    }
+
+    public static boolean truthy(Object instance) {
+      if (instance == null) {
+        return false;
+      }
+      if (instance instanceof Boolean) {
+        return (Boolean) instance;
+      }
+      if (instance instanceof String) {
+        return ((String) instance).length() > 0;
+      }
+      if (instance instanceof Number) {
+        return Numbers.ze((Number) instance);
+      }
+
+      return false;
     }
   }
 }
