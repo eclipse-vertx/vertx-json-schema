@@ -129,14 +129,14 @@ public class ValidatorImpl implements Validator {
 
     // if a $ref is found, resolve it's absolute URI.
     if (schema.contains("$ref") && !schema.contains("__absolute_ref__")) {
-      final URL url = new URL(schema.get("$ref"), baseURI);
+      final URL url = new URL(schema.get("$ref"), baseURI.href());
       url.setHash(url.getHash()); // normalize hash https://url.spec.whatwg.org/#dom-url-hash
       schema.annotate("__absolute_ref__", url.href());
     }
 
     // if a $recursiveRef is found, resolve it's absolute URI.
     if (schema.contains("$recursiveRef") && !schema.contains("__absolute_recursive_ref__")) {
-      final URL url = new URL(schema.<String>get("$recursiveRef", "#"), baseURI);
+      final URL url = new URL(schema.get("$recursiveRef"), baseURI.href());
       url.setHash(url.getHash()); // normalize hash https://url.spec.whatwg.org/#dom-url-hash
       schema.annotate("__absolute_recursive_ref__", url.href());
     }

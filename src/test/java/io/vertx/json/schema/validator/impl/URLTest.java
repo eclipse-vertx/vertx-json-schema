@@ -10,7 +10,51 @@ import static org.junit.jupiter.api.Assertions.*;
 class URLTest {
 
   @Test
-  public void test() throws URISyntaxException {
+  public void testBadURLSlash() {
+    try {
+      new URL("/");
+      fail("This is strict mode, scheme and host are required");
+    } catch (RuntimeException e) {
+      // OK
+    }
+  }
+
+  @Test
+  public void testBadURLOnlyHost() {
+    try {
+      new URL("www.vertx.io");
+      fail("This is strict mode, scheme is required");
+    } catch (RuntimeException e) {
+      // OK
+    }
+  }
+
+  @Test
+  public void testFileOKWithoutHost() {
+    try {
+      new URL("file://");
+    } catch (RuntimeException e) {
+      fail("This is strict mode, however file doesn't require a host");
+    }
+  }
+
+  @Test
+  public void testSchema() {
+    URL a = new URL("http://json-schema.org/draft-4/schema#", "http://json-schema.org/draft-4/schema");
+    assertThat(a.href())
+      .isEqualTo("http://json-schema.org/draft-4/schema#");
+  }
+
+  @Test
+  public void testHrefAddsSlash() {
+    String m = "https://developer.mozilla.org";
+    URL b = new URL(m);
+    assertThat(b.href())
+      .isEqualTo("https://developer.mozilla.org/");
+  }
+
+  @Test
+  public void testMDN() throws URISyntaxException {
     // Base urls
     String m = "https://developer.mozilla.org";
     URL a = new URL("/", m);
@@ -56,6 +100,12 @@ class URLTest {
   }
 
   @Test
+  public void testMerge() {
+    assertThat(new URL("http://www.example.com", new URL("https://developer.mozilla.org")).href())
+      .isEqualTo("http://www.example.com/");
+  }
+
+  @Test
   public void testMergeEmptyWithQueryContext() {
     assertThat(new URL("", "https://example.com/?query=1").href())
       .isEqualTo("https://example.com/?query=1"); // (Edge before 79 removes query arguments)
@@ -65,12 +115,5 @@ class URLTest {
   public void testMergeRelativeDomain() {
     assertThat(new URL("//foo.com", "https://example.com").href())
       .isEqualTo("https://foo.com");              // (see relative URLs)
-  }
-
-  @Test
-  public void testHashPreserve() {
-    assertThat(new URL("http://json-schema.org/draft-04/schema#", "http://json-schema.org/draft-04/schema").href())
-      .isEqualTo("http://json-schema.org/draft-04/schema#");
-
   }
 }

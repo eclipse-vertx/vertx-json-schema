@@ -5,15 +5,12 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.validator.*;
 import io.vertx.json.schema.validator.Schema;
 import io.vertx.junit5.Timeout;
-import io.vertx.junit5.VertxExtension;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ExtendWith(VertxExtension.class)
 public class ValidatorTest {
 
   @Test

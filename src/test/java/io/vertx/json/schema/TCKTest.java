@@ -3,6 +3,7 @@ package io.vertx.json.schema;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.validator.Draft;
+import io.vertx.json.schema.validator.Schema;
 import io.vertx.json.schema.validator.ValidationResult;
 import io.vertx.json.schema.validator.impl.AbstractSchema;
 import io.vertx.json.schema.validator.impl.URL;
@@ -43,10 +44,10 @@ public class TCKTest {
         Object s = el.getValue("value");
         String name = el.getString("name");
         if (s instanceof JsonObject) {
-          ValidatorImpl.dereference(io.vertx.json.schema.validator.Schema.fromJson((JsonObject) s), remotesLookup, new URL(name), "");
+          //ValidatorImpl.dereference(io.vertx.json.schema.validator.Schema.fromJson((JsonObject) s), remotesLookup, new URL(name), "");
         }
         if (s instanceof Boolean) {
-          ValidatorImpl.dereference(io.vertx.json.schema.validator.Schema.fromBoolean((Boolean) s), remotesLookup, new URL(name), "");
+          //ValidatorImpl.dereference(io.vertx.json.schema.validator.Schema.fromBoolean((Boolean) s), remotesLookup, new URL(name), "");
         }
       }
 
@@ -73,7 +74,7 @@ public class TCKTest {
 
       for (String meta : ids) {
         JsonObject json = new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", "test", "resources", meta.substring(meta.indexOf("://") + 3)))));
-        ValidatorImpl.dereference(io.vertx.json.schema.validator.Schema.fromJson(json), metaLookup, new URL(meta), "");
+        //ValidatorImpl.dereference(io.vertx.json.schema.validator.Schema.fromJson(json), metaLookup, new URL(meta), "");
       }
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -118,7 +119,8 @@ public class TCKTest {
   public void test(Draft draft, String suiteName, String suiteDescription, String testDescription, JsonObject value, JsonObject test) {
     final boolean unsupported = isUnsupportedTest(suiteName, suiteDescription, testDescription);
 
-    final Map<String, io.vertx.json.schema.validator.Schema<?>> schemaLookup = ValidatorImpl.dereference(AbstractSchema.from(value.getValue("schema")), new HashMap<>(), new URL("https://vertx.io"), "");
+    final Schema<?> schema = AbstractSchema.from(value.getValue("schema"));
+    final Map<String, io.vertx.json.schema.validator.Schema<?>> schemaLookup = ValidatorImpl.dereference(schema, new HashMap<>(), new URL("https://vertx.io"), "");
 
     final Map<String, io.vertx.json.schema.validator.Schema<?>> lookup = new HashMap<>();
 
@@ -129,7 +131,7 @@ public class TCKTest {
     try {
       ValidationResult result =
         ValidatorImpl
-          .validate(test.getValue("data"), AbstractSchema.from(value.getValue("schema")), draft, lookup, false, null, "#", "#", new HashSet<>());
+          .validate(test.getValue("data"), schema, draft, lookup, false, null, "#", "#", new HashSet<>());
 
       if (result.valid() != test.getBoolean("valid")) {
         if (unsupported) {
@@ -140,7 +142,7 @@ public class TCKTest {
         }
       }
     } catch (IllegalStateException e) {
-      if (test.getBoolean("valid")) {
+      if (test.getBoolean("valid", false)) {
         if (unsupported) {
           // this means we don't really support this and the validation failed, so we will ignore it for now
           assumeFalse(unsupported, testDescription);
