@@ -2,6 +2,8 @@ package io.vertx.json.schema.validator.impl;
 
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 
 public class URL {
 
@@ -273,11 +275,35 @@ public class URL {
           // port
           (port == -1 ? "" : (":" + port)) +
           // path
-          (pathname == null ? "" : pathname.length() == 0 ? "/" : pathname) +
+          (pathname == null ? "" : pathname.length() == 0 ? "/" : encode(pathname)) +
           // search
-          (search == null ? "" : "?" + search) +
+          (search == null ? "" : "?" + encode(search)) +
           // hash
-          (hash == null ? "" : "#" + hash);
+          (hash == null ? "" : "#" + encode(hash));
+  }
+
+  private static final String genDelims = ":?#@/"; // except []
+  private static final String subDelims = "!$&'()*+,;=";
+  private static final String unreserved = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._~";
+  private static final String okChars = genDelims + subDelims + unreserved + "%"; // don't double-escape %-escaped chars!
+
+  private static String encode(String p) {
+
+    StringBuilder encoded = new StringBuilder(p.length());
+
+    byte[] bytes = p.getBytes(StandardCharsets.UTF_8);
+    for (byte aByte : bytes) {
+      if (okChars.indexOf(aByte) >= 0) {
+        encoded.append((char) aByte);
+      } else {
+        // encode
+        encoded
+          .append('%')
+          .append(Integer.toHexString(Byte.toUnsignedInt(aByte)).toUpperCase(Locale.ROOT));
+      }
+    }
+
+    return encoded.toString();
   }
 
   @Override

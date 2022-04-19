@@ -19,6 +19,8 @@ public interface Validator {
 
   @Fluent Validator addSchema(Schema<JsonObject> schema);
 
+  @Fluent Validator addRemoteSchema(Schema<JsonObject> schema, String uri);
+
   default @Fluent Validator addSchema(Schema<JsonObject> schema, String id) {
     return addSchema(new JsonSchema(schema, id));
   }

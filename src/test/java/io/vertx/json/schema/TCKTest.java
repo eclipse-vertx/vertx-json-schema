@@ -44,10 +44,10 @@ public class TCKTest {
         Object s = el.getValue("value");
         String name = el.getString("name");
         if (s instanceof JsonObject) {
-          //ValidatorImpl.dereference(io.vertx.json.schema.validator.Schema.fromJson((JsonObject) s), remotesLookup, new URL(name), "");
+          ValidatorImpl.dereference(io.vertx.json.schema.validator.Schema.fromJson((JsonObject) s), remotesLookup, new URL(name), "");
         }
         if (s instanceof Boolean) {
-          //ValidatorImpl.dereference(io.vertx.json.schema.validator.Schema.fromBoolean((Boolean) s), remotesLookup, new URL(name), "");
+          ValidatorImpl.dereference(io.vertx.json.schema.validator.Schema.fromBoolean((Boolean) s), remotesLookup, new URL(name), "");
         }
       }
 
@@ -74,7 +74,7 @@ public class TCKTest {
 
       for (String meta : ids) {
         JsonObject json = new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", "test", "resources", meta.substring(meta.indexOf("://") + 3)))));
-        //ValidatorImpl.dereference(io.vertx.json.schema.validator.Schema.fromJson(json), metaLookup, new URL(meta), "");
+        ValidatorImpl.dereference(io.vertx.json.schema.validator.Schema.fromJson(json), metaLookup, new URL(meta), "");
       }
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -119,7 +119,7 @@ public class TCKTest {
   public void test(Draft draft, String suiteName, String suiteDescription, String testDescription, JsonObject value, JsonObject test) {
     final boolean unsupported = isUnsupportedTest(suiteName, suiteDescription, testDescription);
 
-    final Schema<?> schema = AbstractSchema.from(value.getValue("schema"));
+    final Schema<?> schema = AbstractSchema.wrap(value, "schema");
     final Map<String, io.vertx.json.schema.validator.Schema<?>> schemaLookup = ValidatorImpl.dereference(schema, new HashMap<>(), new URL("https://vertx.io"), "");
 
     final Map<String, io.vertx.json.schema.validator.Schema<?>> lookup = new HashMap<>();

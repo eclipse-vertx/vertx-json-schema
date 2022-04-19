@@ -116,4 +116,10 @@ class URLTest {
     assertThat(new URL("//foo.com", "https://example.com").href())
       .isEqualTo("https://foo.com");              // (see relative URLs)
   }
+
+  @Test
+  public void testQuotes() {
+    assertThat(new URL("#/definitions/foo%22bar", "https://github.com/cfworker").href())
+      .isEqualTo("https://github.com/cfworker#/definitions/foo%22bar");              // (see relative URLs)
+  }
 }

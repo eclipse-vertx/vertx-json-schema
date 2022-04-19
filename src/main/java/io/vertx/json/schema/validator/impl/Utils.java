@@ -245,7 +245,7 @@ public class Utils {
 
   static class Pointers {
 
-    private static final String genDelims = ":?#[]@"; // except /
+    private static final String genDelims = ":?#@"; // except /[]
     private static final String subDelims = "!$&'()*+,;=";
     private static final String unreserved = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._"; // except ~
     private static final String okChars = genDelims + subDelims + unreserved + "%"; // don't double-escape %-escaped chars!

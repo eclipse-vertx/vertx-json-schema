@@ -1,105 +1,71 @@
 package io.vertx.json.schema.validator.impl;
 
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.validator.Schema;
 
-import java.util.Set;
+public abstract class AbstractSchema {
 
-public abstract class AbstractSchema<T> implements Schema<T> {
+  private static final Schema<Boolean> TRUE_SCHEMA = new BooleanSchema(true);
+  private static final Schema<Boolean> FALSE_SCHEMA = new BooleanSchema(false);
 
-  private String __absolute_uri__;
-  private String __absolute_ref__;
-  private String __absolute_recursive_ref__;
-
-  @Override
-  public void annotate(String key, String value) {
-    switch (key) {
-      case "__absolute_uri__":
-        __absolute_uri__ = value;
-        break;
-      case "__absolute_ref__":
-        __absolute_ref__ = value;
-        break;
-      case "__absolute_recursive_ref__":
-        __absolute_recursive_ref__ = value;
-        break;
-      default:
-        throw new IllegalArgumentException("Unsupported annotation: " + key);
-    }
-  }
-
-  @Override
   @SuppressWarnings("unchecked")
-  public <R> R get(String key, R fallback) {
-    switch (key) {
-      case "__absolute_uri__":
-        return __absolute_uri__ != null ? (R) __absolute_uri__ : fallback;
-      case "__absolute_ref__":
-        return __absolute_ref__ != null ? (R) __absolute_ref__ : fallback;
-      case "__absolute_recursive_ref__":
-        return __absolute_recursive_ref__ != null ? (R) __absolute_recursive_ref__ : fallback;
-      default:
-        Object holder = unwrap();
-        if (holder instanceof JsonObject) {
-          return (R) ((JsonObject) holder).getValue(key, fallback);
-        }
-        throw new UnsupportedOperationException("This schema doesn't support get(String, String)");
-    }
-  }
+  public static <R> R wrap(JsonObject object, String key) {
+    Object value = object.getValue(key);
 
-  @Override
-  @SuppressWarnings("unchecked")
-  public <R> R get(String key) {
-    switch (key) {
-      case "__absolute_uri__":
-        return (R) __absolute_uri__;
-      case "__absolute_ref__":
-        return (R) __absolute_ref__;
-      case "__absolute_recursive_ref__":
-        return (R) __absolute_recursive_ref__;
-      default:
-        Object holder = unwrap();
-        if (holder instanceof JsonObject) {
-          return (R) ((JsonObject) holder).getValue(key);
-        }
-        throw new UnsupportedOperationException("This schema doesn't support get(String)");
+    if (value instanceof Schema) {
+      return (R) value;
     }
-  }
 
-  @Override
-  public boolean contains(String key) {
-    switch (key) {
-      case "__absolute_uri__":
-        return __absolute_uri__ != null;
-      case "__absolute_ref__":
-        return __absolute_ref__ != null;
-      case "__absolute_recursive_ref__":
-        return __absolute_recursive_ref__ != null;
-      default:
-        Object holder = unwrap();
-        if (holder instanceof JsonObject) {
-          return ((JsonObject) holder).containsKey(key);
-        }
-        throw new UnsupportedOperationException("This schema doesn't support contains(String)");
-    }
-  }
-
-  @Override
-  public Set<String> keys() {
-    Object holder = unwrap();
-    if (holder instanceof JsonObject) {
-      return ((JsonObject) holder).fieldNames();
-    }
-    throw new UnsupportedOperationException("This schema doesn't support keys()");
-  }
-
-  public static Schema<?> from(Object value) {
     if (value instanceof Boolean) {
-      return Schema.fromBoolean((Boolean) value);
+      Schema<?> schema = wrap((Boolean) value);
+      object.put(key, schema);
+      return (R) schema;
     }
+
     if (value instanceof JsonObject) {
-      return Schema.fromJson((JsonObject) value);
+      Schema<?> schema = wrap((JsonObject) value);
+      object.put(key, schema);
+      return (R) schema;
     }
-    return null;
+
+    return (R) value;
+  }
+
+  public static <R> R wrap(Schema<?> schema, String key) {
+    return wrap(((JsonSchema) schema).unwrap(), key);
+  }
+
+  @SuppressWarnings("unchecked")
+  public static <R> R wrap(JsonArray array, int index) {
+    Object value = array.getValue(index);
+
+    if (value instanceof Schema) {
+      return (R) value;
+    }
+
+    if (value instanceof Boolean) {
+      Schema<?> schema = wrap((Boolean) value);
+      array.set(index, schema);
+      return (R) schema;
+    }
+
+    if (value instanceof JsonObject) {
+      Schema<?> schema = wrap((JsonObject) value);
+      array.set(index, schema);
+      return (R) schema;
+    }
+
+    return (R) value;
+  }
+
+  public static Schema<Boolean> wrap(Boolean value) {
+    return value ?
+      TRUE_SCHEMA :
+      FALSE_SCHEMA;
+  }
+
+  public static Schema<JsonObject> wrap(JsonObject value) {
+    return new JsonSchema(value);
   }
 }

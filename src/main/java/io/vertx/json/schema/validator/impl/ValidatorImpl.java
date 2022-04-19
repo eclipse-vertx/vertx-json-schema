@@ -6,9 +6,9 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.validator.*;
 
 import java.util.*;
-import java.util.Objects;
 import java.util.regex.Pattern;
 
+import static io.vertx.json.schema.validator.impl.AbstractSchema.wrap;
 import static io.vertx.json.schema.validator.impl.Utils.*;
 
 public class ValidatorImpl implements Validator {
@@ -73,6 +73,12 @@ public class ValidatorImpl implements Validator {
   @Override
   public Validator addSchema(Schema<JsonObject> schema) {
     dereference(schema, lookup, baseUri, "");
+    return this;
+  }
+
+  @Override
+  public Validator addRemoteSchema(Schema<JsonObject> schema, String uri) {
+    dereference(schema, lookup, new URL(uri), "");
     return this;
   }
 
@@ -160,24 +166,24 @@ public class ValidatorImpl implements Validator {
         if (SCHEMA_ARRAY_KEYWORD.contains(key)) {
           for (int i = 0; i < ((JsonArray) subSchema).size(); i++) {
             dereference(
-              AbstractSchema.from(((JsonArray) subSchema).getValue(i)),
+              wrap((JsonArray) subSchema, i),
               lookup,
               baseURI,
               keyBase + "/" + i);
           }
         }
-      } else if (subSchema instanceof JsonObject) {
-        if (SCHEMA_MAP_KEYWORD.contains(key)) {
-          for (String subKey : ((JsonObject) subSchema).fieldNames()) {
-            dereference(
-              AbstractSchema.from(((JsonObject) subSchema).getValue(subKey)),
-              lookup,
-              baseURI,
-              keyBase + "/" + Pointers.encode(subKey));
-          }
+      } else if (SCHEMA_MAP_KEYWORD.contains(key)) {
+        for (String subKey : ((JsonObject) subSchema).fieldNames()) {
+          dereference(
+            wrap((JsonObject) subSchema, subKey),
+            lookup,
+            baseURI,
+            keyBase + "/" + Pointers.encode(subKey));
         }
       } else if (subSchema instanceof Boolean) {
         dereference(Schema.fromBoolean((Boolean) subSchema), lookup, baseURI, keyBase);
+      } else if (subSchema instanceof JsonObject) {
+        dereference(Schema.fromJson((JsonObject) subSchema), lookup, baseURI, keyBase);
       }
     }
 
@@ -208,6 +214,7 @@ public class ValidatorImpl implements Validator {
     final Schema<?> recursiveAnchor = _recursiveAnchor;
 
     if ("#".equals(schema.get("$recursiveRef"))) {
+      assert schema.contains("__absolute_recursive_ref__");
       final Schema<?> refSchema =
         recursiveAnchor == null
           ? lookup.get(schema.<String>get("__absolute_recursive_ref__"))
@@ -225,7 +232,7 @@ public class ValidatorImpl implements Validator {
         evaluated
       );
       if (!result.valid()) {
-        errors.add(new ErrorUnit(instanceLocation, "$recursiveRef", keywordLocation, "A subschema had errors"));
+        errors.add(new ErrorUnit(instanceLocation, "$recursiveRef", keywordLocation, "A sub-schema had errors"));
         errors.addAll(result.errors());
       }
     }
@@ -310,7 +317,7 @@ public class ValidatorImpl implements Validator {
       final String keywordLocation = schemaLocation + "/not";
       final ValidationResult result = validate(
         instance,
-        AbstractSchema.from(schema.get("not")),
+        wrap(schema, "not"),
         draft,
         lookup,
         shortCircuit,
@@ -331,11 +338,10 @@ public class ValidatorImpl implements Validator {
       final int errorsLength = errors.size();
       boolean anyValid = false;
       for (int i = 0; i < schema.<JsonArray>get("anyOf").size(); i++) {
-        final Object subSchema = schema.<JsonArray>get("anyOf").getValue(i);
         final Set<Object> subEvaluated = new HashSet<>(evaluated);
         final ValidationResult result = validate(
           instance,
-          AbstractSchema.from(subSchema),
+          wrap(schema.<JsonArray>get("anyOf"), i),
           draft,
           lookup,
           shortCircuit,
@@ -362,11 +368,10 @@ public class ValidatorImpl implements Validator {
       final int errorsLength = errors.size();
       boolean allValid = true;
       for (int i = 0; i < schema.<JsonArray>get("allOf").size(); i++) {
-        final Object subSchema = schema.<JsonArray>get("allOf").getValue(i);
         final Set<Object> subEvaluated = new HashSet<>(evaluated);
         final ValidationResult result = validate(
           instance,
-          AbstractSchema.from(subSchema),
+          wrap(schema.<JsonArray>get("allOf"), i),
           draft,
           lookup,
           shortCircuit,
@@ -393,11 +398,10 @@ public class ValidatorImpl implements Validator {
       final int errorsLength = errors.size();
       int matches = 0;
       for (int i = 0; i < schema.<JsonArray>get("oneOf").size(); i++) {
-        final Object subSchema = schema.<JsonArray>get("oneOf").getValue(i);
         final Set<Object> subEvaluated = new HashSet<>(evaluated);
         final ValidationResult result = validate(
           instance,
-          AbstractSchema.from(subSchema),
+          wrap(schema.<JsonArray>get("oneOf"), i),
           draft,
           lookup,
           shortCircuit,
@@ -429,7 +433,7 @@ public class ValidatorImpl implements Validator {
     final String keywordLocation = schemaLocation + "/if";
     final ValidationResult conditionResult = validate(
       instance,
-      AbstractSchema.from(schema.get("if")),
+      wrap(schema, "if"),
       draft,
       lookup,
       shortCircuit,
@@ -442,7 +446,7 @@ public class ValidatorImpl implements Validator {
       if (schema.contains("then")) {
         final ValidationResult thenResult = validate(
           instance,
-          AbstractSchema.from(schema.get("then")),
+          wrap(schema, "then"),
           draft,
           lookup,
           shortCircuit,
@@ -459,7 +463,7 @@ public class ValidatorImpl implements Validator {
     } else if (schema.contains("else")) {
       final ValidationResult elseResult = validate(
         instance,
-        AbstractSchema.from(schema.get("else")),
+        wrap(schema, "else"),
         draft,
         lookup,
         shortCircuit,
@@ -500,7 +504,7 @@ public class ValidatorImpl implements Validator {
         final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
         final ValidationResult result = validate(
           key,
-          AbstractSchema.from(schema.get("propertyNames")),
+          wrap(schema, "propertyNames"),
           draft,
           lookup,
           shortCircuit,
@@ -536,7 +540,7 @@ public class ValidatorImpl implements Validator {
         if (((JsonObject) instance).containsKey(key)) {
           final ValidationResult result = validate(
             instance,
-            AbstractSchema.from(schema.<JsonObject>get("dependentSchemas").getValue(key)),
+            wrap(schema.<JsonObject>get("dependentSchemas"), key),
             draft,
             lookup,
             shortCircuit,
@@ -567,7 +571,7 @@ public class ValidatorImpl implements Validator {
           } else {
             final ValidationResult result = validate(
               instance,
-              AbstractSchema.from(propsOrSchema),
+              wrap(schema.<JsonObject>get("dependencies"), key),
               draft,
               lookup,
               shortCircuit,
@@ -598,7 +602,7 @@ public class ValidatorImpl implements Validator {
         final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
         final ValidationResult result = validate(
           ((JsonObject) instance).getValue(key),
-          AbstractSchema.from(schema.<JsonObject>get("properties").getValue(key)),
+          wrap(schema.<JsonObject>get("properties"), key),
           draft,
           lookup,
           shortCircuit,
@@ -625,7 +629,6 @@ public class ValidatorImpl implements Validator {
       final String keywordLocation = schemaLocation + "/patternProperties";
       for (final String pattern : schema.<JsonObject>get("patternProperties").fieldNames()) {
         final Pattern regex = Pattern.compile(pattern);
-        final Object subSchema = schema.<JsonObject>get("patternProperties").getValue(pattern);
         for (final String key : ((JsonObject) instance).fieldNames()) {
           if (!regex.matcher(key).find()) {
             continue;
@@ -633,7 +636,7 @@ public class ValidatorImpl implements Validator {
           final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
           final ValidationResult result = validate(
             ((JsonObject) instance).getValue(key),
-            AbstractSchema.from(subSchema),
+            wrap(schema.<JsonObject>get("patternProperties"), pattern),
             draft,
             lookup,
             shortCircuit,
@@ -663,7 +666,7 @@ public class ValidatorImpl implements Validator {
         final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
         final ValidationResult result = validate(
           ((JsonObject) instance).getValue(key),
-          AbstractSchema.from(schema.get("additionalProperties")),
+          wrap(schema, "additionalProperties"),
           draft,
           lookup,
           shortCircuit,
@@ -687,7 +690,7 @@ public class ValidatorImpl implements Validator {
           final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
           final ValidationResult result = validate(
             ((JsonObject) instance).getValue(key),
-            AbstractSchema.from(schema.get("unevaluatedProperties")),
+            wrap(schema, "unevaluatedProperties"),
             draft,
             lookup,
             shortCircuit,
@@ -725,7 +728,7 @@ public class ValidatorImpl implements Validator {
       for (; i < length2; i++) {
         final ValidationResult result = validate(
           ((JsonArray) instance).getValue(i),
-          AbstractSchema.from(schema.<JsonArray>get("prefixItems").getValue(i)),
+          wrap(schema.<JsonArray>get("prefixItems"), i),
           draft,
           lookup,
           shortCircuit,
@@ -753,7 +756,7 @@ public class ValidatorImpl implements Validator {
         for (; i < length2; i++) {
           final ValidationResult result = validate(
             ((JsonArray) instance).getValue(i),
-            AbstractSchema.from(schema.<JsonArray>get("items").getValue(i)),
+            wrap(schema.<JsonArray>get("items"), i),
             draft,
             lookup,
             shortCircuit,
@@ -776,7 +779,7 @@ public class ValidatorImpl implements Validator {
         for (; i < length; i++) {
           final ValidationResult result = validate(
             ((JsonArray) instance).getValue(i),
-            AbstractSchema.from(schema.get("items")),
+            wrap(schema, "items"),
             draft,
             lookup,
             shortCircuit,
@@ -802,7 +805,7 @@ public class ValidatorImpl implements Validator {
         for (; i < length; i++) {
           final ValidationResult result = validate(
             ((JsonArray) instance).getValue(i),
-            AbstractSchema.from(schema.get("additionalItems")),
+            wrap(schema, "additionalItems"),
             draft,
             lookup,
             shortCircuit,
@@ -833,7 +836,7 @@ public class ValidatorImpl implements Validator {
         for (int j = 0; j < length; j++) {
           final ValidationResult result = validate(
             ((JsonArray) instance).getValue(j),
-            AbstractSchema.from(schema.get("contains")),
+            wrap(schema, "contains"),
             draft,
             lookup,
             shortCircuit,
@@ -876,7 +879,7 @@ public class ValidatorImpl implements Validator {
         }
         final ValidationResult result = validate(
           ((JsonArray) instance).getValue(i),
-          AbstractSchema.from(schema.get("unevaluatedItems")),
+          wrap(schema, "unevaluatedItems"),
           draft,
           lookup,
           shortCircuit,
