@@ -13,6 +13,11 @@ import static io.vertx.json.schema.validator.impl.Utils.*;
 
 public class ValidatorImpl implements Validator {
 
+  private static final List<String> NON_ENUMERABLE = Arrays.asList(
+    "__absolute_uri__",
+    "__absolute_ref__",
+    "__absolute_recursive_ref__");
+
   private static final List<String> IGNORE_KEYWORD = Arrays.asList(
     "id",
     "$id",
@@ -55,14 +60,14 @@ public class ValidatorImpl implements Validator {
     "patternProperties",
     "dependentSchemas");
 
-  private final Map<String, Schema<?>> lookup;
+  private final Map<String, Schema> lookup;
 
-  private final Schema<?> schema;
+  private final Schema schema;
   private final Draft draft;
   private final boolean shortCircuit;
   private final URL baseUri;
 
-  public ValidatorImpl(Schema<?> schema, ValidatorOptions options) {
+  public ValidatorImpl(Schema schema, ValidatorOptions options) {
     this.schema = schema;
     this.draft = options.getDraft();
     this.shortCircuit = options.isShortCircuit();
@@ -71,13 +76,13 @@ public class ValidatorImpl implements Validator {
   }
 
   @Override
-  public Validator addSchema(Schema<JsonObject> schema) {
+  public Validator addSchema(Schema schema) {
     dereference(schema, lookup, baseUri, "");
     return this;
   }
 
   @Override
-  public Validator addRemoteSchema(Schema<JsonObject> schema, String uri) {
+  public Validator addSchema(String uri, Schema schema) {
     dereference(schema, lookup, new URL(uri), "");
     return this;
   }
@@ -96,7 +101,7 @@ public class ValidatorImpl implements Validator {
       new HashSet<>());
   }
 
-  public static Map<String, Schema<?>> dereference(Schema<?> schema, Map<String, Schema<?>> lookup, URL baseURI, String basePointer) {
+  public static Map<String, Schema> dereference(Schema schema, Map<String, Schema> lookup, URL baseURI, String basePointer) {
     if (schema instanceof JsonSchema) {
       final String id = schema.get("$id", schema.get("id"));
       if (Utils.Objects.truthy(id)) {
@@ -129,32 +134,36 @@ public class ValidatorImpl implements Validator {
     }
 
     // set the schema's absolute URI.
-    if (!schema.contains("__absolute_uri__")) {
+    if (!schema.containsKey("__absolute_uri__")) {
       schema.annotate("__absolute_uri__", schemaURI);
     }
 
     // if a $ref is found, resolve it's absolute URI.
-    if (schema.contains("$ref") && !schema.contains("__absolute_ref__")) {
+    if (schema.containsKey("$ref") && !schema.containsKey("__absolute_ref__")) {
       final URL url = new URL(schema.get("$ref"), baseURI.href());
       url.anchor(url.fragment()); // normalize hash https://url.spec.whatwg.org/#dom-url-hash
       schema.annotate("__absolute_ref__", url.href());
     }
 
     // if a $recursiveRef is found, resolve it's absolute URI.
-    if (schema.contains("$recursiveRef") && !schema.contains("__absolute_recursive_ref__")) {
+    if (schema.containsKey("$recursiveRef") && !schema.containsKey("__absolute_recursive_ref__")) {
       final URL url = new URL(schema.get("$recursiveRef"), baseURI.href());
       url.anchor(url.fragment()); // normalize hash https://url.spec.whatwg.org/#dom-url-hash
       schema.annotate("__absolute_recursive_ref__", url.href());
     }
 
     // if an $anchor is found, compute it's URI and add it to the mapping.
-    if (schema.contains("$anchor")) {
+    if (schema.containsKey("$anchor")) {
       final URL url = new URL("#" + schema.<String>get("$anchor"), baseURI);
       lookup.put(url.href(), schema);
     }
 
     // process subschemas.
-    for (String key : schema.keys()) {
+    for (String key : schema.fieldNames()) {
+      // the generated extra properties are to be skipped
+      if (NON_ENUMERABLE.contains(key)) {
+        continue;
+      }
       if (IGNORE_KEYWORD.contains(key)) {
         continue;
       }
@@ -190,9 +199,9 @@ public class ValidatorImpl implements Validator {
     return lookup;
   }
 
-  public static ValidationResult validate(Object _instance, Schema<?> schema, Draft draft, Map<String, Schema<?>> lookup, boolean shortCircuit, Schema<?> _recursiveAnchor, String instanceLocation, String schemaLocation, Set<Object> evaluated) {
-    if (schema.unwrap() instanceof Boolean) {
-      if ((Boolean) schema.unwrap()) {
+  public static ValidationResult validate(Object _instance, Schema schema, Draft draft, Map<String, Schema> lookup, boolean shortCircuit, Schema _recursiveAnchor, String instanceLocation, String schemaLocation, Set<Object> evaluated) {
+    if (schema instanceof BooleanSchema) {
+      if (schema == BooleanSchema.TRUE) {
         return new ValidationResultImpl(true, Collections.emptyList());
       } else {
         return new ValidationResultImpl(false, Collections.singletonList(new ErrorUnit(instanceLocation, "false", instanceLocation, "False boolean schema")));
@@ -211,11 +220,11 @@ public class ValidatorImpl implements Validator {
     }
 
     // Lock
-    final Schema<?> recursiveAnchor = _recursiveAnchor;
+    final Schema recursiveAnchor = _recursiveAnchor;
 
     if ("#".equals(schema.get("$recursiveRef"))) {
-      assert schema.contains("__absolute_recursive_ref__");
-      final Schema<?> refSchema =
+      assert schema.containsKey("__absolute_recursive_ref__");
+      final Schema refSchema =
         recursiveAnchor == null
           ? lookup.get(schema.<String>get("__absolute_recursive_ref__"))
           : recursiveAnchor;
@@ -237,18 +246,18 @@ public class ValidatorImpl implements Validator {
       }
     }
 
-    if (schema.contains("$ref")) {
+    if (schema.containsKey("$ref")) {
       final String uri = schema.get("__absolute_ref__", schema.get("$ref"));
       if (!lookup.containsKey(uri)) {
         String message = "Unresolved $ref " + schema.<String>get("$ref");
-        if (schema.contains("__absolute_ref__") && !schema.get("__absolute_ref__").equals(schema.<String>get("$ref"))) {
+        if (schema.containsKey("__absolute_ref__") && !schema.get("__absolute_ref__").equals(schema.<String>get("$ref"))) {
           message += ": Absolute URI " + schema.get("__absolute_ref__");
         }
         message += "\nKnown schemas:\n- " + String.join("\n- ", lookup.keySet());
         throw new IllegalStateException(message);
       }
 
-      final Schema<?> refSchema = lookup.get(uri);
+      final Schema refSchema = lookup.get(uri);
       final String keywordLocation = schemaLocation + "/" + schema.<String>get("$ref");
       final ValidationResult result = validate(
         instance,
@@ -289,11 +298,11 @@ public class ValidatorImpl implements Validator {
       if (!"number".equals(instanceType) || !Numbers.isInteger(instance)) {
         errors.add(new ErrorUnit(instanceLocation, "type", schemaLocation + "/type", "Instance type " + instanceType + " is invalid. Expected " + schema.get("type")));
       }
-    } else if (schema.contains("type") && !instanceType.equals(schema.get("type"))) {
+    } else if (schema.containsKey("type") && !instanceType.equals(schema.get("type"))) {
       errors.add(new ErrorUnit(instanceLocation, "type", schemaLocation + "/type", "Instance type " + instanceType + " is invalid. Expected " + schema.get("type")));
     }
 
-    if (schema.contains("const")) {
+    if (schema.containsKey("const")) {
       if ("object".equals(instanceType) || "array".equals(instanceType)) {
         if (!JSON.deepCompare(instance, schema.get("const"))) {
           errors.add(new ErrorUnit(instanceLocation, "const", schemaLocation + "/const", "Instance does not match " + Json.encode(schema.get("const"))));
@@ -303,7 +312,7 @@ public class ValidatorImpl implements Validator {
       }
     }
 
-    if (schema.contains("enum")) {
+    if (schema.containsKey("enum")) {
       if ("object".equals(instanceType) || "array".equals(instanceType)) {
         if (!schema.<JsonArray>get("enum").stream().anyMatch(value -> JSON.deepCompare(instance, value))) {
           errors.add(new ErrorUnit(instanceLocation, "enum", schemaLocation + "/enum", "Instance does not match any of " + Json.encode(schema.get("enum"))));
@@ -313,11 +322,11 @@ public class ValidatorImpl implements Validator {
       }
     }
 
-    if (schema.contains("not")) {
+    if (schema.containsKey("not")) {
       final String keywordLocation = schemaLocation + "/not";
       final ValidationResult result = validate(
         instance,
-        wrap(schema, "not"),
+        wrap((JsonObject) schema, "not"),
         draft,
         lookup,
         shortCircuit,
@@ -333,7 +342,7 @@ public class ValidatorImpl implements Validator {
 
     Set<Object> subEvaluateds = new HashSet<>();
 
-    if (schema.contains("anyOf")) {
+    if (schema.containsKey("anyOf")) {
       final String keywordLocation = schemaLocation + "/anyOf";
       final int errorsLength = errors.size();
       boolean anyValid = false;
@@ -341,7 +350,7 @@ public class ValidatorImpl implements Validator {
         final Set<Object> subEvaluated = new HashSet<>(evaluated);
         final ValidationResult result = validate(
           instance,
-          wrap(schema.<JsonArray>get("anyOf"), i),
+          wrap(schema.get("anyOf"), i),
           draft,
           lookup,
           shortCircuit,
@@ -363,7 +372,7 @@ public class ValidatorImpl implements Validator {
       }
     }
 
-    if (schema.contains("allOf")) {
+    if (schema.containsKey("allOf")) {
       final String keywordLocation = schemaLocation + "/allOf";
       final int errorsLength = errors.size();
       boolean allValid = true;
@@ -371,7 +380,7 @@ public class ValidatorImpl implements Validator {
         final Set<Object> subEvaluated = new HashSet<>(evaluated);
         final ValidationResult result = validate(
           instance,
-          wrap(schema.<JsonArray>get("allOf"), i),
+          wrap(schema.get("allOf"), i),
           draft,
           lookup,
           shortCircuit,
@@ -393,7 +402,7 @@ public class ValidatorImpl implements Validator {
       }
     }
 
-    if (schema.contains("oneOf")) {
+    if (schema.containsKey("oneOf")) {
       final String keywordLocation = schemaLocation + "/oneOf";
       final int errorsLength = errors.size();
       int matches = 0;
@@ -401,7 +410,7 @@ public class ValidatorImpl implements Validator {
         final Set<Object> subEvaluated = new HashSet<>(evaluated);
         final ValidationResult result = validate(
           instance,
-          wrap(schema.<JsonArray>get("oneOf"), i),
+          wrap(schema.get("oneOf"), i),
           draft,
           lookup,
           shortCircuit,
@@ -429,11 +438,11 @@ public class ValidatorImpl implements Validator {
       evaluated.addAll(subEvaluateds);
     }
 
-  if (schema.contains("if")) {
+  if (schema.containsKey("if")) {
     final String keywordLocation = schemaLocation + "/if";
     final ValidationResult conditionResult = validate(
       instance,
-      wrap(schema, "if"),
+      wrap((JsonObject) schema, "if"),
       draft,
       lookup,
       shortCircuit,
@@ -443,10 +452,10 @@ public class ValidatorImpl implements Validator {
       evaluated
     );
     if (conditionResult.valid()) {
-      if (schema.contains("then")) {
+      if (schema.containsKey("then")) {
         final ValidationResult thenResult = validate(
           instance,
-          wrap(schema, "then"),
+          wrap((JsonObject) schema, "then"),
           draft,
           lookup,
           shortCircuit,
@@ -460,10 +469,10 @@ public class ValidatorImpl implements Validator {
           errors.addAll(thenResult.errors());
         }
       }
-    } else if (schema.contains("else")) {
+    } else if (schema.containsKey("else")) {
       final ValidationResult elseResult = validate(
         instance,
-        wrap(schema, "else"),
+        wrap((JsonObject) schema, "else"),
         draft,
         lookup,
         shortCircuit,
@@ -480,7 +489,7 @@ public class ValidatorImpl implements Validator {
   }
 
   if ("object".equals(instanceType)) {
-    if (schema.contains("required")) {
+    if (schema.containsKey("required")) {
       for (final Object key : schema.<JsonArray>get("required")) {
         if (!((JsonObject) instance).containsKey((String) key)) {
           errors.add(new ErrorUnit(instanceLocation, "required", schemaLocation + "/required", "Instance does not have required property \"" + key + "\""));
@@ -490,21 +499,21 @@ public class ValidatorImpl implements Validator {
 
     final Set<String> keys = ((JsonObject) instance).fieldNames();
 
-    if (schema.contains("minProperties") && keys.size() < schema.<Integer>get("minProperties")) {
+    if (schema.containsKey("minProperties") && keys.size() < schema.<Integer>get("minProperties")) {
       errors.add(new ErrorUnit(instanceLocation, "minProperties", schemaLocation + "/minProperties", "Instance does not have at least " + schema.get("minProperties") + " properties"));
     }
 
-    if (schema.contains("maxProperties") && keys.size() > schema.<Integer>get("maxProperties")) {
+    if (schema.containsKey("maxProperties") && keys.size() > schema.<Integer>get("maxProperties")) {
       errors.add(new ErrorUnit(instanceLocation, "maxProperties", schemaLocation + "/maxProperties", "Instance does not have at least " + schema.get("maxProperties") + " properties"));
     }
 
-    if (schema.contains("propertyNames")) {
+    if (schema.containsKey("propertyNames")) {
       final String keywordLocation = schemaLocation + "/propertyNames";
       for (final String key : ((JsonObject) instance).fieldNames()) {
         final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
         final ValidationResult result = validate(
           key,
-          wrap(schema, "propertyNames"),
+          wrap((JsonObject) schema, "propertyNames"),
           draft,
           lookup,
           shortCircuit,
@@ -520,7 +529,7 @@ public class ValidatorImpl implements Validator {
       }
     }
 
-    if (schema.contains("dependentRequired")) {
+    if (schema.containsKey("dependentRequired")) {
       final String keywordLocation = schemaLocation + "/dependantRequired";
       for (final String key : schema.<JsonObject>get("dependentRequired").fieldNames()) {
         if (((JsonObject) instance).containsKey(key)) {
@@ -534,13 +543,13 @@ public class ValidatorImpl implements Validator {
       }
     }
 
-    if (schema.contains("dependentSchemas")) {
+    if (schema.containsKey("dependentSchemas")) {
       for (final String key : schema.<JsonObject>get("dependentSchemas").fieldNames()) {
         final String keywordLocation = schemaLocation + "/dependentSchemas";
         if (((JsonObject) instance).containsKey(key)) {
           final ValidationResult result = validate(
             instance,
-            wrap(schema.<JsonObject>get("dependentSchemas"), key),
+            wrap(schema.get("dependentSchemas"), key),
             draft,
             lookup,
             shortCircuit,
@@ -557,7 +566,7 @@ public class ValidatorImpl implements Validator {
       }
     }
 
-    if (schema.contains("dependencies")) {
+    if (schema.containsKey("dependencies")) {
       final String keywordLocation = schemaLocation + "/dependencies";
       for (final String key : schema.<JsonObject>get("dependencies").fieldNames()) {
         if (((JsonObject) instance).containsKey(key)) {
@@ -571,7 +580,7 @@ public class ValidatorImpl implements Validator {
           } else {
             final ValidationResult result = validate(
               instance,
-              wrap(schema.<JsonObject>get("dependencies"), key),
+              wrap(schema.get("dependencies"), key),
               draft,
               lookup,
               shortCircuit,
@@ -593,7 +602,7 @@ public class ValidatorImpl implements Validator {
 
     boolean stop = false;
 
-    if (schema.contains("properties")) {
+    if (schema.containsKey("properties")) {
       final String keywordLocation = schemaLocation + "/properties";
       for (final String key : schema.<JsonObject>get("properties").fieldNames()) {
         if (!((JsonObject) instance).containsKey(key)) {
@@ -602,7 +611,7 @@ public class ValidatorImpl implements Validator {
         final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
         final ValidationResult result = validate(
           ((JsonObject) instance).getValue(key),
-          wrap(schema.<JsonObject>get("properties"), key),
+          wrap(schema.get("properties"), key),
           draft,
           lookup,
           shortCircuit,
@@ -625,7 +634,7 @@ public class ValidatorImpl implements Validator {
       }
     }
 
-    if (!stop && schema.contains("patternProperties")) {
+    if (!stop && schema.containsKey("patternProperties")) {
       final String keywordLocation = schemaLocation + "/patternProperties";
       for (final String pattern : schema.<JsonObject>get("patternProperties").fieldNames()) {
         final Pattern regex = Pattern.compile(pattern);
@@ -636,7 +645,7 @@ public class ValidatorImpl implements Validator {
           final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
           final ValidationResult result = validate(
             ((JsonObject) instance).getValue(key),
-            wrap(schema.<JsonObject>get("patternProperties"), pattern),
+            wrap(schema.get("patternProperties"), pattern),
             draft,
             lookup,
             shortCircuit,
@@ -657,7 +666,7 @@ public class ValidatorImpl implements Validator {
       }
     }
 
-    if (!stop && schema.contains("additionalProperties")) {
+    if (!stop && schema.containsKey("additionalProperties")) {
       final String keywordLocation = schemaLocation + "/additionalProperties";
       for (final String key : ((JsonObject) instance).fieldNames()) {
         if (thisEvaluated.contains(key)) {
@@ -666,7 +675,7 @@ public class ValidatorImpl implements Validator {
         final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
         final ValidationResult result = validate(
           ((JsonObject) instance).getValue(key),
-          wrap(schema, "additionalProperties"),
+          wrap((JsonObject) schema, "additionalProperties"),
           draft,
           lookup,
           shortCircuit,
@@ -683,14 +692,14 @@ public class ValidatorImpl implements Validator {
           errors.addAll(result.errors());
         }
       }
-    } else if (!stop && schema.contains("unevaluatedProperties")) {
+    } else if (!stop && schema.containsKey("unevaluatedProperties")) {
       final String keywordLocation = schemaLocation + "/unevaluatedProperties";
       for (final String key : ((JsonObject) instance).fieldNames()) {
         if (!evaluated.contains(key)) {
           final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
           final ValidationResult result = validate(
             ((JsonObject) instance).getValue(key),
-            wrap(schema, "unevaluatedProperties"),
+            wrap((JsonObject) schema, "unevaluatedProperties"),
             draft,
             lookup,
             shortCircuit,
@@ -710,11 +719,11 @@ public class ValidatorImpl implements Validator {
     }
   }
   else if ("array".equals(instanceType)) {
-    if (schema.contains("maxItems") && ((JsonArray) instance).size() > schema.<Integer>get("maxItems")) {
+    if (schema.containsKey("maxItems") && ((JsonArray) instance).size() > schema.<Integer>get("maxItems")) {
       errors.add(new ErrorUnit(instanceLocation, "maxItems", schemaLocation + "/maxItems", "Array has too many items ( + " + ((JsonArray) instance).size() + " > " + schema.get("maxItems") + ")"));
     }
 
-    if (schema.contains("minItems") && ((JsonArray) instance).size() < schema.<Integer>get("minItems")) {
+    if (schema.containsKey("minItems") && ((JsonArray) instance).size() < schema.<Integer>get("minItems")) {
       errors.add(new ErrorUnit(instanceLocation, "minItems", schemaLocation + "/minItems", "Array has too few items ( + " + ((JsonArray) instance).size() + " < " + schema.get("minItems") + ")"));
     }
 
@@ -722,13 +731,13 @@ public class ValidatorImpl implements Validator {
     int i = 0;
     boolean stop = false;
 
-    if (schema.contains("prefixItems")) {
+    if (schema.containsKey("prefixItems")) {
       final String keywordLocation = schemaLocation + "/prefixItems";
       final int length2 = Math.min(schema.<JsonArray>get("prefixItems").size(), length);
       for (; i < length2; i++) {
         final ValidationResult result = validate(
           ((JsonArray) instance).getValue(i),
-          wrap(schema.<JsonArray>get("prefixItems"), i),
+          wrap(schema.get("prefixItems"), i),
           draft,
           lookup,
           shortCircuit,
@@ -749,14 +758,14 @@ public class ValidatorImpl implements Validator {
       }
     }
 
-    if (schema.contains("items")) {
+    if (schema.containsKey("items")) {
       final String keywordLocation = schemaLocation + "/items";
       if (schema.get("items") instanceof JsonArray) {
         final int length2 = Math.min(schema.<JsonArray>get("items").size(), length);
         for (; i < length2; i++) {
           final ValidationResult result = validate(
             ((JsonArray) instance).getValue(i),
-            wrap(schema.<JsonArray>get("items"), i),
+            wrap(schema.get("items"), i),
             draft,
             lookup,
             shortCircuit,
@@ -779,7 +788,7 @@ public class ValidatorImpl implements Validator {
         for (; i < length; i++) {
           final ValidationResult result = validate(
             ((JsonArray) instance).getValue(i),
-            wrap(schema, "items"),
+            wrap((JsonObject) schema, "items"),
             draft,
             lookup,
             shortCircuit,
@@ -800,12 +809,12 @@ public class ValidatorImpl implements Validator {
         }
       }
 
-      if (!stop && schema.contains("additionalItems")) {
+      if (!stop && schema.containsKey("additionalItems")) {
         final String keywordLocation2 = schemaLocation + "/additionalItems";
         for (; i < length; i++) {
           final ValidationResult result = validate(
             ((JsonArray) instance).getValue(i),
-            wrap(schema, "additionalItems"),
+            wrap((JsonObject) schema, "additionalItems"),
             draft,
             lookup,
             shortCircuit,
@@ -824,10 +833,10 @@ public class ValidatorImpl implements Validator {
       }
     }
 
-    if (schema.contains("contains")) {
-      if (length == 0 && !schema.contains("minContains")) {
+    if (schema.containsKey("contains")) {
+      if (length == 0 && !schema.containsKey("minContains")) {
         errors.add(new ErrorUnit(instanceLocation, "contains", schemaLocation + "/contains", "Array is empty. It must contain at least one item matching the schema"));
-      } else if (schema.contains("minContains") && length < schema.<Integer>get("minContains")) {
+      } else if (schema.containsKey("minContains") && length < schema.<Integer>get("minContains")) {
         errors.add(new ErrorUnit(instanceLocation, "minContains", schemaLocation + "/minContains", "Array has less items (" + length + ") than minContains (" + schema.get("minContains") + ")"));
       } else {
         final String keywordLocation = schemaLocation + "/contains";
@@ -836,7 +845,7 @@ public class ValidatorImpl implements Validator {
         for (int j = 0; j < length; j++) {
           final ValidationResult result = validate(
             ((JsonArray) instance).getValue(j),
-            wrap(schema, "contains"),
+            wrap((JsonObject) schema, "contains"),
             draft,
             lookup,
             shortCircuit,
@@ -858,20 +867,20 @@ public class ValidatorImpl implements Validator {
         }
 
         if (
-          !schema.contains("minContains") &&
-          !schema.contains("maxContains") &&
+          !schema.containsKey("minContains") &&
+          !schema.containsKey("maxContains") &&
           contained == 0
         ) {
           errors.add(errorsLength, new ErrorUnit(instanceLocation, "contains", keywordLocation, "Array does not contain item matching schema"));
-        } else if (schema.contains("minContains") && contained < schema.<Integer>get("minContains")) {
+        } else if (schema.containsKey("minContains") && contained < schema.<Integer>get("minContains")) {
           errors.add(new ErrorUnit(instanceLocation, "minContains", keywordLocation + "/minContains", "Array must contain at least " + schema.get("minContains") + " items matching schema. Only " + contained + " items were found"));
-        } else if (schema.contains("maxContains") && contained > schema.<Integer>get("maxContains")) {
+        } else if (schema.containsKey("maxContains") && contained > schema.<Integer>get("maxContains")) {
           errors.add(new ErrorUnit(instanceLocation, "maxContains", keywordLocation + "/maxContains", "Array may contain at most " + schema.get("minContains") + " items matching schema. " + contained + " items were found"));
         }
       }
     }
 
-    if (!stop && schema.contains("unevaluatedItems")) {
+    if (!stop && schema.containsKey("unevaluatedItems")) {
       final String keywordLocation = schemaLocation + "/unevaluatedItems";
       for (; i < length; i++) {
         if (evaluated.contains(i)) {
@@ -879,7 +888,7 @@ public class ValidatorImpl implements Validator {
         }
         final ValidationResult result = validate(
           ((JsonArray) instance).getValue(i),
-          wrap(schema, "unevaluatedItems"),
+          wrap((JsonObject) schema, "unevaluatedItems"),
           draft,
           lookup,
           shortCircuit,
@@ -896,7 +905,7 @@ public class ValidatorImpl implements Validator {
       }
     }
 
-    if (schema.contains("uniqueItems") && Utils.Objects.truthy(schema.get("uniqueItems"))) {
+    if (schema.containsKey("uniqueItems") && Utils.Objects.truthy(schema.get("uniqueItems"))) {
       outer: for (int j = 0; j < length; j++) {
         final Object a = ((JsonArray) instance).getValue(j);
         final boolean ao = "object".equals(JSON.typeOf(a)) && a != null;
@@ -917,34 +926,34 @@ public class ValidatorImpl implements Validator {
   else if ("number".equals(instanceType)) {
     if (draft == Draft.DRAFT4) {
       if (
-        schema.contains("minimum") &&
+        schema.containsKey("minimum") &&
         ((schema.<Boolean>get("exclusiveMinimum", false) && Numbers.lte((Number) instance, schema.get("minimum"))) ||
           Numbers.lt((Number) instance, schema.get("minimum")))
       ) {
         errors.add(new ErrorUnit(instanceLocation, "minimum", schemaLocation + "/minimum", instance + " is less than " + (schema.<Boolean>get("exclusiveMinimum", false) ? "or equal to " : "") + schema.get("minimum")));
       }
       if (
-        schema.contains("maximum") &&
+        schema.containsKey("maximum") &&
         ((schema.<Boolean>get("exclusiveMaximum", false) && Numbers.gte((Number) instance, schema.get("maximum"))) ||
           Numbers.gt((Number) instance, schema.get("maximum")))
       ) {
         errors.add(new ErrorUnit(instanceLocation, "maximum", schemaLocation + "/maximum", instance + " is greater than " + (schema.<Boolean>get("exclusiveMaximum", false) ? "or equal to " : "") + schema.get("maximum")));
       }
     } else {
-      if (schema.contains("minimum") && Numbers.lt((Number) instance, schema.get("minimum"))) {
+      if (schema.containsKey("minimum") && Numbers.lt((Number) instance, schema.get("minimum"))) {
         errors.add(new ErrorUnit(instanceLocation, "minimum", schemaLocation + "/minimum", instance + " is less than " + schema.get("minimum")));
       }
-      if (schema.contains("maximum") && Numbers.gt((Number) instance, schema.get("maximum"))) {
+      if (schema.containsKey("maximum") && Numbers.gt((Number) instance, schema.get("maximum"))) {
         errors.add(new ErrorUnit(instanceLocation, "maximum", schemaLocation + "/maximum", instance + " is greater than " + schema.get("maximum")));
       }
-      if (schema.contains("exclusiveMinimum") && Numbers.lte((Number) instance, schema.get("exclusiveMinimum"))) {
+      if (schema.containsKey("exclusiveMinimum") && Numbers.lte((Number) instance, schema.get("exclusiveMinimum"))) {
         errors.add(new ErrorUnit(instanceLocation, "exclusiveMinimum", schemaLocation + "/exclusiveMinimum", instance + " is less than or equal to " + schema.get("exclusiveMinimum")));
       }
-      if (schema.contains("exclusiveMaximum") && Numbers.gte((Number) instance, schema.get("exclusiveMaximum"))) {
+      if (schema.containsKey("exclusiveMaximum") && Numbers.gte((Number) instance, schema.get("exclusiveMaximum"))) {
         errors.add(new ErrorUnit(instanceLocation, "exclusiveMaximum", schemaLocation + "/exclusiveMaximum", instance + " is greater than or equal to " + schema.get("exclusiveMaximum")));
       }
     }
-    if (schema.contains("multipleOf")) {
+    if (schema.containsKey("multipleOf")) {
       final double remainder = Numbers.remainder((Number) instance, schema.get("multipleOf"));
       if (
         Math.abs(0 - remainder) >= 1.1920929e-7 &&
@@ -956,20 +965,20 @@ public class ValidatorImpl implements Validator {
   }
   else if ("string".equals(instanceType)) {
     final int length =
-      !schema.contains("minLength") && !schema.contains("maxLength")
+      !schema.containsKey("minLength") && !schema.containsKey("maxLength")
         ? 0
         : Strings.ucs2length((String) instance);
-    if (schema.contains("minLength") && Numbers.lt(length, schema.get("minLength"))) {
+    if (schema.containsKey("minLength") && Numbers.lt(length, schema.get("minLength"))) {
       errors.add(new ErrorUnit(instanceLocation, "minLength", schemaLocation + "/minLength", "String is too short (" + length + " < " + schema.get("minLength") + ")"));
     }
-    if (schema.contains("maxLength") && Numbers.gt(length, schema.get("maxLength"))) {
+    if (schema.containsKey("maxLength") && Numbers.gt(length, schema.get("maxLength"))) {
       errors.add(new ErrorUnit(instanceLocation, "maxLength", schemaLocation + "/maxLength", "String is too long (" + length + " > " + schema.get("maxLength") + ")"));
     }
-    if (schema.contains("pattern") && !Pattern.compile(schema.get("pattern")).matcher((String) instance).find()) {
+    if (schema.containsKey("pattern") && !Pattern.compile(schema.get("pattern")).matcher((String) instance).find()) {
       errors.add(new ErrorUnit(instanceLocation, "pattern", schemaLocation + "/pattern", "String does not match pattern"));
     }
     if (
-      schema.contains("format") &&
+      schema.containsKey("format") &&
       !Format.fastFormat(schema.get("format"), (String) instance)
     ) {
       errors.add(new ErrorUnit(instanceLocation, "format", schemaLocation + "/format", "String does not match format \"" + schema.get("format") + "\""));

@@ -4,17 +4,15 @@ import io.vertx.json.schema.validator.Schema;
 
 import java.util.Set;
 
-public class BooleanSchema implements Schema<Boolean> {
+public class BooleanSchema implements Schema {
+
+  public static final Schema TRUE = new BooleanSchema(true);
+  public static final Schema FALSE = new BooleanSchema(false);
 
   private final boolean bool;
 
-  public BooleanSchema(boolean bool) {
+  private BooleanSchema(boolean bool) {
     this.bool = bool;
-  }
-
-  @Override
-  public Boolean unwrap() {
-    return bool;
   }
 
   @Override
@@ -33,12 +31,12 @@ public class BooleanSchema implements Schema<Boolean> {
   }
 
   @Override
-  public boolean contains(String key) {
+  public boolean containsKey(String key) {
     throw new UnsupportedOperationException("This schema doesn't support contains(String)");
   }
 
   @Override
-  public Set<String> keys() {
+  public Set<String> fieldNames() {
     throw new UnsupportedOperationException("This schema doesn't support keys()");
   }
 

@@ -6,9 +6,6 @@ import io.vertx.json.schema.validator.Schema;
 
 public abstract class AbstractSchema {
 
-  private static final Schema<Boolean> TRUE_SCHEMA = new BooleanSchema(true);
-  private static final Schema<Boolean> FALSE_SCHEMA = new BooleanSchema(false);
-
   @SuppressWarnings("unchecked")
   public static <R> R wrap(JsonObject object, String key) {
     Object value = object.getValue(key);
@@ -18,22 +15,17 @@ public abstract class AbstractSchema {
     }
 
     if (value instanceof Boolean) {
-      Schema<?> schema = wrap((Boolean) value);
-      object.put(key, schema);
+      Schema schema = wrap((Boolean) value);
       return (R) schema;
     }
 
     if (value instanceof JsonObject) {
-      Schema<?> schema = wrap((JsonObject) value);
+      Schema schema = wrap((JsonObject) value);
       object.put(key, schema);
       return (R) schema;
     }
 
     return (R) value;
-  }
-
-  public static <R> R wrap(Schema<?> schema, String key) {
-    return wrap(((JsonSchema) schema).unwrap(), key);
   }
 
   @SuppressWarnings("unchecked")
@@ -45,13 +37,12 @@ public abstract class AbstractSchema {
     }
 
     if (value instanceof Boolean) {
-      Schema<?> schema = wrap((Boolean) value);
-      array.set(index, schema);
+      Schema schema = wrap((Boolean) value);
       return (R) schema;
     }
 
     if (value instanceof JsonObject) {
-      Schema<?> schema = wrap((JsonObject) value);
+      Schema schema = wrap((JsonObject) value);
       array.set(index, schema);
       return (R) schema;
     }
@@ -59,13 +50,13 @@ public abstract class AbstractSchema {
     return (R) value;
   }
 
-  public static Schema<Boolean> wrap(Boolean value) {
+  public static Schema wrap(Boolean value) {
     return value ?
-      TRUE_SCHEMA :
-      FALSE_SCHEMA;
+      BooleanSchema.TRUE :
+      BooleanSchema.FALSE;
   }
 
-  public static Schema<JsonObject> wrap(JsonObject value) {
+  public static Schema wrap(JsonObject value) {
     return new JsonSchema(value);
   }
 }

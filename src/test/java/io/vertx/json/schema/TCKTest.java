@@ -30,8 +30,8 @@ public class TCKTest {
   private static final Properties UNSUPPORTED = new Properties();
   private static final JsonObject TCK;
 
-  private static final Map<String, io.vertx.json.schema.validator.Schema<?>> remotesLookup = new HashMap<>();
-  private static final Map<String, io.vertx.json.schema.validator.Schema<?>> metaLookup = new HashMap<>();
+  private static final Map<String, io.vertx.json.schema.validator.Schema> remotesLookup = new HashMap<>();
+  private static final Map<String, io.vertx.json.schema.validator.Schema> metaLookup = new HashMap<>();
 
   static {
     try {
@@ -119,10 +119,10 @@ public class TCKTest {
   public void test(Draft draft, String suiteName, String suiteDescription, String testDescription, JsonObject value, JsonObject test) {
     final boolean unsupported = UNSUPPORTED.containsKey(suiteName + "/" + suiteDescription + "/" + testDescription);
 
-    final Schema<?> schema = AbstractSchema.wrap(value, "schema");
-    final Map<String, io.vertx.json.schema.validator.Schema<?>> schemaLookup = ValidatorImpl.dereference(schema, new HashMap<>(), new URL("https://vertx.io"), "");
+    final Schema schema = AbstractSchema.wrap(value, "schema");
+    final Map<String, io.vertx.json.schema.validator.Schema> schemaLookup = ValidatorImpl.dereference(schema, new HashMap<>(), new URL("https://vertx.io"), "");
 
-    final Map<String, io.vertx.json.schema.validator.Schema<?>> lookup = new HashMap<>();
+    final Map<String, io.vertx.json.schema.validator.Schema> lookup = new HashMap<>();
 
     lookup.putAll(metaLookup);
     lookup.putAll(remotesLookup);

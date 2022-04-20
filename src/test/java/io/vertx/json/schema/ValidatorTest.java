@@ -56,8 +56,8 @@ public class ValidatorTest {
 
     validator.addSchema(Schema.fromJson(
         new JsonObject()
-          .put("type", "boolean")),
-      "https://foo.bar/beep");
+          .put("$id", "https://foo.bar/beep")
+          .put("type", "boolean")));
 
     assertThat(validator.validate(true).valid())
       .isEqualTo(true);
@@ -129,7 +129,8 @@ public class ValidatorTest {
         .setShortCircuit(false)
         .setBaseUri("https://github.com/cfworker"));
 
-    validator.addRemoteSchema(
+    validator.addSchema(
+      "http://json-schema.org/draft-04/schema",
       Schema.fromJson(new JsonObject("{\n" +
         "    \"id\": \"http://json-schema.org/draft-04/schema#\",\n" +
         "    \"$schema\": \"http://json-schema.org/draft-04/schema#\",\n" +
@@ -278,8 +279,7 @@ public class ValidatorTest {
         "        \"exclusiveMinimum\": [ \"minimum\" ]\n" +
         "    },\n" +
         "    \"default\": {}\n" +
-        "}\n")),
-      "http://json-schema.org/draft-04/schema");
+        "}\n")));
 
     final ValidationResult res = validator.validate(
       new JsonObject("{\"definitions\":{\"foo\":{\"type\":\"integer\"}}}"));
@@ -299,7 +299,8 @@ public class ValidatorTest {
         .setShortCircuit(false)
         .setBaseUri("https://github.com/cfworker"));
 
-    validator.addRemoteSchema(
+    validator.addSchema(
+      "http://json-schema.org/draft-04/schema",
       Schema.fromJson(new JsonObject("{\n" +
         "    \"id\": \"http://json-schema.org/draft-04/schema#\",\n" +
         "    \"$schema\": \"http://json-schema.org/draft-04/schema#\",\n" +
@@ -448,8 +449,7 @@ public class ValidatorTest {
         "        \"exclusiveMinimum\": [ \"minimum\" ]\n" +
         "    },\n" +
         "    \"default\": {}\n" +
-        "}\n")),
-      "http://json-schema.org/draft-04/schema");
+        "}\n")));
 
     final ValidationResult res = validator.validate(
       new JsonObject("{\"definitions\":{\"foo\":{\"type\":\"integer\"}}}"));

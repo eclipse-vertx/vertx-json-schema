@@ -7,24 +7,22 @@ import io.vertx.json.schema.validator.impl.AbstractSchema;
 import java.util.Set;
 
 @VertxGen
-public interface Schema<T> {
+public interface Schema {
 
-  static Schema<JsonObject> fromJson(JsonObject json) {
+  static Schema fromJson(JsonObject json) {
     return AbstractSchema.wrap(json);
   }
 
-  static Schema<Boolean> fromBoolean(boolean bool) {
+  static Schema fromBoolean(boolean bool) {
     return AbstractSchema.wrap(bool);
   }
-
-  T unwrap();
 
   void annotate(String key, String value);
 
   <R> R get(String key);
   <R> R get(String key, R fallback);
 
-  boolean contains(String key);
+  boolean containsKey(String key);
 
-  Set<String> keys();
+  Set<String> fieldNames();
 }
