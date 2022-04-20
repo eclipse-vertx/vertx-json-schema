@@ -114,12 +114,19 @@ class URLTest {
   @Test
   public void testMergeRelativeDomain() {
     assertThat(new URL("//foo.com", "https://example.com").href())
-      .isEqualTo("https://foo.com");              // (see relative URLs)
+      .isEqualTo("https://foo.com/");              // (see relative URLs)
   }
 
   @Test
   public void testQuotes() {
     assertThat(new URL("#/definitions/foo%22bar", "https://github.com/cfworker").href())
       .isEqualTo("https://github.com/cfworker#/definitions/foo%22bar");              // (see relative URLs)
+  }
+
+  @Test
+  public void testRelativePathContext() {
+    assertThat(new URL("folderIntegration.json", "http://localhost:1234/baseUriChange/").href())
+      .isEqualTo("http://localhost:1234/baseUriChange/folderIntegration.json");              // (see relative URLs)
+
   }
 }

@@ -101,10 +101,10 @@ public class ValidatorImpl implements Validator {
       final String id = schema.get("$id", schema.get("id"));
       if (Utils.Objects.truthy(id)) {
         final URL url = new URL(id, baseURI.href());
-        if (url.getHash().length() > 1) {
+        if (url.fragment().length() > 1) {
           lookup.put(url.href(), schema);
         } else {
-          url.setHash(""); // normalize hash https://url.spec.whatwg.org/#dom-url-hash
+          url.anchor(""); // normalize hash https://url.spec.whatwg.org/#dom-url-hash
           if ("".equals(basePointer)) {
             baseURI = url;
           } else {
@@ -136,14 +136,14 @@ public class ValidatorImpl implements Validator {
     // if a $ref is found, resolve it's absolute URI.
     if (schema.contains("$ref") && !schema.contains("__absolute_ref__")) {
       final URL url = new URL(schema.get("$ref"), baseURI.href());
-      url.setHash(url.getHash()); // normalize hash https://url.spec.whatwg.org/#dom-url-hash
+      url.anchor(url.fragment()); // normalize hash https://url.spec.whatwg.org/#dom-url-hash
       schema.annotate("__absolute_ref__", url.href());
     }
 
     // if a $recursiveRef is found, resolve it's absolute URI.
     if (schema.contains("$recursiveRef") && !schema.contains("__absolute_recursive_ref__")) {
       final URL url = new URL(schema.get("$recursiveRef"), baseURI.href());
-      url.setHash(url.getHash()); // normalize hash https://url.spec.whatwg.org/#dom-url-hash
+      url.anchor(url.fragment()); // normalize hash https://url.spec.whatwg.org/#dom-url-hash
       schema.annotate("__absolute_recursive_ref__", url.href());
     }
 

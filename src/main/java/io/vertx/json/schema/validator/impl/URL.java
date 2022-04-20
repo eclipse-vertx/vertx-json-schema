@@ -1,74 +1,86 @@
 package io.vertx.json.schema.validator.impl;
 
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+/**
+ * This class provides a simple URL split/merge functionality similar to MDN URL which behavior is required for resolving
+ * references in json-schema.org
+ */
 public class URL {
 
-  //  protocol: "https:"
-  private String protocol;
-  //  hostname: "www.example.com"
-  private String userInfo;
-  private String hostname;
-  //  port: "8080"
-  private int port = -1;
-  //  pathname: "/"
-  private String pathname;
-  //  search: "?fr=yset_ie_syc_oracle&type=orcl_hpset"
-  private String search;
+  private static final Pattern URL_PATTERN = Pattern.compile("^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?");
+
+  //  protocol: "https"
+  private String scheme;
+  //  hostname: "www.example.com:8080"
+  private String authority;
+  private String path;
+  //  query: "?fr=yset_ie_syc_oracle&type=orcl_hpset"
+  private String query;
   //  hash: "page0"
-  private String hash;
+  private String fragment;
 
   public URL(String url) {
     this(url, true);
   }
 
   private URL(String url, boolean strict) {
-    try {
-      if (strict) {
-        java.net.URL _url = new java.net.URL(url);
-
-        this.protocol = _url.getProtocol();
-        if (this.protocol == null) {
-          throw new RuntimeException(url + " is not a valid URL");
-        }
-        this.hostname = _url.getHost();
-        if (this.hostname == null) {
-          if (!"file".equals(this.protocol)) {
-            throw new RuntimeException(url + " is not a valid URL");
-          }
-        }
-        this.userInfo = _url.getUserInfo();
-        this.port = _url.getPort();
-        this.pathname = _url.getPath();
-        this.search = _url.getQuery();
-        this.hash = _url.getRef();
+    if (strict) {
+      if (url == null) {
+        throw new NullPointerException("Url isn't valid: null");
+      }
+      Matcher matcher = URL_PATTERN.matcher(escape(url));
+      if (matcher.matches()) {
+        scheme = matcher.group(2);
+        authority = matcher.group(4);
+        path = matcher.group(5);
+        query = matcher.group(7);
+        fragment = matcher.group(9);
       } else {
-        if (url != null && url.length() > 0) {
-          java.net.URI _url = new java.net.URI(url);
+        throw new IllegalArgumentException("Url isn't valid: " + url);
+      }
 
-          this.protocol = _url.getScheme();
-          this.hostname = _url.getHost();
-          this.userInfo = _url.getUserInfo();
-          this.port = _url.getPort();
-          this.pathname = _url.getPath();
-          // no path, should be handled as a "null" if no protocol
-          if ("".equals(this.pathname)) {
-            if (this.protocol == null) {
-              this.pathname = null;
-            }
-          }
-          if (this.pathname != null && this.pathname.length() > 0 && this.pathname.charAt(0) != '/') {
-            this.pathname = "/" + pathname;
-          }
-          this.search = _url.getQuery();
-          this.hash = _url.getFragment();
+      if (scheme == null) {
+        throw new IllegalStateException("(strict) url isn't valid: " + url);
+      }
+
+      if (authority == null) {
+        if (!"file".equals(scheme)) {
+          throw new IllegalStateException("(strict) url isn't valid: " + url);
         }
       }
-    } catch (MalformedURLException | URISyntaxException e) {
-      throw new RuntimeException(e);
+
+      if (authority != null) {
+        // normalize
+        if (path != null && !path.startsWith("/")) {
+          path = "/" + path;
+        }
+      }
+
+      } else {
+      if (url != null && url.length() > 0) {
+        Matcher matcher = URL_PATTERN.matcher(escape(url));
+        if (matcher.matches()) {
+          scheme = matcher.group(2);
+          authority = matcher.group(4);
+          path = matcher.group(5);
+          query = matcher.group(7);
+          fragment = matcher.group(9);
+        }
+      }
+    }
+
+    if (authority == null) {
+      // relative url
+      if ("".equals(path)) {
+        // normalize
+        if (query != null || fragment != null) {
+          path = null;
+        }
+      }
     }
   }
 
@@ -78,208 +90,131 @@ public class URL {
 
   public URL(String url, URL base) {
     URL uri = new URL(url, base == null);
-
+    // set the context
     if (base != null) {
-      this.protocol = base.protocol;
-      this.hostname = base.hostname;
-      this.port = base.port;
-      this.pathname = base.pathname;
-      this.search = base.search;
-      this.hash = base.hash;
+      this.scheme = base.scheme;
+      this.authority = base.authority;
+      this.path = base.path;
+      this.query = base.query;
+      this.fragment = base.fragment;
     }
-
-    if (uri.protocol != null) {
-      this.protocol = uri.protocol;
-      this.hostname = null;
-      this.port = -1;
-      this.pathname = null;
-      this.search = null;
-      this.hash = null;
+    // start merging
+    if (uri.scheme != null) {
+      this.scheme = uri.scheme;
+      // reset lower
+      this.authority = null;
+      this.path = null;
+      this.query = null;
+      this.fragment = null;
     }
-    if (uri.hostname != null) {
-      this.hostname = uri.hostname;
-      this.port = -1;
-      this.pathname = null;
-      this.search = null;
-      this.hash = null;
+    if (uri.authority != null) {
+      this.authority = uri.authority;
+      // reset lower (authority isn't null, default to "/")
+      this.path = "/";
+      this.query = null;
+      this.fragment = null;
     }
-    if (uri.port != -1) {
-      this.port = uri.port;
-      this.pathname = null;
-      this.search = null;
-      this.hash = null;
-    }
-    if (uri.pathname != null) {
-      this.pathname = uri.pathname;
-      this.search = null;
-      this.hash = null;
-    }
-    if (uri.search != null) {
-      this.search = uri.search;
-      this.hash = null;
-    }
-    if (uri.hash != null) {
-      this.hash = uri.hash;
-    }
-  }
-
-  public String getProtocol() {
-    if (protocol == null) {
-      return "";
-    }
-    return protocol + ":";
-  }
-
-  public URL setProtocol(String protocol) {
-    if (protocol != null) {
-      if (protocol.length() == 0) {
-        protocol = null;
-      }
-    }
-    this.protocol = protocol;
-    return this;
-  }
-
-  public String getUserInfo() {
-    if (userInfo == null) {
-      return "";
-    }
-    return userInfo;
-  }
-
-  public URL setUserInfo(String userInfo) {
-    if (userInfo != null) {
-      if (userInfo.length() == 0) {
-        userInfo = null;
-      }
-    }
-    this.userInfo = userInfo;
-    return this;
-  }
-
-  public String getHostname() {
-    if (hostname == null) {
-      return "";
-    }
-    return hostname;
-  }
-
-  public URL setHostname(String hostname) {
-    if (hostname != null) {
-      if (hostname.length() == 0) {
-        hostname = null;
-      }
-    }
-    this.hostname = hostname;
-    return this;
-  }
-
-  public int getPort() {
-    return port;
-  }
-
-  public URL setPort(int port) {
-    this.port = port;
-    return this;
-  }
-
-  public String getPathname() {
-    if (pathname == null) {
-      return "";
-    }
-    if (pathname.length() == 0) {
-      return "/";
-    }
-    return pathname;
-  }
-  private URL setPathname(String pathname) {
-    if (pathname != null) {
-      if (pathname.length() == 0) {
-        pathname = null;
+    if (uri.path != null) {
+      if (uri.path.startsWith("/")) {
+        this.path = uri.path;
       } else {
-        if (!pathname.startsWith("/")) {
-          pathname = "/" + pathname;
+        // relative path requires a path merge if current path is already set
+        if (this.path != null) {
+          int sep = this.path.lastIndexOf('/');
+          if (sep != -1) {
+            this.path = this.path.substring(0, sep + 1) + uri.path;
+          } else {
+            // no path set yet
+            if (this.authority != null) {
+              this.path = "/" + uri.path;
+            } else {
+              this.path = uri.path;
+            }
+          }
+        } else {
+          this.path = uri.path;
         }
       }
+      // reset lower
+      this.query = null;
+      this.fragment = null;
     }
-    this.pathname = pathname;
-    this.search = null;
-    this.hash = null;
-    return this;
+    if (uri.query != null) {
+      this.query = uri.query;
+      // reset lower
+      this.fragment = null;
+    }
+    if (uri.fragment != null) {
+      this.fragment = uri.fragment;
+    }
   }
 
-  public String getSearch() {
-    if (search == null || search.length() == 0) {
+  public String scheme() {
+    if (scheme == null || scheme.length() == 0) {
       return "";
     }
-    return "?" + search;
+    return scheme + ":";
   }
 
-  public URL setSearch(String search) {
-    if (search != null) {
-      if (search.length() == 0) {
-        search = null;
-      } else {
-        if (search.startsWith("?")) {
-          search = search.substring(1);
-        }
-      }
-    }
-    this.search = search;
-    this.hash = null;
-    return this;
-  }
-
-  public String getHash() {
-    if (hash == null || hash.length() == 0) {
+  public String authority() {
+    if (authority == null || authority.length() == 0) {
       return "";
     }
-    return "#" + hash;
+    return authority;
   }
 
-  public URL setHash(String hash) {
-    if (hash != null) {
-      if (hash.length() == 0) {
-        hash = null;
+  public String path() {
+    if (path == null || path.length() == 0) {
+      return "";
+    }
+
+    return path;
+  }
+
+  public String query() {
+    if (query == null || query.length() == 0) {
+      return "";
+    }
+    return "?" + query;
+  }
+
+  public String fragment() {
+    if (fragment == null || fragment.length() == 0) {
+      return "";
+    }
+    return "#" + fragment;
+  }
+
+  public URL anchor(String fragment) {
+    if (fragment != null) {
+      if (fragment.length() == 0) {
+        fragment = null;
       } else {
         // https://url.spec.whatwg.org/#dom-url-hash
-        if (hash.startsWith("#")) {
-          hash = hash.substring(1);
+        if (fragment.startsWith("#")) {
+          fragment = fragment.substring(1);
+        }
+        if (fragment.length() > 0) {
+          fragment = escape(fragment);
         }
       }
     }
-    this.hash = hash;
+    this.fragment = fragment;
     return this;
-  }
-
-  // synthetic values
-
-  //  host: "www.example.com:8080"
-  public String getHost() {
-    if (getPort() != -1) {
-      return getHostname() + ":" + getPort();
-    } else {
-      return getHostname();
-    }
   }
 
   public String href() {
     return
-        // protocol
-        (protocol == null || protocol.length() == 0 ? "" : protocol + ":") +
-          "//" +
-          // userinfo
-          (userInfo == null ? "" : userInfo) +
-          // host
-          (hostname == null ? "" : hostname) +
-          // port
-          (port == -1 ? "" : (":" + port)) +
-          // path
-          (pathname == null ? "" : pathname.length() == 0 ? "/" : encode(pathname)) +
-          // search
-          (search == null ? "" : "?" + encode(search)) +
-          // hash
-          (hash == null ? "" : "#" + encode(hash));
+      // scheme
+      (scheme == null || scheme.length() == 0 ? "" : scheme + "://") +
+        // authority
+        (authority == null ? "" : authority) +
+        // path
+        (path == null ? "" : path) +
+        // query
+        (query == null ? "" : "?" + query) +
+        // fragment
+        (fragment == null ? "" : "#" + fragment);
   }
 
   private static final String genDelims = ":?#@/"; // except []
@@ -287,7 +222,7 @@ public class URL {
   private static final String unreserved = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._~";
   private static final String okChars = genDelims + subDelims + unreserved + "%"; // don't double-escape %-escaped chars!
 
-  private static String encode(String p) {
+  private static String escape(String p) {
 
     StringBuilder encoded = new StringBuilder(p.length());
 

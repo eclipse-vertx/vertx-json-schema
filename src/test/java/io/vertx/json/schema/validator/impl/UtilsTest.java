@@ -29,5 +29,8 @@ class UtilsTest {
 
     assertThat(Utils.Pointers.encode("^\uD83D\uDC32*$"))
       .isEqualTo("%5E%F0%9F%90%B2*$");
+
+    assertThat(Utils.Pointers.encode("percent%field"))
+      .isEqualTo("percent%25field");
   }
 }

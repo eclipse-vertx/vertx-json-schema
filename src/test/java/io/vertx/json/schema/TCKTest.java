@@ -140,10 +140,11 @@ public class TCKTest {
         } else {
           fail(testDescription);
         }
-//      } else {
-//        if (unsupported) {
+      } else {
+        if (unsupported) {
+          fail("Test should be marked as supported : " + suiteName + "/" + suiteDescription + "/" + testDescription);
 //          UNSUPPORTED.remove(suiteName + "/" + suiteDescription + "/" + testDescription);
-//        }
+        }
       }
     } catch (IllegalStateException e) {
       if (test.getBoolean("valid", false)) {
