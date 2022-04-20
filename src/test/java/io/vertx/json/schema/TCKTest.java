@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TCKTest {
 
-  private static final JsonObject UNSUPPORTED;
+  private static final Properties UNSUPPORTED = new Properties();
   private static final JsonObject TCK;
 
   private static final Map<String, io.vertx.json.schema.validator.Schema<?>> remotesLookup = new HashMap<>();
@@ -35,7 +35,7 @@ public class TCKTest {
 
   static {
     try {
-      UNSUPPORTED = new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", "test", "resources", "unsupported-tck-tests.json"))));
+      UNSUPPORTED.load(TCKTest.class.getResourceAsStream("/unsupported-tck-tests.properties"));
       TCK = new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", "test", "resources", "test-suite-tck.json"))));
 
       // load the remotes
@@ -117,7 +117,7 @@ public class TCKTest {
   @ParameterizedTest(name = "{1}/{2}/{3}")
   @MethodSource("buildParameters")
   public void test(Draft draft, String suiteName, String suiteDescription, String testDescription, JsonObject value, JsonObject test) {
-    final boolean unsupported = isUnsupportedTest(suiteName, suiteDescription, testDescription);
+    final boolean unsupported = UNSUPPORTED.containsKey(suiteName + "/" + suiteDescription + "/" + testDescription);
 
     final Schema<?> schema = AbstractSchema.wrap(value, "schema");
     final Map<String, io.vertx.json.schema.validator.Schema<?>> schemaLookup = ValidatorImpl.dereference(schema, new HashMap<>(), new URL("https://vertx.io"), "");
@@ -140,6 +140,10 @@ public class TCKTest {
         } else {
           fail(testDescription);
         }
+//      } else {
+//        if (unsupported) {
+//          UNSUPPORTED.remove(suiteName + "/" + suiteDescription + "/" + testDescription);
+//        }
       }
     } catch (IllegalStateException e) {
       if (test.getBoolean("valid", false)) {
@@ -152,15 +156,9 @@ public class TCKTest {
       }
     }
   }
-
-  private static boolean isUnsupportedTest(String suiteName, String suiteDescription, String testDescription) {
-    if (UNSUPPORTED.containsKey(suiteName)) {
-      JsonObject sub = UNSUPPORTED.getJsonObject(suiteName);
-      if (sub.containsKey(suiteDescription)) {
-        JsonObject sub2 = sub.getJsonObject(suiteDescription);
-        return sub2.containsKey(testDescription);
-      }
-    }
-    return false;
-  }
+//
+//  @AfterAll
+//  public static void updateProps() throws IOException {
+//    UNSUPPORTED.store(Files.newOutputStream(new File("src/test/resources/unsupported-tck-tests.properties.1").toPath()), "Unsupported json-schema.org TCK tests (suiteName/suiteDescription/testDescription)");
+//  }
 }
