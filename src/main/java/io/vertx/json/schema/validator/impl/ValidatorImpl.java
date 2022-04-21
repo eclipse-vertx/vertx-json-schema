@@ -41,19 +41,6 @@ public class ValidatorImpl implements Validator {
     "maxProperties",
     "minProperties");
 
-  private static final List<String> SCHEMA_KEYWORD = Arrays.asList(
-    "additionalItems",
-    "unevaluatedItems",
-    "items",
-    "contains",
-    "additionalProperties",
-    "unevaluatedProperties",
-    "propertyNames",
-    "not",
-    "if",
-    "then",
-    "else");
-
   private static final List<String> SCHEMA_ARRAY_KEYWORD = Arrays.asList(
     "prefixItems",
     "items",
@@ -86,18 +73,19 @@ public class ValidatorImpl implements Validator {
       options.getDraft();
     this.shortCircuit = options.isShortCircuit();
     this.baseUri = new URL(options.getBaseUri());
-    dereference(schema, baseUri, "");
+    // add the root schema
+    addSchema(schema);
   }
 
   @Override
   public Validator addSchema(Schema schema) {
-    dereference(schema, baseUri, "");
+    dereference(schema, baseUri, "", 0);
     return this;
   }
 
   @Override
   public Validator addSchema(String uri, Schema schema) {
-    dereference(schema, new URL(uri), "");
+    dereference(schema, new URL(uri), "", 0);
     return this;
   }
 
@@ -112,9 +100,10 @@ public class ValidatorImpl implements Validator {
       new HashSet<>());
   }
 
-  private void dereference(Schema schema, URL baseURI, String basePointer) {
+  private void dereference(Schema schema, URL baseURI, String basePointer, int depth) {
     if (schema instanceof JsonSchema) {
-      final String id = schema.get("$id", schema.get("id"));
+      // the depth limits the parsing if $id. This addresses the Unknown Keyword requirements
+      final String id = depth < 3 ? schema.get("$id", schema.get("id")) : null;
       if (Utils.Objects.truthy(id)) {
         final URL url = new URL(id, baseURI.href());
         if (url.fragment().length() > 1) {
@@ -124,7 +113,7 @@ public class ValidatorImpl implements Validator {
           if ("".equals(basePointer)) {
             baseURI = url;
           } else {
-            dereference(schema, baseURI, "");
+            dereference(schema, baseURI, "", depth + 1);
           }
         }
       }
@@ -184,7 +173,8 @@ public class ValidatorImpl implements Validator {
             dereference(
               Schemas.wrap((JsonArray) subSchema, i),
               baseURI,
-              keyBase + "/" + i);
+              keyBase + "/" + i,
+              0);
           }
         }
       } else if (SCHEMA_MAP_KEYWORD.contains(key)) {
@@ -192,12 +182,13 @@ public class ValidatorImpl implements Validator {
           dereference(
             Schemas.wrap((JsonObject) subSchema, subKey),
             baseURI,
-            keyBase + "/" + Pointers.encode(subKey));
+            keyBase + "/" + Pointers.encode(subKey),
+            0);
         }
       } else if (subSchema instanceof Boolean) {
-        dereference(Schema.of((Boolean) subSchema), baseURI, keyBase);
+        dereference(Schema.of((Boolean) subSchema), baseURI, keyBase, depth + 1);
       } else if (subSchema instanceof JsonObject) {
-        dereference(Schema.of((JsonObject) subSchema), baseURI, keyBase);
+        dereference(Schema.of((JsonObject) subSchema), baseURI, keyBase, depth + 1);
       }
     }
   }
