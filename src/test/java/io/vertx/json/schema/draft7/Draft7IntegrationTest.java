@@ -61,7 +61,7 @@ public class Draft7IntegrationTest extends BaseIntegrationTest {
       "ref",
       "refRemote",
       "required",
-      "type",
+      //"type",
       "uniqueItems"
     );
   }
