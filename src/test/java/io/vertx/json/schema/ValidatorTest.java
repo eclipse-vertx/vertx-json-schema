@@ -16,7 +16,7 @@ public class ValidatorTest {
   @Test
   @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
   public void testValidates() {
-    final Validator validator = Validator.create(Schema.fromJson(new JsonObject().put("type", "number")));
+    final Validator validator = Validator.create(Schema.of(new JsonObject().put("type", "number")));
 
     assertThat(validator.validate(7).valid())
       .isEqualTo(true);
@@ -29,12 +29,12 @@ public class ValidatorTest {
   @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
   public void testAddsSchema() {
     final Validator validator = Validator.create(
-      Schema.fromJson(
+      Schema.of(
         new JsonObject()
           .put("$id", "https://foo.bar/baz")
           .put("$ref", "/beep")));
 
-    validator.addSchema(Schema.fromJson(
+    validator.addSchema(Schema.of(
       new JsonObject()
         .put("$id", "https://foo.bar/beep")
         .put("type", "boolean")));
@@ -49,12 +49,12 @@ public class ValidatorTest {
   @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
   public void testAddsSchemaWithSpecifiedId() {
     final Validator validator = Validator.create(
-      Schema.fromJson(
+      Schema.of(
         new JsonObject()
           .put("$id", "https://foo.bar/baz")
           .put("$ref", "/beep")));
 
-    validator.addSchema(Schema.fromJson(
+    validator.addSchema(Schema.of(
         new JsonObject()
           .put("$id", "https://foo.bar/beep")
           .put("type", "boolean")));
@@ -69,7 +69,7 @@ public class ValidatorTest {
   @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
   public void testValidateAllArrayEntriesWithNestedErrors() {
     final Validator validator = Validator.create(
-      Schema.fromJson(
+      Schema.of(
         new JsonObject()
           .put("type", "array")
           .put("items", new JsonObject()
@@ -94,7 +94,7 @@ public class ValidatorTest {
   @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
   public void testValidateAllObjectPropertiesWithNestedErrors() {
     final Validator validator = Validator.create(
-      Schema.fromJson(
+      Schema.of(
         new JsonObject()
           .put("type", "object")
           .put("properties", new JsonObject()
@@ -122,7 +122,7 @@ public class ValidatorTest {
   public void testRecursive() {
 
     final Validator validator = Validator.create(
-      Schema.fromJson(
+      Schema.of(
         new JsonObject("{\"$ref\":\"http://json-schema.org/draft-04/schema#\"}")),
       new ValidatorOptions()
         .setDraft(Draft.DRAFT4)
@@ -131,7 +131,7 @@ public class ValidatorTest {
 
     validator.addSchema(
       "http://json-schema.org/draft-04/schema",
-      Schema.fromJson(new JsonObject("{\n" +
+      Schema.of(new JsonObject("{\n" +
         "    \"id\": \"http://json-schema.org/draft-04/schema#\",\n" +
         "    \"$schema\": \"http://json-schema.org/draft-04/schema#\",\n" +
         "    \"description\": \"Core schema meta-schema\",\n" +
@@ -292,7 +292,7 @@ public class ValidatorTest {
   public void testQuotedProps() {
 
     final Validator validator = Validator.create(
-      Schema.fromJson(
+      Schema.of(
         new JsonObject("{\"properties\":{\"foo\\\"bar\":{\"$ref\":\"#/definitions/foo%22bar\"}},\"definitions\":{\"foo\\\"bar\":{\"type\":\"number\"}}}")),
       new ValidatorOptions()
         .setDraft(Draft.DRAFT4)
@@ -301,7 +301,7 @@ public class ValidatorTest {
 
     validator.addSchema(
       "http://json-schema.org/draft-04/schema",
-      Schema.fromJson(new JsonObject("{\n" +
+      Schema.of(new JsonObject("{\n" +
         "    \"id\": \"http://json-schema.org/draft-04/schema#\",\n" +
         "    \"$schema\": \"http://json-schema.org/draft-04/schema#\",\n" +
         "    \"description\": \"Core schema meta-schema\",\n" +

@@ -2,19 +2,22 @@ package io.vertx.json.schema.validator;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.json.JsonObject;
-import io.vertx.json.schema.validator.impl.AbstractSchema;
+import io.vertx.json.schema.validator.impl.BooleanSchema;
+import io.vertx.json.schema.validator.impl.JsonSchema;
 
 import java.util.Set;
 
 @VertxGen
 public interface Schema {
 
-  static Schema fromJson(JsonObject json) {
-    return AbstractSchema.wrap(json);
+  static Schema of(JsonObject json) {
+    return new JsonSchema(json);
   }
 
-  static Schema fromBoolean(boolean bool) {
-    return AbstractSchema.wrap(bool);
+  static Schema of(boolean bool) {
+    return bool ?
+      BooleanSchema.TRUE :
+      BooleanSchema.FALSE;
   }
 
   void annotate(String key, String value);

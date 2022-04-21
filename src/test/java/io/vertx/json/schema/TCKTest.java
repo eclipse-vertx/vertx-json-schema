@@ -2,13 +2,10 @@ package io.vertx.json.schema;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
-import io.vertx.json.schema.validator.Draft;
+import io.vertx.json.schema.validator.*;
 import io.vertx.json.schema.validator.Schema;
-import io.vertx.json.schema.validator.ValidationResult;
-import io.vertx.json.schema.validator.impl.AbstractSchema;
-import io.vertx.json.schema.validator.impl.URL;
-import io.vertx.json.schema.validator.impl.ValidatorImpl;
 import io.vertx.junit5.Timeout;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -21,6 +18,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
@@ -30,54 +28,67 @@ public class TCKTest {
   private static final Properties UNSUPPORTED = new Properties();
   private static final JsonObject TCK;
 
-  private static final Map<String, io.vertx.json.schema.validator.Schema> remotesLookup = new HashMap<>();
-  private static final Map<String, io.vertx.json.schema.validator.Schema> metaLookup = new HashMap<>();
+  private static final Map<String, Schema> REMOTES = new HashMap<>();
+  private static final Map<String, Schema> METAS = new HashMap<>();
 
   static {
     try {
       UNSUPPORTED.load(TCKTest.class.getResourceAsStream("/unsupported-tck-tests.properties"));
       TCK = new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", "test", "resources", "test-suite-tck.json"))));
-
-      // load the remotes
-      for (Object o : TCK.getJsonArray("remotes")) {
-        JsonObject el = (JsonObject) o;
-        Object s = el.getValue("value");
-        String name = el.getString("name");
-        if (s instanceof JsonObject) {
-          ValidatorImpl.dereference(io.vertx.json.schema.validator.Schema.fromJson((JsonObject) s), remotesLookup, new URL(name), "");
-        }
-        if (s instanceof Boolean) {
-          ValidatorImpl.dereference(io.vertx.json.schema.validator.Schema.fromBoolean((Boolean) s), remotesLookup, new URL(name), "");
-        }
-      }
-
-      // load the meta schemas
-      String[] ids = new String[]{
-        "http://json-schema.org/draft-04/schema",
-        "http://json-schema.org/draft-07/schema",
-        "https://json-schema.org/draft/2019-09/schema",
-        "https://json-schema.org/draft/2019-09/meta/core",
-        "https://json-schema.org/draft/2019-09/meta/applicator",
-        "https://json-schema.org/draft/2019-09/meta/validation",
-        "https://json-schema.org/draft/2019-09/meta/meta-data",
-        "https://json-schema.org/draft/2019-09/meta/format",
-        "https://json-schema.org/draft/2019-09/meta/content",
-        "https://json-schema.org/draft/2020-12/schema",
-        "https://json-schema.org/draft/2020-12/meta/core",
-        "https://json-schema.org/draft/2020-12/meta/applicator",
-        "https://json-schema.org/draft/2020-12/meta/validation",
-        "https://json-schema.org/draft/2020-12/meta/meta-data",
-        "https://json-schema.org/draft/2020-12/meta/format-annotation",
-        "https://json-schema.org/draft/2020-12/meta/content",
-        "https://json-schema.org/draft/2020-12/meta/unevaluated"
-      };
-
-      for (String meta : ids) {
-        JsonObject json = new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", "test", "resources", meta.substring(meta.indexOf("://") + 3)))));
-        ValidatorImpl.dereference(io.vertx.json.schema.validator.Schema.fromJson(json), metaLookup, new URL(meta), "");
-      }
     } catch (IOException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  @BeforeAll
+  public static void loadMetas() throws IOException {
+    // load the meta schemas
+    String[] ids = new String[] {
+      "http://json-schema.org/draft-04/schema",
+      "http://json-schema.org/draft-07/schema",
+      "https://json-schema.org/draft/2019-09/schema",
+      "https://json-schema.org/draft/2019-09/meta/core",
+      "https://json-schema.org/draft/2019-09/meta/applicator",
+      "https://json-schema.org/draft/2019-09/meta/validation",
+      "https://json-schema.org/draft/2019-09/meta/meta-data",
+      "https://json-schema.org/draft/2019-09/meta/format",
+      "https://json-schema.org/draft/2019-09/meta/content",
+      "https://json-schema.org/draft/2020-12/schema",
+      "https://json-schema.org/draft/2020-12/meta/core",
+      "https://json-schema.org/draft/2020-12/meta/applicator",
+      "https://json-schema.org/draft/2020-12/meta/validation",
+      "https://json-schema.org/draft/2020-12/meta/meta-data",
+      "https://json-schema.org/draft/2020-12/meta/format-annotation",
+      "https://json-schema.org/draft/2020-12/meta/content",
+      "https://json-schema.org/draft/2020-12/meta/unevaluated"
+    };
+
+    for (String id : ids) {
+      String[] relative = id.substring(id.indexOf("://") + 3).split("/");
+      String[] segments = new String[relative.length + 2];
+      segments[0] = "test";
+      segments[1] = "resources";
+      System.arraycopy(relative, 0, segments, 2, relative.length);
+      METAS.put(id, Schema.of(new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", segments))))));
+    }
+  }
+
+  @BeforeAll
+  public static void loadRemotes() {
+    // load the remotes
+    for (Object o : TCK.getJsonArray("remotes")) {
+      JsonObject el = (JsonObject) o;
+      Object s = el.getValue("value");
+      String name = el.getString("name");
+      if (s instanceof JsonObject) {
+        REMOTES.put(name, Schema.of((JsonObject) s));
+        continue;
+      }
+      if (s instanceof Boolean) {
+        REMOTES.put(name, Schema.of((Boolean) s));
+        continue;
+      }
+      fail("remotes contains unknown kind of schema");
     }
   }
 
@@ -119,19 +130,38 @@ public class TCKTest {
   public void test(Draft draft, String suiteName, String suiteDescription, String testDescription, JsonObject value, JsonObject test) {
     final boolean unsupported = UNSUPPORTED.containsKey(suiteName + "/" + suiteDescription + "/" + testDescription);
 
-    final Schema schema = AbstractSchema.wrap(value, "schema");
-    final Map<String, io.vertx.json.schema.validator.Schema> schemaLookup = ValidatorImpl.dereference(schema, new HashMap<>(), new URL("https://vertx.io"), "");
-
-    final Map<String, io.vertx.json.schema.validator.Schema> lookup = new HashMap<>();
-
-    lookup.putAll(metaLookup);
-    lookup.putAll(remotesLookup);
-    lookup.putAll(schemaLookup);
-
     try {
+      Object rawSchema = value.getValue("schema");
+      Schema testSchema = null;
+      if (rawSchema instanceof JsonObject) {
+        testSchema = Schema.of((JsonObject) rawSchema);
+      }
+      if (rawSchema instanceof Boolean) {
+        testSchema = Schema.of((Boolean) rawSchema);
+      }
+
+      assertThat(testSchema).isNotNull();
+
+      // setup the initial validator object
+      final Validator validator = Validator.create(
+        testSchema,
+        new ValidatorOptions()
+          .setDraft(draft)
+          .setBaseUri("https://github.com/eclipse-vertx"));
+
+      // load all meta schemas
+      for (Map.Entry<String, Schema> kv : METAS.entrySet()) {
+        validator.addSchema(kv.getKey(), kv.getValue());
+      }
+
+      // load all remote schemas
+      for (Map.Entry<String, Schema> kv : REMOTES.entrySet()) {
+        validator.addSchema(kv.getKey(), kv.getValue());
+      }
+
       ValidationResult result =
-        ValidatorImpl
-          .validate(test.getValue("data"), schema, draft, lookup, false, null, "#", "#", new HashSet<>());
+        validator
+          .validate(test.getValue("data"));
 
       if (result.valid() != test.getBoolean("valid")) {
         if (unsupported) {

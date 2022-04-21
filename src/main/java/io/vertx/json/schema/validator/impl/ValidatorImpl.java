@@ -6,17 +6,12 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.validator.*;
 
 import java.util.*;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
-import static io.vertx.json.schema.validator.impl.AbstractSchema.wrap;
 import static io.vertx.json.schema.validator.impl.Utils.*;
 
 public class ValidatorImpl implements Validator {
-
-  private static final List<String> NON_ENUMERABLE = Arrays.asList(
-    "__absolute_uri__",
-    "__absolute_ref__",
-    "__absolute_recursive_ref__");
 
   private static final List<String> IGNORE_KEYWORD = Arrays.asList(
     "id",
@@ -60,7 +55,7 @@ public class ValidatorImpl implements Validator {
     "patternProperties",
     "dependentSchemas");
 
-  private final Map<String, Schema> lookup;
+  private final Map<String, Schema> lookup = new HashMap<>();
 
   private final Schema schema;
   private final Draft draft;
@@ -68,22 +63,23 @@ public class ValidatorImpl implements Validator {
   private final URL baseUri;
 
   public ValidatorImpl(Schema schema, ValidatorOptions options) {
+    Objects.requireNonNull(schema, "'schema' cannot be null");
     this.schema = schema;
     this.draft = options.getDraft();
     this.shortCircuit = options.isShortCircuit();
     this.baseUri = new URL(options.getBaseUri());
-    this.lookup = dereference(schema, new HashMap<>(), baseUri, "");
+    dereference(schema, baseUri, "");
   }
 
   @Override
   public Validator addSchema(Schema schema) {
-    dereference(schema, lookup, baseUri, "");
+    dereference(schema, baseUri, "");
     return this;
   }
 
   @Override
   public Validator addSchema(String uri, Schema schema) {
-    dereference(schema, lookup, new URL(uri), "");
+    dereference(schema, new URL(uri), "");
     return this;
   }
 
@@ -92,16 +88,13 @@ public class ValidatorImpl implements Validator {
     return validate(
       instance,
       schema,
-      draft,
-      lookup,
-      shortCircuit,
       null,
       "#",
       "#",
       new HashSet<>());
   }
 
-  public static Map<String, Schema> dereference(Schema schema, Map<String, Schema> lookup, URL baseURI, String basePointer) {
+  private void dereference(Schema schema, URL baseURI, String basePointer) {
     if (schema instanceof JsonSchema) {
       final String id = schema.get("$id", schema.get("id"));
       if (Utils.Objects.truthy(id)) {
@@ -113,12 +106,12 @@ public class ValidatorImpl implements Validator {
           if ("".equals(basePointer)) {
             baseURI = url;
           } else {
-            dereference(schema, lookup, baseURI, "");
+            dereference(schema, baseURI, "");
           }
         }
       }
     } else if (!(schema instanceof BooleanSchema)) {
-      return lookup;
+      return;
     }
 
     // compute the schema's URI and add it to the mapping.
@@ -130,7 +123,7 @@ public class ValidatorImpl implements Validator {
 
     // exit early if this is a boolean schema.
     if (schema instanceof BooleanSchema) {
-      return lookup;
+      return;
     }
 
     // set the schema's absolute URI.
@@ -160,10 +153,6 @@ public class ValidatorImpl implements Validator {
 
     // process subschemas.
     for (String key : schema.fieldNames()) {
-      // the generated extra properties are to be skipped
-      if (NON_ENUMERABLE.contains(key)) {
-        continue;
-      }
       if (IGNORE_KEYWORD.contains(key)) {
         continue;
       }
@@ -175,8 +164,7 @@ public class ValidatorImpl implements Validator {
         if (SCHEMA_ARRAY_KEYWORD.contains(key)) {
           for (int i = 0; i < ((JsonArray) subSchema).size(); i++) {
             dereference(
-              wrap((JsonArray) subSchema, i),
-              lookup,
+              Schemas.wrap((JsonArray) subSchema, i),
               baseURI,
               keyBase + "/" + i);
           }
@@ -184,22 +172,19 @@ public class ValidatorImpl implements Validator {
       } else if (SCHEMA_MAP_KEYWORD.contains(key)) {
         for (String subKey : ((JsonObject) subSchema).fieldNames()) {
           dereference(
-            wrap((JsonObject) subSchema, subKey),
-            lookup,
+            Schemas.wrap((JsonObject) subSchema, subKey),
             baseURI,
             keyBase + "/" + Pointers.encode(subKey));
         }
       } else if (subSchema instanceof Boolean) {
-        dereference(Schema.fromBoolean((Boolean) subSchema), lookup, baseURI, keyBase);
+        dereference(Schema.of((Boolean) subSchema), baseURI, keyBase);
       } else if (subSchema instanceof JsonObject) {
-        dereference(Schema.fromJson((JsonObject) subSchema), lookup, baseURI, keyBase);
+        dereference(Schema.of((JsonObject) subSchema), baseURI, keyBase);
       }
     }
-
-    return lookup;
   }
 
-  public static ValidationResult validate(Object _instance, Schema schema, Draft draft, Map<String, Schema> lookup, boolean shortCircuit, Schema _recursiveAnchor, String instanceLocation, String schemaLocation, Set<Object> evaluated) {
+  private ValidationResult validate(Object _instance, Schema schema, Schema _recursiveAnchor, String instanceLocation, String schemaLocation, Set<Object> evaluated) {
     if (schema instanceof BooleanSchema) {
       if (schema == BooleanSchema.TRUE) {
         return new ValidationResultImpl(true, Collections.emptyList());
@@ -232,9 +217,6 @@ public class ValidatorImpl implements Validator {
       final ValidationResult result = validate(
         instance,
         recursiveAnchor == null ? schema : recursiveAnchor,
-        draft,
-        lookup,
-        shortCircuit,
         refSchema,
         instanceLocation,
         keywordLocation,
@@ -262,9 +244,6 @@ public class ValidatorImpl implements Validator {
       final ValidationResult result = validate(
         instance,
         refSchema,
-        draft,
-        lookup,
-        shortCircuit,
         recursiveAnchor,
         instanceLocation,
         keywordLocation,
@@ -326,10 +305,7 @@ public class ValidatorImpl implements Validator {
       final String keywordLocation = schemaLocation + "/not";
       final ValidationResult result = validate(
         instance,
-        wrap((JsonObject) schema, "not"),
-        draft,
-        lookup,
-        shortCircuit,
+        Schemas.wrap((JsonObject) schema, "not"),
         recursiveAnchor,
         instanceLocation,
         keywordLocation,
@@ -350,10 +326,7 @@ public class ValidatorImpl implements Validator {
         final Set<Object> subEvaluated = new HashSet<>(evaluated);
         final ValidationResult result = validate(
           instance,
-          wrap(schema.get("anyOf"), i),
-          draft,
-          lookup,
-          shortCircuit,
+          Schemas.wrap(schema.get("anyOf"), i),
           schema.<Boolean>get("$recursiveAnchor", false) ? recursiveAnchor : null,
           instanceLocation,
           keywordLocation + "/" + i,
@@ -380,10 +353,7 @@ public class ValidatorImpl implements Validator {
         final Set<Object> subEvaluated = new HashSet<>(evaluated);
         final ValidationResult result = validate(
           instance,
-          wrap(schema.get("allOf"), i),
-          draft,
-          lookup,
-          shortCircuit,
+          Schemas.wrap(schema.get("allOf"), i),
           schema.<Boolean>get("$recursiveAnchor", false) ? recursiveAnchor : null,
           instanceLocation,
           keywordLocation + "/" + i,
@@ -410,10 +380,7 @@ public class ValidatorImpl implements Validator {
         final Set<Object> subEvaluated = new HashSet<>(evaluated);
         final ValidationResult result = validate(
           instance,
-          wrap(schema.get("oneOf"), i),
-          draft,
-          lookup,
-          shortCircuit,
+          Schemas.wrap(schema.get("oneOf"), i),
           schema.<Boolean>get("$recursiveAnchor", false) ? recursiveAnchor : null,
           instanceLocation,
           keywordLocation + "/" + i,
@@ -442,10 +409,7 @@ public class ValidatorImpl implements Validator {
     final String keywordLocation = schemaLocation + "/if";
     final ValidationResult conditionResult = validate(
       instance,
-      wrap((JsonObject) schema, "if"),
-      draft,
-      lookup,
-      shortCircuit,
+      Schemas.wrap((JsonObject) schema, "if"),
       recursiveAnchor,
       instanceLocation,
       keywordLocation,
@@ -455,10 +419,7 @@ public class ValidatorImpl implements Validator {
       if (schema.containsKey("then")) {
         final ValidationResult thenResult = validate(
           instance,
-          wrap((JsonObject) schema, "then"),
-          draft,
-          lookup,
-          shortCircuit,
+          Schemas.wrap((JsonObject) schema, "then"),
           recursiveAnchor,
           instanceLocation,
           schemaLocation + "/then",
@@ -472,10 +433,7 @@ public class ValidatorImpl implements Validator {
     } else if (schema.containsKey("else")) {
       final ValidationResult elseResult = validate(
         instance,
-        wrap((JsonObject) schema, "else"),
-        draft,
-        lookup,
-        shortCircuit,
+        Schemas.wrap((JsonObject) schema, "else"),
         recursiveAnchor,
         instanceLocation,
         schemaLocation + "/else",
@@ -513,10 +471,7 @@ public class ValidatorImpl implements Validator {
         final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
         final ValidationResult result = validate(
           key,
-          wrap((JsonObject) schema, "propertyNames"),
-          draft,
-          lookup,
-          shortCircuit,
+          Schemas.wrap((JsonObject) schema, "propertyNames"),
           recursiveAnchor,
           subInstancePointer,
           keywordLocation,
@@ -549,10 +504,7 @@ public class ValidatorImpl implements Validator {
         if (((JsonObject) instance).containsKey(key)) {
           final ValidationResult result = validate(
             instance,
-            wrap(schema.get("dependentSchemas"), key),
-            draft,
-            lookup,
-            shortCircuit,
+            Schemas.wrap(schema.get("dependentSchemas"), key),
             recursiveAnchor,
             instanceLocation,
             keywordLocation + "/" + Pointers.encode(key),
@@ -580,10 +532,7 @@ public class ValidatorImpl implements Validator {
           } else {
             final ValidationResult result = validate(
               instance,
-              wrap(schema.get("dependencies"), key),
-              draft,
-              lookup,
-              shortCircuit,
+              Schemas.wrap(schema.get("dependencies"), key),
               recursiveAnchor,
               instanceLocation,
               keywordLocation + "/" + Pointers.encode(key),
@@ -611,10 +560,7 @@ public class ValidatorImpl implements Validator {
         final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
         final ValidationResult result = validate(
           ((JsonObject) instance).getValue(key),
-          wrap(schema.get("properties"), key),
-          draft,
-          lookup,
-          shortCircuit,
+          Schemas.wrap(schema.get("properties"), key),
           recursiveAnchor,
           subInstancePointer,
           keywordLocation + "/" + Pointers.encode(key),
@@ -645,10 +591,7 @@ public class ValidatorImpl implements Validator {
           final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
           final ValidationResult result = validate(
             ((JsonObject) instance).getValue(key),
-            wrap(schema.get("patternProperties"), pattern),
-            draft,
-            lookup,
-            shortCircuit,
+            Schemas.wrap(schema.get("patternProperties"), pattern),
             recursiveAnchor,
             subInstancePointer,
             keywordLocation + "/" + Pointers.encode(pattern),
@@ -675,10 +618,7 @@ public class ValidatorImpl implements Validator {
         final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
         final ValidationResult result = validate(
           ((JsonObject) instance).getValue(key),
-          wrap((JsonObject) schema, "additionalProperties"),
-          draft,
-          lookup,
-          shortCircuit,
+          Schemas.wrap((JsonObject) schema, "additionalProperties"),
           recursiveAnchor,
           subInstancePointer,
           keywordLocation,
@@ -699,10 +639,7 @@ public class ValidatorImpl implements Validator {
           final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
           final ValidationResult result = validate(
             ((JsonObject) instance).getValue(key),
-            wrap((JsonObject) schema, "unevaluatedProperties"),
-            draft,
-            lookup,
-            shortCircuit,
+            Schemas.wrap((JsonObject) schema, "unevaluatedProperties"),
             recursiveAnchor,
             subInstancePointer,
             keywordLocation,
@@ -737,10 +674,7 @@ public class ValidatorImpl implements Validator {
       for (; i < length2; i++) {
         final ValidationResult result = validate(
           ((JsonArray) instance).getValue(i),
-          wrap(schema.get("prefixItems"), i),
-          draft,
-          lookup,
-          shortCircuit,
+          Schemas.wrap(schema.get("prefixItems"), i),
           recursiveAnchor,
           instanceLocation + "/" + i,
           keywordLocation + "/" + i,
@@ -765,10 +699,7 @@ public class ValidatorImpl implements Validator {
         for (; i < length2; i++) {
           final ValidationResult result = validate(
             ((JsonArray) instance).getValue(i),
-            wrap(schema.get("items"), i),
-            draft,
-            lookup,
-            shortCircuit,
+            Schemas.wrap(schema.get("items"), i),
             recursiveAnchor,
             instanceLocation + "/" + i,
             keywordLocation + "/" + i,
@@ -788,10 +719,7 @@ public class ValidatorImpl implements Validator {
         for (; i < length; i++) {
           final ValidationResult result = validate(
             ((JsonArray) instance).getValue(i),
-            wrap((JsonObject) schema, "items"),
-            draft,
-            lookup,
-            shortCircuit,
+            Schemas.wrap((JsonObject) schema, "items"),
             recursiveAnchor,
             instanceLocation + "/" + i,
             keywordLocation,
@@ -814,10 +742,7 @@ public class ValidatorImpl implements Validator {
         for (; i < length; i++) {
           final ValidationResult result = validate(
             ((JsonArray) instance).getValue(i),
-            wrap((JsonObject) schema, "additionalItems"),
-            draft,
-            lookup,
-            shortCircuit,
+            Schemas.wrap((JsonObject) schema, "additionalItems"),
             recursiveAnchor,
             instanceLocation + "/" + i,
             keywordLocation2,
@@ -845,10 +770,7 @@ public class ValidatorImpl implements Validator {
         for (int j = 0; j < length; j++) {
           final ValidationResult result = validate(
             ((JsonArray) instance).getValue(j),
-            wrap((JsonObject) schema, "contains"),
-            draft,
-            lookup,
-            shortCircuit,
+            Schemas.wrap((JsonObject) schema, "contains"),
             recursiveAnchor,
             instanceLocation + "/" + i,
             keywordLocation,
@@ -888,10 +810,7 @@ public class ValidatorImpl implements Validator {
         }
         final ValidationResult result = validate(
           ((JsonArray) instance).getValue(i),
-          wrap((JsonObject) schema, "unevaluatedItems"),
-          draft,
-          lookup,
-          shortCircuit,
+          Schemas.wrap((JsonObject) schema, "unevaluatedItems"),
           recursiveAnchor,
           instanceLocation + "/" + i,
           keywordLocation,

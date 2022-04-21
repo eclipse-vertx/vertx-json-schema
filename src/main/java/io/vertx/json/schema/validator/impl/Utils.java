@@ -2,6 +2,7 @@ package io.vertx.json.schema.validator.impl;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.json.schema.validator.Schema;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -314,6 +315,62 @@ public class Utils {
       }
 
       return false;
+    }
+  }
+
+  static class Schemas {
+    public static Schema wrap(JsonObject object, String key) {
+      Object value = object.getValue(key);
+
+      if (value == null) {
+        return null;
+      }
+
+      if (value instanceof Schema) {
+        return (Schema) value;
+      }
+
+      if (value instanceof Boolean) {
+        return (Boolean) value ?
+          BooleanSchema.TRUE :
+          BooleanSchema.FALSE;
+      }
+
+      if (value instanceof JsonObject) {
+        Schema schema = new JsonSchema((JsonObject) value);
+        object.put(key, schema);
+        return schema;
+      }
+
+      // any other type cannot be converted is ignored
+      return null;
+    }
+
+    public static Schema wrap(JsonArray array, int index) {
+      Object value = array.getValue(index);
+
+      if (value == null) {
+        return null;
+      }
+
+      if (value instanceof Schema) {
+        return (Schema) value;
+      }
+
+      if (value instanceof Boolean) {
+        return (Boolean) value ?
+          BooleanSchema.TRUE :
+          BooleanSchema.FALSE;
+      }
+
+      if (value instanceof JsonObject) {
+        Schema schema = new JsonSchema((JsonObject) value);
+        array.set(index, schema);
+        return schema;
+      }
+
+      // any other type cannot be converted is ignored
+      return null;
     }
   }
 }
