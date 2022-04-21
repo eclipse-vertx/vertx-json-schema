@@ -16,7 +16,11 @@ public class ValidatorTest {
   @Test
   @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
   public void testValidates() {
-    final Validator validator = Validator.create(Schema.of(new JsonObject().put("type", "number")));
+    final Validator validator = Validator.create(
+      Schema.of(new JsonObject().put("type", "number")),
+      new ValidatorOptions()
+        .setBaseUri("https://vertx.io")
+        .setDraft(Draft.DRAFT201909));
 
     assertThat(validator.validate(7).valid())
       .isEqualTo(true);
@@ -32,7 +36,10 @@ public class ValidatorTest {
       Schema.of(
         new JsonObject()
           .put("$id", "https://foo.bar/baz")
-          .put("$ref", "/beep")));
+          .put("$ref", "/beep")),
+      new ValidatorOptions()
+        .setBaseUri("https://vertx.io")
+        .setDraft(Draft.DRAFT201909));
 
     validator.addSchema(Schema.of(
       new JsonObject()
@@ -52,12 +59,15 @@ public class ValidatorTest {
       Schema.of(
         new JsonObject()
           .put("$id", "https://foo.bar/baz")
-          .put("$ref", "/beep")));
+          .put("$ref", "/beep")),
+      new ValidatorOptions()
+        .setBaseUri("https://vertx.io")
+        .setDraft(Draft.DRAFT201909));
 
     validator.addSchema(Schema.of(
-        new JsonObject()
-          .put("$id", "https://foo.bar/beep")
-          .put("type", "boolean")));
+      new JsonObject()
+        .put("$id", "https://foo.bar/beep")
+        .put("type", "boolean")));
 
     assertThat(validator.validate(true).valid())
       .isEqualTo(true);
@@ -77,6 +87,7 @@ public class ValidatorTest {
             .put("email", new JsonObject().put("type", "string"))
             .put("required", new JsonArray().add("name").add("email")))),
       new ValidatorOptions()
+        .setBaseUri("https://vertx.io")
         .setDraft(Draft.DRAFT201909)
         .setShortCircuit(false));
 
@@ -104,7 +115,8 @@ public class ValidatorTest {
             .put("required", new JsonArray().add("name").add("email").add("number")))),
       new ValidatorOptions()
         .setDraft(Draft.DRAFT201909)
-        .setShortCircuit(false));
+        .setShortCircuit(false)
+        .setBaseUri("https://vertx.io"));
 
     final ValidationResult res = validator.validate(
       new JsonObject()
@@ -127,7 +139,7 @@ public class ValidatorTest {
       new ValidatorOptions()
         .setDraft(Draft.DRAFT4)
         .setShortCircuit(false)
-        .setBaseUri("https://github.com/cfworker"));
+        .setBaseUri("https://github.com/eclipse-vertx"));
 
     validator.addSchema(
       "http://json-schema.org/draft-04/schema",
@@ -297,7 +309,7 @@ public class ValidatorTest {
       new ValidatorOptions()
         .setDraft(Draft.DRAFT4)
         .setShortCircuit(false)
-        .setBaseUri("https://github.com/cfworker"));
+        .setBaseUri("https://github.com/eclipse-vertx"));
 
     validator.addSchema(
       "http://json-schema.org/draft-04/schema",

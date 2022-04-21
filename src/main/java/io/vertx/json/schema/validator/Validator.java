@@ -7,10 +7,6 @@ import io.vertx.json.schema.validator.impl.ValidatorImpl;
 @VertxGen
 public interface Validator {
 
-  static Validator create(Schema schema) {
-    return create(schema, new ValidatorOptions());
-  }
-
   static <T> Validator create(Schema schema, ValidatorOptions options) {
     return new ValidatorImpl(schema, options);
   }

@@ -10,6 +10,9 @@ public enum Draft {
   DRAFT202012;
 
   public static Draft from(String string) {
+    if (string == null) {
+      throw new IllegalArgumentException("Invalid draft: null");
+    }
     switch (string) {
       case "4":
         return DRAFT4;
@@ -22,6 +25,24 @@ public enum Draft {
         return DRAFT202012;
       default:
         throw new IllegalArgumentException("Invalid draft: " + string);
+    }
+  }
+
+  public static Draft fromIdentifier(String string) {
+    if (string == null) {
+      throw new IllegalArgumentException("Invalid draft identifier: null");
+    }
+    switch (string) {
+      case "http://json-schema.org/draft-04/schema#":
+        return DRAFT4;
+      case "http://json-schema.org/draft-07/schema#":
+        return DRAFT7;
+      case "https://json-schema.org/draft/2019-09/schema":
+        return DRAFT201909;
+      case "https://json-schema.org/draft/2020-12/schema":
+        return DRAFT202012;
+      default:
+        throw new IllegalArgumentException("Invalid draft identifier: " + string);
     }
   }
 }

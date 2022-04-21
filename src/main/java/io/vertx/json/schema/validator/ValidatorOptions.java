@@ -5,8 +5,8 @@ import io.vertx.core.json.JsonObject;
 
 @DataObject(generateConverter = true)
 public class ValidatorOptions {
-  private String baseUri = "https://vertx.io";
-  private Draft draft = Draft.DRAFT201909;
+  private String baseUri;
+  private Draft draft;
   private boolean shortCircuit = true;
 
   public ValidatorOptions() {
