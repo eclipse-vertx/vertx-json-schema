@@ -6,6 +6,7 @@ import io.vertx.json.schema.validator.*;
 import io.vertx.json.schema.validator.Schema;
 import io.vertx.junit5.Timeout;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -92,6 +93,14 @@ public class TCKTest {
     }
   }
 
+  private Validator outputValidator;
+  @BeforeEach
+  public void initOutputUnitValidation() throws IOException {
+    outputValidator = Validator.create(
+      Schema.of(new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", "test", "resources", "output-schema.json"))))),
+      new ValidatorOptions().setDraft(Draft.DRAFT201909).setBaseUri("app://"));
+  }
+
   public Stream<Arguments> buildParameters() {
 
     List<Arguments> tests = new ArrayList<>();
@@ -162,6 +171,9 @@ public class TCKTest {
       OutputUnit result =
         validator
           .validate(test.getValue("data"));
+
+      assertThat(outputValidator.validate(result.toJson()).getValid())
+        .isTrue();
 
       if (result.getValid() != test.getBoolean("valid")) {
         if (unsupported) {
