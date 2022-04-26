@@ -22,10 +22,10 @@ public class ValidatorTest {
         .setBaseUri("https://vertx.io")
         .setDraft(Draft.DRAFT201909));
 
-    assertThat(validator.validate(7).valid())
+    assertThat(validator.validate(7).getValid())
       .isEqualTo(true);
 
-    assertThat(validator.validate("hello world").valid())
+    assertThat(validator.validate("hello world").getValid())
       .isEqualTo(false);
   }
 
@@ -46,9 +46,9 @@ public class ValidatorTest {
         .put("$id", "https://foo.bar/beep")
         .put("type", "boolean")));
 
-    assertThat(validator.validate(true).valid())
+    assertThat(validator.validate(true).getValid())
       .isEqualTo(true);
-    assertThat(validator.validate("hello world").valid())
+    assertThat(validator.validate("hello world").getValid())
       .isEqualTo(false);
   }
 
@@ -69,9 +69,9 @@ public class ValidatorTest {
         .put("$id", "https://foo.bar/beep")
         .put("type", "boolean")));
 
-    assertThat(validator.validate(true).valid())
+    assertThat(validator.validate(true).getValid())
       .isEqualTo(true);
-    assertThat(validator.validate("hello world").valid())
+    assertThat(validator.validate("hello world").getValid())
       .isEqualTo(false);
   }
 
@@ -89,16 +89,16 @@ public class ValidatorTest {
       new ValidatorOptions()
         .setBaseUri("https://vertx.io")
         .setDraft(Draft.DRAFT201909)
-        .setShortCircuit(false));
+        .setOutputFormat(OutputFormat.Basic));
 
-    final ValidationResult res = validator.validate(
+    final OutputUnit res = validator.validate(
       new JsonArray()
         .add(new JsonObject().put("name", "hello"))   // missing email
         .add(new JsonObject().put("email", "a@b.c"))  // missing name
     );
 
-    assertThat(res.valid()).isFalse();
-    assertThat(res.errors().size()).isEqualTo(4);
+    assertThat(res.getValid()).isFalse();
+    assertThat(res.getErrors().size()).isEqualTo(4);
   }
 
   @Test
@@ -115,10 +115,10 @@ public class ValidatorTest {
             .put("required", new JsonArray().add("name").add("email").add("number")))),
       new ValidatorOptions()
         .setDraft(Draft.DRAFT201909)
-        .setShortCircuit(false)
+        .setOutputFormat(OutputFormat.Basic)
         .setBaseUri("https://vertx.io"));
 
-    final ValidationResult res = validator.validate(
+    final OutputUnit res = validator.validate(
       new JsonObject()
         .put("name", "hello")
         .put("email", 5)      // invalid type
@@ -126,8 +126,8 @@ public class ValidatorTest {
     );
 
 
-    assertThat(res.valid()).isFalse();
-    assertThat(res.errors().size()).isEqualTo(4);
+    assertThat(res.getValid()).isFalse();
+    assertThat(res.getErrors().size()).isEqualTo(4);
   }
 
   @Test
@@ -138,7 +138,7 @@ public class ValidatorTest {
         new JsonObject("{\"$ref\":\"http://json-schema.org/draft-04/schema#\"}")),
       new ValidatorOptions()
         .setDraft(Draft.DRAFT4)
-        .setShortCircuit(false)
+        .setOutputFormat(OutputFormat.Basic)
         .setBaseUri("https://github.com/eclipse-vertx"));
 
     validator.addSchema(
@@ -293,11 +293,11 @@ public class ValidatorTest {
         "    \"default\": {}\n" +
         "}\n")));
 
-    final ValidationResult res = validator.validate(
+    final OutputUnit res = validator.validate(
       new JsonObject("{\"definitions\":{\"foo\":{\"type\":\"integer\"}}}"));
 
 
-    assertThat(res.valid()).isTrue();
+    assertThat(res.getValid()).isTrue();
   }
 
   @Test
@@ -308,7 +308,7 @@ public class ValidatorTest {
         new JsonObject("{\"properties\":{\"foo\\\"bar\":{\"$ref\":\"#/definitions/foo%22bar\"}},\"definitions\":{\"foo\\\"bar\":{\"type\":\"number\"}}}")),
       new ValidatorOptions()
         .setDraft(Draft.DRAFT4)
-        .setShortCircuit(false)
+        .setOutputFormat(OutputFormat.Basic)
         .setBaseUri("https://github.com/eclipse-vertx"));
 
     validator.addSchema(
@@ -463,10 +463,23 @@ public class ValidatorTest {
         "    \"default\": {}\n" +
         "}\n")));
 
-    final ValidationResult res = validator.validate(
+    final OutputUnit res = validator.validate(
       new JsonObject("{\"definitions\":{\"foo\":{\"type\":\"integer\"}}}"));
 
 
-    assertThat(res.valid()).isTrue();
+    assertThat(res.getValid()).isTrue();
+  }
+
+  @Test
+  public void testWebValidationTest() {
+
+    JsonObject schema = new JsonObject("{\"patternProperties\":{\"oneInteger\":{\"type\":\"integer\",\"$id\":\"urn:vertxschemas:2ea1a0cf-b474-43d0-8167-c2babeb52990\"},\"someIntegers\":{\"type\":\"array\",\"items\":{\"type\":\"integer\",\"$id\":\"urn:vertxschemas:dd85ddbb-e4b6-4cca-8f62-d635440de5b1\"},\"$id\":\"urn:vertxschemas:cfa6873d-c874-4537-a2aa-b6fc0a6ab061\"}},\"additionalProperties\":{\"type\":\"boolean\",\"$id\":\"urn:vertxschemas:135809d9-180b-40da-95a1-7e34caa32f80\"},\"type\":\"object\",\"properties\":{\"someNumbers\":{\"type\":\"array\",\"items\":{\"type\":\"number\",\"$id\":\"urn:vertxschemas:669a50a0-f3f1-4d1e-bb07-72ef8ac062a2\"},\"$id\":\"urn:vertxschemas:31baa881-3506-4b26-bd3b-94e3b9f6c4f9\"},\"oneNumber\":{\"type\":\"number\",\"$id\":\"urn:vertxschemas:43781a85-8ea3-45e3-8ac1-0056df19dde0\"}},\"$id\":\"urn:vertxschemas:ffcf420b-7600-4727-9bc1-4d3f541afcf9\"}");
+
+    Validator validator = Validator.create(
+      Schema.of(schema),
+        new ValidatorOptions().setDraft(Draft.DRAFT7).setBaseUri("app://app.com").setOutputFormat(OutputFormat.Flag));
+
+    validator.validate(new JsonObject());
+
   }
 }

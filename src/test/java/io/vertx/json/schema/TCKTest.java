@@ -159,11 +159,11 @@ public class TCKTest {
         validator.addSchema(kv.getKey(), kv.getValue());
       }
 
-      ValidationResult result =
+      OutputUnit result =
         validator
           .validate(test.getValue("data"));
 
-      if (result.valid() != test.getBoolean("valid")) {
+      if (result.getValid() != test.getBoolean("valid")) {
         if (unsupported) {
           // this means we don't really support this and the validation failed, so we will ignore it for now
           assumeFalse(unsupported, testDescription);

@@ -48,8 +48,13 @@ public class URL {
       }
 
       if (authority == null) {
-        if (!"file".equals(scheme)) {
-          throw new IllegalStateException("(strict) url isn't valid: " + url);
+        switch (scheme) {
+          case "file":
+          case "urn":
+            // OK
+            break;
+          default:
+            throw new IllegalStateException("(strict) url isn't valid: " + url);
         }
       }
 
@@ -206,9 +211,9 @@ public class URL {
   public String href() {
     return
       // scheme
-      (scheme == null || scheme.length() == 0 ? "" : scheme + "://") +
+      (scheme == null || scheme.length() == 0 ? "" : scheme + ":") +
         // authority
-        (authority == null ? "" : authority) +
+        (authority == null ? "" : "//" + authority) +
         // path
         (path == null ? "" : path) +
         // query

@@ -15,5 +15,5 @@ public interface Validator {
 
   @Fluent Validator addSchema(String uri, Schema schema);
 
-  ValidationResult validate(Object instance);
+  OutputUnit validate(Object instance);
 }

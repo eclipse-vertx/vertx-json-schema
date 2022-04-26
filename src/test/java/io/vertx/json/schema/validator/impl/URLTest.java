@@ -127,6 +127,11 @@ class URLTest {
   public void testRelativePathContext() {
     assertThat(new URL("folderIntegration.json", "http://localhost:1234/baseUriChange/").href())
       .isEqualTo("http://localhost:1234/baseUriChange/folderIntegration.json");              // (see relative URLs)
+  }
 
+  @Test
+  public void testUrnURL() {
+    assertThat(new URL("urn:vertxschemas:2ea1a0cf-b474-43d0-8167-c2babeb52990").href())
+      .isEqualTo("urn:vertxschemas:2ea1a0cf-b474-43d0-8167-c2babeb52990");
   }
 }

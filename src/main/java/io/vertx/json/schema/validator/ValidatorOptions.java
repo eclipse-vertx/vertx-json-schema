@@ -7,7 +7,7 @@ import io.vertx.core.json.JsonObject;
 public class ValidatorOptions {
   private String baseUri;
   private Draft draft;
-  private boolean shortCircuit = true;
+  private OutputFormat outputFormat = OutputFormat.Flag;
 
   public ValidatorOptions() {
   }
@@ -34,12 +34,12 @@ public class ValidatorOptions {
     return this;
   }
 
-  public boolean isShortCircuit() {
-    return shortCircuit;
+  public OutputFormat getOutputFormat() {
+    return outputFormat;
   }
 
-  public ValidatorOptions setShortCircuit(boolean shortCircuit) {
-    this.shortCircuit = shortCircuit;
+  public ValidatorOptions setOutputFormat(OutputFormat outputFormat) {
+    this.outputFormat = outputFormat;
     return this;
   }
 

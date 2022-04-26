@@ -4,7 +4,7 @@ import io.vertx.json.schema.validator.Schema;
 
 import java.util.Set;
 
-public class BooleanSchema implements Schema {
+public final class BooleanSchema implements Schema {
 
   public static final Schema TRUE = new BooleanSchema(true);
   public static final Schema FALSE = new BooleanSchema(false);
