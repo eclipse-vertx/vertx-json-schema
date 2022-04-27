@@ -33,8 +33,18 @@ public abstract class ValidationException extends VertxException {
     this(message, null, keyword, input);
   }
 
+  protected ValidationException(String message, String keyword, Object input, boolean noStackTrace) {
+    this(message, null, keyword, input, noStackTrace);
+  }
+
   protected ValidationException(String message, Throwable cause, String keyword, Object input) {
     super(message, cause);
+    this.keyword = keyword;
+    this.input = input;
+  }
+
+  protected ValidationException(String message, Throwable cause, String keyword, Object input, boolean noStackTrace) {
+    super(message, cause, noStackTrace);
     this.keyword = keyword;
     this.input = input;
   }

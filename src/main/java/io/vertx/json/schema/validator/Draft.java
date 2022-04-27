@@ -24,7 +24,7 @@ public enum Draft {
       case "2020-12":
         return DRAFT202012;
       default:
-        throw new IllegalArgumentException("Invalid draft: " + string);
+        throw new IllegalArgumentException("Unsupported draft: " + string);
     }
   }
 
@@ -42,7 +42,7 @@ public enum Draft {
       case "https://json-schema.org/draft/2020-12/schema":
         return DRAFT202012;
       default:
-        throw new IllegalArgumentException("Invalid draft identifier: " + string);
+        throw new IllegalArgumentException("Unsupported draft identifier: " + string);
     }
   }
 }

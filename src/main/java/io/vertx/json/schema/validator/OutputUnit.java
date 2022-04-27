@@ -1,10 +1,14 @@
 package io.vertx.json.schema.validator;
 
 import io.vertx.codegen.annotations.DataObject;
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.core.json.JsonObject;
+import io.vertx.json.schema.ValidationException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @DataObject(generateConverter = true)
 public class OutputUnit {
@@ -18,7 +22,9 @@ public class OutputUnit {
   private List<OutputUnit> errors;
   private List<OutputUnit> annotations;
 
-  public OutputUnit() {}
+  public OutputUnit() {
+    valid = true;
+  }
 
   public OutputUnit(JsonObject json) {
     OutputUnitConverter.fromJson(json, this);
@@ -92,8 +98,19 @@ public class OutputUnit {
   public OutputUnit addError(OutputUnit error) {
     if (this.errors == null) {
       this.errors = new ArrayList<>();
+      this.valid = false;
     }
     this.errors.add(error);
+    return this;
+  }
+
+  @GenIgnore
+  public OutputUnit addErrors(List<OutputUnit> errors) {
+    if (this.errors == null) {
+      this.errors = new ArrayList<>();
+      this.valid = false;
+    }
+    this.errors.addAll(errors);
     return this;
   }
 
@@ -114,9 +131,47 @@ public class OutputUnit {
     return this;
   }
 
+  @GenIgnore
+  public OutputUnit addAnnotations(List<OutputUnit> annotations) {
+    if (this.annotations == null) {
+      this.annotations = new ArrayList<>();
+    }
+    this.annotations.addAll(annotations);
+    return this;
+  }
+
+  /**
+   * @TODO: required for validation/openapi. In those modules errors are handled as typed exceptions
+   */
+  @GenIgnore
+  public ValidationException toException(Object input) {
+    return new ValidationException(error + ": { errors: " + formatExceptions(errors) + ", annotations: " + formatExceptions(annotations) + "}", keyword, input, true) {
+    };
+  }
+
+  private String formatExceptions(List<OutputUnit> units) {
+    if (units == null) {
+      return "[]";
+    }
+    return
+      "[" +
+        units
+          .stream()
+          .filter(Objects::nonNull)
+          .map(OutputUnit::toString)
+          .collect(Collectors.joining(", ")) +
+        "]";
+
+  }
+
   public JsonObject toJson() {
     final JsonObject json = new JsonObject();
     OutputUnitConverter.toJson(this, json);
     return json;
+  }
+
+  @Override
+  public String toString() {
+    return toJson().encode();
   }
 }

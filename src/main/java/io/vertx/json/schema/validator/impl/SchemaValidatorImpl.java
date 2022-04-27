@@ -3,6 +3,7 @@ package io.vertx.json.schema.validator.impl;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.json.schema.SchemaException;
 import io.vertx.json.schema.validator.*;
 
 import java.util.*;
@@ -11,101 +12,35 @@ import java.util.regex.Pattern;
 
 import static io.vertx.json.schema.validator.impl.Utils.*;
 
-public class ValidatorImpl implements Validator {
+public class SchemaValidatorImpl implements SchemaValidator {
 
-  private static final List<String> IGNORE_KEYWORD = Arrays.asList(
-    "id",
-    "$id",
-    "$ref",
-    "$schema",
-    "$anchor",
-    "$vocabulary",
-    "$comment",
-    "default",
-    "enum",
-    "const",
-    "required",
-    "type",
-    "maximum",
-    "minimum",
-    "exclusiveMaximum",
-    "exclusiveMinimum",
-    "multipleOf",
-    "maxLength",
-    "minLength",
-    "pattern",
-    "format",
-    "maxItems",
-    "minItems",
-    "uniqueItems",
-    "maxProperties",
-    "minProperties");
-
-  private static final List<String> SCHEMA_ARRAY_KEYWORD = Arrays.asList(
-    "prefixItems",
-    "items",
-    "allOf",
-    "anyOf",
-    "oneOf");
-
-  private static final List<String> SCHEMA_MAP_KEYWORD = Arrays.asList(
-    "$defs",
-    "definitions",
-    "properties",
-    "patternProperties",
-    "dependentSchemas");
-
-  private static final List<String> SCHEMA_KEYWORD = Arrays.asList(
-    "additionalItems",
-    "unevaluatedItems",
-    "items",
-    "contains",
-    "additionalProperties",
-    "unevaluatedProperties",
-    "propertyNames",
-    "not",
-    "if",
-    "then",
-    "else"
-  );
-
-  private final Map<String, Schema> lookup = new HashMap<>();
+  private final Map<String, Schema> lookup;
 
   private final Schema schema;
   private final Draft draft;
   private final OutputFormat outputFormat;
-  private final URL baseUri;
 
-  public ValidatorImpl(Schema schema, ValidatorOptions options) {
+  public SchemaValidatorImpl(Schema schema, JsonSchemaOptions options, Map<String, Schema> lookup) {
     Objects.requireNonNull(schema, "'schema' cannot be null");
     Objects.requireNonNull(options, "'options' cannot be null");
     Objects.requireNonNull(options.getOutputFormat(), "'options.outputFormat' cannot be null");
     Objects.requireNonNull(options.getBaseUri(), "'options.baseUri' cannot be null");
+    Objects.requireNonNull(options, "'lookup' cannot be null");
     this.schema = schema;
     // extract the draft from schema when no specific draft is configured in the options
     this.draft = options.getDraft() == null ?
       Draft.fromIdentifier(schema.get("$schema")) :
       options.getDraft();
+    Objects.requireNonNull(schema, "'draft' cannot be null either #schema.$draft or options.draft");
     this.outputFormat = options.getOutputFormat();
-    this.baseUri = new URL(options.getBaseUri());
+    URL baseUri = new URL(options.getBaseUri());
+    this.lookup = new HashMap<>(lookup);
     // add the root schema
-    addSchema(schema);
+    SchemaRepositoryImpl.dereference(this.lookup, schema, baseUri, "", true);
   }
 
   @Override
-  public Validator addSchema(Schema schema) {
-    dereference(schema, baseUri, "", true);
-    return this;
-  }
-
-  @Override
-  public Validator addSchema(String uri, Schema schema) {
-    dereference(schema, new URL(uri), "", true);
-    return this;
-  }
-
-  @Override
-  public OutputUnit validate(Object instance) {
+  public OutputUnit validate(Object instance) throws SchemaException {
     return validate(
       instance,
       schema,
@@ -115,110 +50,7 @@ public class ValidatorImpl implements Validator {
       new HashSet<>());
   }
 
-  private void dereference(Schema schema, URL baseURI, String basePointer, boolean schemaRoot) {
-    if (schema instanceof JsonSchema) {
-      // This addresses the Unknown Keyword requirements, non sub-schema's with $id are to ignore the
-      // given $id as it could collide with existing resolved schemas
-      final String id = schemaRoot ? schema.get("$id", schema.get("id")) : null;
-      if (Utils.Objects.truthy(id)) {
-        final URL url = new URL(id, baseURI.href());
-        if (url.fragment().length() > 1) {
-          assert !lookup.containsKey(url.href());
-          lookup.put(url.href(), schema);
-        } else {
-          url.anchor(""); // normalize hash https://url.spec.whatwg.org/#dom-url-hash
-          if ("".equals(basePointer)) {
-            baseURI = url;
-          } else {
-            dereference(schema, baseURI, "", schemaRoot);
-          }
-        }
-      }
-    } else if (!(schema instanceof BooleanSchema)) {
-      return;
-    }
-
-    // compute the schema's URI and add it to the mapping.
-    final String schemaURI = baseURI.href() + (Utils.Objects.truthy(basePointer) ? '#' + basePointer : "");
-    if (lookup.containsKey(schemaURI)) {
-      Schema existing = lookup.get(schemaURI);
-      // this schema has been processed already, skip, this is the same behavior of ajv the most complete
-      // validator to my knowledge. This addresses the case where extra $id's are added and would be double
-      // referenced, yet, it would be ok as they are the same sub schema
-      if (existing.equals(schema)) {
-        return;
-      }
-      throw new IllegalStateException("Duplicate schema URI \"" + schemaURI + "\".");
-    }
-    lookup.put(schemaURI, schema);
-
-    // exit early if this is a boolean schema.
-    if (schema instanceof BooleanSchema) {
-      return;
-    }
-
-    // set the schema's absolute URI.
-    if (!schema.containsKey("__absolute_uri__")) {
-      schema.annotate("__absolute_uri__", schemaURI);
-    }
-
-    // if a $ref is found, resolve it's absolute URI.
-    if (schema.containsKey("$ref") && !schema.containsKey("__absolute_ref__")) {
-      final URL url = new URL(schema.get("$ref"), baseURI.href());
-      url.anchor(url.fragment()); // normalize hash https://url.spec.whatwg.org/#dom-url-hash
-      schema.annotate("__absolute_ref__", url.href());
-    }
-
-    // if a $recursiveRef is found, resolve it's absolute URI.
-    if (schema.containsKey("$recursiveRef") && !schema.containsKey("__absolute_recursive_ref__")) {
-      final URL url = new URL(schema.get("$recursiveRef"), baseURI.href());
-      url.anchor(url.fragment()); // normalize hash https://url.spec.whatwg.org/#dom-url-hash
-      schema.annotate("__absolute_recursive_ref__", url.href());
-    }
-
-    // if an $anchor is found, compute it's URI and add it to the mapping.
-    if (schema.containsKey("$anchor")) {
-      final URL url = new URL("#" + schema.<String>get("$anchor"), baseURI);
-      assert !lookup.containsKey(url.href());
-      lookup.put(url.href(), schema);
-    }
-
-    // process subschemas.
-    for (String key : schema.fieldNames()) {
-      if (IGNORE_KEYWORD.contains(key)) {
-        continue;
-      }
-
-      final String keyBase = basePointer + "/" + Pointers.encode(key);
-      final Object subSchema = schema.get(key);
-
-      if (subSchema instanceof JsonArray) {
-        if (SCHEMA_ARRAY_KEYWORD.contains(key)) {
-          for (int i = 0; i < ((JsonArray) subSchema).size(); i++) {
-            dereference(
-              Schemas.wrap((JsonArray) subSchema, i),
-              baseURI,
-              keyBase + "/" + i,
-              false);
-          }
-        }
-      } else if (SCHEMA_MAP_KEYWORD.contains(key)) {
-        for (String subKey : ((JsonObject) subSchema).fieldNames()) {
-          dereference(
-            Schemas.wrap((JsonObject) subSchema, subKey),
-            baseURI,
-            keyBase + "/" + Pointers.encode(subKey),
-            true);
-        }
-      } else if (subSchema instanceof Boolean) {
-        dereference(Schema.of((Boolean) subSchema), baseURI, keyBase, SCHEMA_KEYWORD.contains(key));
-      } else if (subSchema instanceof JsonObject) {
-        dereference(Schema.of((JsonObject) subSchema), baseURI, keyBase, SCHEMA_KEYWORD.contains(key));
-      }
-    }
-  }
-
-  private OutputUnit validate(Object _instance, Schema schema, Schema _recursiveAnchor, String instanceLocation, String schemaLocation, Set<Object> evaluated) {
+  private OutputUnit validate(Object _instance, Schema schema, Schema _recursiveAnchor, String instanceLocation, String schemaLocation, Set<Object> evaluated) throws SchemaException {
     if (schema instanceof BooleanSchema) {
       if (schema == BooleanSchema.TRUE) {
         return new OutputUnit(true).setErrors(Collections.emptyList());
@@ -233,6 +65,7 @@ public class ValidatorImpl implements Validator {
     // start validating
     String instanceType = JSON.typeOf(instance);
     List<OutputUnit> errors = new ArrayList<>();
+    List<OutputUnit> annotations = new ArrayList<>();
 
     if (schema.<Boolean>get("$recursiveAnchor", false) && _recursiveAnchor == null) {
       _recursiveAnchor = schema;
@@ -270,7 +103,7 @@ public class ValidatorImpl implements Validator {
           message += ": Absolute URI " + schema.get("__absolute_ref__");
         }
         message += "\nKnown schemas:\n- " + String.join("\n- ", lookup.keySet());
-        throw new IllegalStateException(message);
+        throw new SchemaException(schema, message);
       }
 
       final Schema refSchema = lookup.get(uri);
@@ -366,7 +199,9 @@ public class ValidatorImpl implements Validator {
           keywordLocation + "/" + i,
           subEvaluated
         );
-        errors.addAll(result.getErrors());
+        if (result.getErrors() != null) {
+          errors.addAll(result.getErrors());
+        }
         anyValid = anyValid || result.getValid();
         if (result.getValid()) {
           subEvaluateds.addAll(subEvaluated);
@@ -393,7 +228,9 @@ public class ValidatorImpl implements Validator {
           keywordLocation + "/" + i,
           subEvaluated
         );
-        errors.addAll(result.getErrors());
+        if (result.getErrors() != null) {
+          errors.addAll(result.getErrors());
+        }
         allValid = allValid && result.getValid();
         if (result.getValid()) {
           subEvaluateds.addAll(subEvaluated);
@@ -420,7 +257,9 @@ public class ValidatorImpl implements Validator {
           keywordLocation + "/" + i,
           subEvaluated
         );
-        errors.addAll(result.getErrors());
+        if (result.getErrors() != null) {
+          errors.addAll(result.getErrors());
+        }
         if (result.getValid()) {
           subEvaluateds.addAll(subEvaluated);
         }
@@ -461,7 +300,9 @@ public class ValidatorImpl implements Validator {
           );
           if (!thenResult.getValid()) {
             errors.add(new OutputUnit(instanceLocation, "if", keywordLocation, "Instance does not match \"then\" schema"));
-            errors.addAll(thenResult.getErrors());
+            if (thenResult.getErrors() != null) {
+              errors.addAll(thenResult.getErrors());
+            }
           }
         }
       } else if (schema.containsKey("else")) {
@@ -475,7 +316,9 @@ public class ValidatorImpl implements Validator {
         );
         if (!elseResult.getValid()) {
           errors.add(new OutputUnit(instanceLocation, "if", keywordLocation, "Instance does not match \"else\" schema"));
-          errors.addAll(elseResult.getErrors());
+          if (elseResult.getErrors() != null) {
+            errors.addAll(elseResult.getErrors());
+          }
         }
       }
     }
@@ -514,7 +357,9 @@ public class ValidatorImpl implements Validator {
             );
             if (!result.getValid()) {
               errors.add(new OutputUnit(instanceLocation, "propertyNames", keywordLocation, "Property name \"" + key + "\" does not match schema"));
-              errors.addAll(result.getErrors());
+              if (result.getErrors() != null) {
+                errors.addAll(result.getErrors());
+              }
             }
           }
         }
@@ -547,7 +392,9 @@ public class ValidatorImpl implements Validator {
               );
               if (!result.getValid()) {
                 errors.add(new OutputUnit(instanceLocation, "dependentSchemas", keywordLocation, "Instance has \"" + key + "\" but does not match dependant schema"));
-                errors.addAll(result.getErrors());
+                if (result.getErrors() != null) {
+                  errors.addAll(result.getErrors());
+                }
               }
             }
           }
@@ -575,7 +422,9 @@ public class ValidatorImpl implements Validator {
                 );
                 if (!result.getValid()) {
                   errors.add(new OutputUnit(instanceLocation, "dependencies", keywordLocation, "Instance has \"" + key + "\" but does not match dependant schema"));
-                  errors.addAll(result.getErrors());
+                  if (result.getErrors() != null) {
+                    errors.addAll(result.getErrors());
+                  }
                 }
               }
             }
@@ -607,7 +456,9 @@ public class ValidatorImpl implements Validator {
             } else {
               stop = outputFormat == OutputFormat.Flag;
               errors.add(new OutputUnit(instanceLocation, "properties", keywordLocation, "Property \"" + key + "\" does not match schema"));
-              errors.addAll(result.getErrors());
+              if (result.getErrors() != null) {
+                errors.addAll(result.getErrors());
+              }
               if (stop) {
                 break;
               }
@@ -638,7 +489,9 @@ public class ValidatorImpl implements Validator {
               } else {
                 stop = outputFormat == OutputFormat.Flag;
                 errors.add(new OutputUnit(instanceLocation, "patternProperties", keywordLocation, "Property \"" + key + "\" matches pattern \"" + pattern + "\" but does not match associated schema"));
-                errors.addAll(result.getErrors());
+                if (result.getErrors() != null) {
+                  errors.addAll(result.getErrors());
+                }
               }
             }
           }
@@ -664,7 +517,9 @@ public class ValidatorImpl implements Validator {
             } else {
               stop = outputFormat == OutputFormat.Flag;
               errors.add(new OutputUnit(instanceLocation, "additionalProperties", keywordLocation, "Property \"" + key + "\" does not match additional properties schema"));
-              errors.addAll(result.getErrors());
+              if (result.getErrors() != null) {
+                errors.addAll(result.getErrors());
+              }
             }
           }
         } else if (!stop && schema.containsKey("unevaluatedProperties")) {
@@ -684,7 +539,9 @@ public class ValidatorImpl implements Validator {
                 evaluated.add(key);
               } else {
                 errors.add(new OutputUnit(instanceLocation, "unevaluatedProperties", keywordLocation, "Property \"" + key + "\" does not match unevaluated properties schema"));
-                errors.addAll(result.getErrors());
+                if (result.getErrors() != null) {
+                  errors.addAll(result.getErrors());
+                }
               }
             }
           }
@@ -720,7 +577,9 @@ public class ValidatorImpl implements Validator {
             if (!result.getValid()) {
               stop = outputFormat == OutputFormat.Flag;
               errors.add(new OutputUnit(instanceLocation, "prefixItems", keywordLocation, "Items did not match schema"));
-              errors.addAll(result.getErrors());
+              if (result.getErrors() != null) {
+                errors.addAll(result.getErrors());
+              }
               if (stop) {
                 break;
               }
@@ -745,7 +604,9 @@ public class ValidatorImpl implements Validator {
               if (!result.getValid()) {
                 stop = outputFormat == OutputFormat.Flag;
                 errors.add(new OutputUnit(instanceLocation, "items", keywordLocation, "Items did not match schema"));
-                errors.addAll(result.getErrors());
+                if (result.getErrors() != null) {
+                  errors.addAll(result.getErrors());
+                }
                 if (stop) {
                   break;
                 }
@@ -765,7 +626,9 @@ public class ValidatorImpl implements Validator {
               if (!result.getValid()) {
                 stop = outputFormat == OutputFormat.Flag;
                 errors.add(new OutputUnit(instanceLocation, "items", keywordLocation, "Items did not match schema"));
-                errors.addAll(result.getErrors());
+                if (result.getErrors() != null) {
+                  errors.addAll(result.getErrors());
+                }
                 if (stop) {
                   break;
                 }
@@ -788,7 +651,9 @@ public class ValidatorImpl implements Validator {
               if (!result.getValid()) {
                 stop = outputFormat == OutputFormat.Flag;
                 errors.add(new OutputUnit(instanceLocation, "additionalItems", keywordLocation2, "Items did not match additional items schema"));
-                errors.addAll(result.getErrors());
+                if (result.getErrors() != null) {
+                  errors.addAll(result.getErrors());
+                }
               }
             }
           }
@@ -816,7 +681,9 @@ public class ValidatorImpl implements Validator {
                 evaluated.add(j);
                 contained++;
               } else {
-                errors.addAll(result.getErrors());
+                if (result.getErrors() != null) {
+                  errors.addAll(result.getErrors());
+                }
               }
             }
 
@@ -855,7 +722,9 @@ public class ValidatorImpl implements Validator {
             evaluated.add(i);
             if (!result.getValid()) {
               errors.add(new OutputUnit(instanceLocation, "unevaluatedItems", keywordLocation, "Items did not match unevaluated items schema"));
-              errors.addAll(result.getErrors());
+              if (result.getErrors() != null) {
+                errors.addAll(result.getErrors());
+              }
             }
           }
         }
@@ -938,12 +807,21 @@ public class ValidatorImpl implements Validator {
           schema.containsKey("format") &&
             !Format.fastFormat(schema.get("format"), (String) instance)
         ) {
-          errors.add(new OutputUnit(instanceLocation, "format", schemaLocation + "/format", "String does not match format \"" + schema.get("format") + "\""));
+//          switch (draft) {
+//            case DRAFT201909:
+//            case DRAFT202012:
+//              annotations.add(new OutputUnit(instanceLocation, "format", schemaLocation + "/format", "String does not match format \"" + schema.get("format") + "\""));
+//              break;
+//            default:
+              errors.add(new OutputUnit(instanceLocation, "format", schemaLocation + "/format", "String does not match format \"" + schema.get("format") + "\""));
+//          }
         }
         break;
       }
     }
 
-    return new OutputUnit(errors.isEmpty()).setErrors(errors);
+    return new OutputUnit(errors.isEmpty())
+      .setErrors(errors.isEmpty() ? null : errors)
+      .setAnnotations(annotations.isEmpty() ? null : annotations);
   }
 }

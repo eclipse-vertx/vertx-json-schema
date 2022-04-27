@@ -6,6 +6,7 @@ import io.vertx.codegen.annotations.VertxGen;
 public enum OutputFormat {
   Flag,
   Basic,
+  // TODO: bellow are not supported
   Detailed,
   Verbose
 }

@@ -29,8 +29,7 @@ public class TCKTest {
   private static final Properties UNSUPPORTED = new Properties();
   private static final JsonObject TCK;
 
-  private static final Map<String, Schema> REMOTES = new HashMap<>();
-  private static final Map<String, Schema> METAS = new HashMap<>();
+  private static final SchemaRepository repository = SchemaRepository.create(new JsonSchemaOptions().setBaseUri("app://"));
 
   static {
     try {
@@ -70,7 +69,7 @@ public class TCKTest {
       segments[0] = "test";
       segments[1] = "resources";
       System.arraycopy(relative, 0, segments, 2, relative.length);
-      METAS.put(id, Schema.of(new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", segments))))));
+      repository.dereference(id, Schema.of(new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", segments))))));
     }
   }
 
@@ -82,23 +81,23 @@ public class TCKTest {
       Object s = el.getValue("value");
       String name = el.getString("name");
       if (s instanceof JsonObject) {
-        REMOTES.put(name, Schema.of((JsonObject) s));
+        repository.dereference(name, Schema.of((JsonObject) s));
         continue;
       }
       if (s instanceof Boolean) {
-        REMOTES.put(name, Schema.of((Boolean) s));
+        repository.dereference(name, Schema.of((Boolean) s));
         continue;
       }
       fail("remotes contains unknown kind of schema");
     }
   }
 
-  private Validator outputValidator;
+  private SchemaValidator outputValidator;
   @BeforeEach
   public void initOutputUnitValidation() throws IOException {
-    outputValidator = Validator.create(
+    outputValidator = SchemaValidator.create(
       Schema.of(new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", "test", "resources", "output-schema.json"))))),
-      new ValidatorOptions().setDraft(Draft.DRAFT201909).setBaseUri("app://"));
+      new JsonSchemaOptions().setDraft(Draft.DRAFT201909).setBaseUri("app://"));
   }
 
   public Stream<Arguments> buildParameters() {
@@ -152,21 +151,11 @@ public class TCKTest {
       assertThat(testSchema).isNotNull();
 
       // setup the initial validator object
-      final Validator validator = Validator.create(
+      final SchemaValidator validator = repository.validator(
         testSchema,
-        new ValidatorOptions()
+        new JsonSchemaOptions()
           .setDraft(draft)
           .setBaseUri("https://github.com/eclipse-vertx"));
-
-      // load all meta schemas
-      for (Map.Entry<String, Schema> kv : METAS.entrySet()) {
-        validator.addSchema(kv.getKey(), kv.getValue());
-      }
-
-      // load all remote schemas
-      for (Map.Entry<String, Schema> kv : REMOTES.entrySet()) {
-        validator.addSchema(kv.getKey(), kv.getValue());
-      }
 
       OutputUnit result =
         validator
@@ -188,7 +177,7 @@ public class TCKTest {
 //          UNSUPPORTED.remove(suiteName + "/" + suiteDescription + "/" + testDescription);
         }
       }
-    } catch (IllegalStateException e) {
+    } catch (SchemaException e) {
       if (test.getBoolean("valid", false)) {
         if (unsupported) {
           // this means we don't really support this and the validation failed, so we will ignore it for now

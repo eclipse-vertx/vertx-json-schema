@@ -7,6 +7,9 @@ import io.vertx.json.schema.validator.impl.JsonSchema;
 
 import java.util.Set;
 
+/**
+ * @TODO: represents a schema, schemas can be either json or boolean, exposes a few method of jsonobject
+ */
 @VertxGen
 public interface Schema {
 

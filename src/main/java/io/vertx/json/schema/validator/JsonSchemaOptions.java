@@ -3,24 +3,33 @@ package io.vertx.json.schema.validator;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
+import java.util.Objects;
+
 @DataObject(generateConverter = true)
-public class ValidatorOptions {
+public class JsonSchemaOptions {
   private String baseUri;
   private Draft draft;
   private OutputFormat outputFormat = OutputFormat.Flag;
 
-  public ValidatorOptions() {
+  public JsonSchemaOptions() {
   }
 
-  public ValidatorOptions(JsonObject json) {
-    ValidatorOptionsConverter.fromJson(json, this);
+  public JsonSchemaOptions(JsonObject json) {
+    JsonSchemaOptionsConverter.fromJson(json, this);
+  }
+
+  public JsonSchemaOptions(JsonSchemaOptions other) {
+    Objects.requireNonNull(other, "'other' cannot be null");
+    this.baseUri = other.baseUri;
+    this.draft = other.draft;
+    this.outputFormat = other.outputFormat;
   }
 
   public String getBaseUri() {
     return baseUri;
   }
 
-  public ValidatorOptions setBaseUri(String baseUri) {
+  public JsonSchemaOptions setBaseUri(String baseUri) {
     this.baseUri = baseUri;
     return this;
   }
@@ -29,7 +38,7 @@ public class ValidatorOptions {
     return draft;
   }
 
-  public ValidatorOptions setDraft(Draft draft) {
+  public JsonSchemaOptions setDraft(Draft draft) {
     this.draft = draft;
     return this;
   }
@@ -38,19 +47,19 @@ public class ValidatorOptions {
     return outputFormat;
   }
 
-  public ValidatorOptions setOutputFormat(OutputFormat outputFormat) {
+  public JsonSchemaOptions setOutputFormat(OutputFormat outputFormat) {
     this.outputFormat = outputFormat;
     return this;
   }
 
   public JsonObject toJson() {
     final JsonObject json = new JsonObject();
-    ValidatorOptionsConverter.toJson(this, json);
+    JsonSchemaOptionsConverter.toJson(this, json);
     return json;
   }
 
   @Override
   public String toString() {
-    return toJson().encodePrettily();
+    return toJson().encode();
   }
 }
