@@ -24,6 +24,7 @@ import java.util.function.Predicate;
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
+@Deprecated
 public abstract class BaseSchemaParser implements SchemaParserInternal {
 
   protected final List<ValidatorFactory> validatorFactories;

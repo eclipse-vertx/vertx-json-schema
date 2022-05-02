@@ -19,7 +19,9 @@ import java.util.Map;
 
 /**
  * Represents the options to resolve external schemas. You can configure auth options to access to external services
+ * @deprecated users should migrate to the new validator
  */
+@Deprecated
 @DataObject(generateConverter = true)
 public class SchemaRouterOptions {
 

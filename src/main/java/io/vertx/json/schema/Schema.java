@@ -26,7 +26,9 @@ import io.vertx.core.json.pointer.JsonPointer;
  * To check the schema state you can use method {@link this#isSync()}. Note that invoking {@link #validateAsync(Object)} generally doesn't have any additional overhead than invoking {@link #validateSync(Object)}. <br/>
  * The schema can mutate the state in time, e.g. if you have a schema that is asynchronous because of a {@code $ref},
  * after the first validation the external schema is cached inside {@link SchemaRouter} and this schema will switch to synchronous state<br/>
+ * @deprecated users should migrate to the new validator
  */
+@Deprecated
 @VertxGen
 public interface Schema {
 

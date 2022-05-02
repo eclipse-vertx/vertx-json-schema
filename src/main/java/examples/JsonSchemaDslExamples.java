@@ -1,8 +1,6 @@
 package examples;
 
 import io.vertx.core.json.JsonObject;
-import io.vertx.json.schema.Schema;
-import io.vertx.json.schema.SchemaParser;
 import io.vertx.json.schema.common.dsl.SchemaBuilder;
 import io.vertx.json.schema.common.dsl.SchemaType;
 import io.vertx.json.schema.draft7.dsl.StringFormat;
@@ -53,7 +51,7 @@ public class JsonSchemaDslExamples {
       .requiredProperty("anInteger", refToAlias("myInt"));
   }
 
-  public void parse(SchemaParser parser) {
+  public void parse() {
     JsonObject schema = objectSchema()
       .requiredProperty("name", stringSchema())
       .requiredProperty("age", intSchema())

@@ -1,19 +1,21 @@
 package examples;
 
-import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.json.schema.*;
 
 public class JsonSchemaExamples {
 
-  public void instantiate(Vertx vertx) {
+  public void instantiate() {
     SchemaRepository repository =
       SchemaRepository.create(new JsonSchemaOptions().setBaseUri("https://vertx.io"));
   }
 
-  public void parse(SchemaParser parser, JsonObject object, JsonPointer schemaPointer) {
+  public void parse(JsonObject object, SchemaRepository repository) {
     JsonSchema schema = JsonSchema.of(object);
+
+    // Or
+
+    repository.dereference(JsonSchema.of(object));
   }
 
   public void validate(JsonSchema schema, Object json) {
