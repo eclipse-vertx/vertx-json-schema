@@ -1,9 +1,11 @@
-package io.vertx.json.schema.validator.impl;
+package io.vertx.json.schema.impl;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.json.schema.JsonSchemaOptions;
 import io.vertx.json.schema.SchemaException;
-import io.vertx.json.schema.validator.*;
+import io.vertx.json.schema.SchemaRepository;
+import io.vertx.json.schema.Validator;
 
 import java.util.*;
 
@@ -65,7 +67,7 @@ public class SchemaRepositoryImpl implements SchemaRepository {
     "else"
   );
 
-  private final Map<String, Schema> lookup = new HashMap<>();
+  private final Map<String, io.vertx.json.schema.JsonSchema> lookup = new HashMap<>();
 
   private final JsonSchemaOptions options;
   private final URL baseUri;
@@ -78,24 +80,24 @@ public class SchemaRepositoryImpl implements SchemaRepository {
   }
 
   @Override
-  public SchemaRepository dereference(Schema schema) throws SchemaException {
+  public SchemaRepository dereference(io.vertx.json.schema.JsonSchema schema) throws SchemaException {
     dereference(lookup, schema, baseUri, "", true);
     return this;
   }
 
   @Override
-  public SchemaRepository dereference(String uri, Schema schema) throws SchemaException {
+  public SchemaRepository dereference(String uri, io.vertx.json.schema.JsonSchema schema) throws SchemaException {
     dereference(lookup, schema, new URL(uri), "", true);
     return this;
   }
 
   @Override
-  public SchemaValidator validator(Schema schema) {
+  public Validator validator(io.vertx.json.schema.JsonSchema schema) {
     return new SchemaValidatorImpl(schema, options, Collections.unmodifiableMap(lookup));
   }
 
   @Override
-  public SchemaValidator validator(Schema schema, JsonSchemaOptions options) {
+  public Validator validator(io.vertx.json.schema.JsonSchema schema, JsonSchemaOptions options) {
     final JsonSchemaOptions config;
     if (options.getBaseUri() == null) {
       // add the default base if missing
@@ -107,7 +109,7 @@ public class SchemaRepositoryImpl implements SchemaRepository {
     return new SchemaValidatorImpl(schema, config, Collections.unmodifiableMap(lookup));
   }
 
-  static void dereference(Map<String, Schema> lookup, Schema schema, URL baseURI, String basePointer, boolean schemaRoot) {
+  static void dereference(Map<String, io.vertx.json.schema.JsonSchema> lookup, io.vertx.json.schema.JsonSchema schema, URL baseURI, String basePointer, boolean schemaRoot) {
     if (schema instanceof JsonSchema) {
       // This addresses the Unknown Keyword requirements, non sub-schema's with $id are to ignore the
       // given $id as it could collide with existing resolved schemas
@@ -133,7 +135,7 @@ public class SchemaRepositoryImpl implements SchemaRepository {
     // compute the schema's URI and add it to the mapping.
     final String schemaURI = baseURI.href() + (Utils.Objects.truthy(basePointer) ? '#' + basePointer : "");
     if (lookup.containsKey(schemaURI)) {
-      Schema existing = lookup.get(schemaURI);
+      io.vertx.json.schema.JsonSchema existing = lookup.get(schemaURI);
       // this schema has been processed already, skip, this is the same behavior of ajv the most complete
       // validator to my knowledge. This addresses the case where extra $id's are added and would be double
       // referenced, yet, it would be ok as they are the same sub schema
@@ -207,14 +209,14 @@ public class SchemaRepositoryImpl implements SchemaRepository {
       } else if (subSchema instanceof Boolean) {
         dereference(
           lookup,
-          Schema.of((Boolean) subSchema),
+          io.vertx.json.schema.JsonSchema.of((Boolean) subSchema),
           baseURI,
           keyBase,
           SCHEMA_KEYWORD.contains(key));
       } else if (subSchema instanceof JsonObject) {
         dereference(
           lookup,
-          Schema.of((JsonObject) subSchema),
+          io.vertx.json.schema.JsonSchema.of((JsonObject) subSchema),
           baseURI,
           keyBase,
           SCHEMA_KEYWORD.contains(key));

@@ -1,12 +1,11 @@
-package io.vertx.json.schema.validator.impl;
+package io.vertx.json.schema.impl;
 
 import io.vertx.core.json.JsonObject;
-import io.vertx.json.schema.validator.Schema;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public final class JsonSchema extends JsonObject implements Schema {
+public final class JsonSchema extends JsonObject implements io.vertx.json.schema.JsonSchema {
 
   private boolean annotated;
 

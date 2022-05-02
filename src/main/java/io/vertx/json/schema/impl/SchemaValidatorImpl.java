@@ -1,26 +1,26 @@
-package io.vertx.json.schema.validator.impl;
+package io.vertx.json.schema.impl;
 
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.json.schema.SchemaException;
-import io.vertx.json.schema.validator.*;
+import io.vertx.json.schema.*;
+import io.vertx.json.schema.JsonSchema;
 
 import java.util.*;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-import static io.vertx.json.schema.validator.impl.Utils.*;
+import static io.vertx.json.schema.impl.Utils.*;
 
-public class SchemaValidatorImpl implements SchemaValidator {
+public class SchemaValidatorImpl implements SchemaValidatorInternal {
 
-  private final Map<String, Schema> lookup;
+  private final Map<String, JsonSchema> lookup;
 
-  private final Schema schema;
+  private final JsonSchema schema;
   private final Draft draft;
   private final OutputFormat outputFormat;
 
-  public SchemaValidatorImpl(Schema schema, JsonSchemaOptions options, Map<String, Schema> lookup) {
+  public SchemaValidatorImpl(JsonSchema schema, JsonSchemaOptions options, Map<String, JsonSchema> lookup) {
     Objects.requireNonNull(schema, "'schema' cannot be null");
     Objects.requireNonNull(options, "'options' cannot be null");
     Objects.requireNonNull(options.getOutputFormat(), "'options.outputFormat' cannot be null");
@@ -40,6 +40,11 @@ public class SchemaValidatorImpl implements SchemaValidator {
   }
 
   @Override
+  public JsonSchema schema() {
+    return schema;
+  }
+
+  @Override
   public OutputUnit validate(Object instance) throws SchemaException {
     return validate(
       instance,
@@ -50,7 +55,7 @@ public class SchemaValidatorImpl implements SchemaValidator {
       new HashSet<>());
   }
 
-  private OutputUnit validate(Object _instance, Schema schema, Schema _recursiveAnchor, String instanceLocation, String schemaLocation, Set<Object> evaluated) throws SchemaException {
+  private OutputUnit validate(Object _instance, JsonSchema schema, JsonSchema _recursiveAnchor, String instanceLocation, String schemaLocation, Set<Object> evaluated) throws SchemaException {
     if (schema instanceof BooleanSchema) {
       if (schema == BooleanSchema.TRUE) {
         return new OutputUnit(true).setErrors(Collections.emptyList());
@@ -72,11 +77,11 @@ public class SchemaValidatorImpl implements SchemaValidator {
     }
 
     // Lock
-    final Schema recursiveAnchor = _recursiveAnchor;
+    final JsonSchema recursiveAnchor = _recursiveAnchor;
 
     if ("#".equals(schema.get("$recursiveRef"))) {
       assert schema.containsKey("__absolute_recursive_ref__");
-      final Schema refSchema =
+      final JsonSchema refSchema =
         recursiveAnchor == null
           ? lookup.get(schema.<String>get("__absolute_recursive_ref__"))
           : recursiveAnchor;
@@ -106,7 +111,7 @@ public class SchemaValidatorImpl implements SchemaValidator {
         throw new SchemaException(schema, message);
       }
 
-      final Schema refSchema = lookup.get(uri);
+      final JsonSchema refSchema = lookup.get(uri);
       final String keywordLocation = schemaLocation + "/" + schema.<String>get("$ref");
       final OutputUnit result = validate(
         instance,

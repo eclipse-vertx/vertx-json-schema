@@ -1,4 +1,4 @@
-package io.vertx.json.schema.validator;
+package io.vertx.json.schema;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.JsonArray;
@@ -8,8 +8,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 
 /**
- * Converter and mapper for {@link io.vertx.json.schema.validator.OutputUnit}.
- * NOTE: This class has been automatically generated from the {@link io.vertx.json.schema.validator.OutputUnit} original class using Vert.x codegen.
+ * Converter and mapper for {@link io.vertx.json.schema.OutputUnit}.
+ * NOTE: This class has been automatically generated from the {@link io.vertx.json.schema.OutputUnit} original class using Vert.x codegen.
  */
 public class OutputUnitConverter {
 
@@ -22,10 +22,10 @@ public class OutputUnitConverter {
       switch (member.getKey()) {
         case "annotations":
           if (member.getValue() instanceof JsonArray) {
-            java.util.ArrayList<io.vertx.json.schema.validator.OutputUnit> list =  new java.util.ArrayList<>();
+            java.util.ArrayList<io.vertx.json.schema.OutputUnit> list =  new java.util.ArrayList<>();
             ((Iterable<Object>)member.getValue()).forEach( item -> {
               if (item instanceof JsonObject)
-                list.add(new io.vertx.json.schema.validator.OutputUnit((io.vertx.core.json.JsonObject)item));
+                list.add(new io.vertx.json.schema.OutputUnit((io.vertx.core.json.JsonObject)item));
             });
             obj.setAnnotations(list);
           }
@@ -37,10 +37,10 @@ public class OutputUnitConverter {
           break;
         case "errors":
           if (member.getValue() instanceof JsonArray) {
-            java.util.ArrayList<io.vertx.json.schema.validator.OutputUnit> list =  new java.util.ArrayList<>();
+            java.util.ArrayList<io.vertx.json.schema.OutputUnit> list =  new java.util.ArrayList<>();
             ((Iterable<Object>)member.getValue()).forEach( item -> {
               if (item instanceof JsonObject)
-                list.add(new io.vertx.json.schema.validator.OutputUnit((io.vertx.core.json.JsonObject)item));
+                list.add(new io.vertx.json.schema.OutputUnit((io.vertx.core.json.JsonObject)item));
             });
             obj.setErrors(list);
           }

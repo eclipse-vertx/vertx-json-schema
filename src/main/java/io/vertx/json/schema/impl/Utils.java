@@ -1,8 +1,8 @@
-package io.vertx.json.schema.validator.impl;
+package io.vertx.json.schema.impl;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.json.schema.validator.Schema;
+import io.vertx.json.schema.JsonSchema;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -319,15 +319,15 @@ public class Utils {
   }
 
   static class Schemas {
-    public static Schema wrap(JsonObject object, String key) {
+    public static JsonSchema wrap(JsonObject object, String key) {
       Object value = object.getValue(key);
 
       if (value == null) {
         return null;
       }
 
-      if (value instanceof Schema) {
-        return (Schema) value;
+      if (value instanceof JsonSchema) {
+        return (JsonSchema) value;
       }
 
       if (value instanceof Boolean) {
@@ -337,7 +337,7 @@ public class Utils {
       }
 
       if (value instanceof JsonObject) {
-        Schema schema = new JsonSchema((JsonObject) value);
+        JsonSchema schema = new io.vertx.json.schema.impl.JsonSchema((JsonObject) value);
         object.put(key, schema);
         return schema;
       }
@@ -346,15 +346,15 @@ public class Utils {
       return null;
     }
 
-    public static Schema wrap(JsonArray array, int index) {
+    public static JsonSchema wrap(JsonArray array, int index) {
       Object value = array.getValue(index);
 
       if (value == null) {
         return null;
       }
 
-      if (value instanceof Schema) {
-        return (Schema) value;
+      if (value instanceof JsonSchema) {
+        return (JsonSchema) value;
       }
 
       if (value instanceof Boolean) {
@@ -364,7 +364,7 @@ public class Utils {
       }
 
       if (value instanceof JsonObject) {
-        Schema schema = new JsonSchema((JsonObject) value);
+        JsonSchema schema = new io.vertx.json.schema.impl.JsonSchema((JsonObject) value);
         array.set(index, schema);
         return schema;
       }

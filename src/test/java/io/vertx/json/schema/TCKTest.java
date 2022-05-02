@@ -2,8 +2,6 @@ package io.vertx.json.schema;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
-import io.vertx.json.schema.validator.*;
-import io.vertx.json.schema.validator.Schema;
 import io.vertx.junit5.Timeout;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -69,7 +67,7 @@ public class TCKTest {
       segments[0] = "test";
       segments[1] = "resources";
       System.arraycopy(relative, 0, segments, 2, relative.length);
-      repository.dereference(id, Schema.of(new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", segments))))));
+      repository.dereference(id, JsonSchema.of(new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", segments))))));
     }
   }
 
@@ -81,22 +79,22 @@ public class TCKTest {
       Object s = el.getValue("value");
       String name = el.getString("name");
       if (s instanceof JsonObject) {
-        repository.dereference(name, Schema.of((JsonObject) s));
+        repository.dereference(name, JsonSchema.of((JsonObject) s));
         continue;
       }
       if (s instanceof Boolean) {
-        repository.dereference(name, Schema.of((Boolean) s));
+        repository.dereference(name, JsonSchema.of((Boolean) s));
         continue;
       }
       fail("remotes contains unknown kind of schema");
     }
   }
 
-  private SchemaValidator outputValidator;
+  private Validator outputValidator;
   @BeforeEach
   public void initOutputUnitValidation() throws IOException {
-    outputValidator = SchemaValidator.create(
-      Schema.of(new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", "test", "resources", "output-schema.json"))))),
+    outputValidator = Validator.create(
+      JsonSchema.of(new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", "test", "resources", "output-schema.json"))))),
       new JsonSchemaOptions().setDraft(Draft.DRAFT201909).setBaseUri("app://"));
   }
 
@@ -140,18 +138,18 @@ public class TCKTest {
 
     try {
       Object rawSchema = value.getValue("schema");
-      Schema testSchema = null;
+      JsonSchema testSchema = null;
       if (rawSchema instanceof JsonObject) {
-        testSchema = Schema.of((JsonObject) rawSchema);
+        testSchema = JsonSchema.of((JsonObject) rawSchema);
       }
       if (rawSchema instanceof Boolean) {
-        testSchema = Schema.of((Boolean) rawSchema);
+        testSchema = JsonSchema.of((Boolean) rawSchema);
       }
 
       assertThat(testSchema).isNotNull();
 
       // setup the initial validator object
-      final SchemaValidator validator = repository.validator(
+      final Validator validator = repository.validator(
         testSchema,
         new JsonSchemaOptions()
           .setDraft(draft)

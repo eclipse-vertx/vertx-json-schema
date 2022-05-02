@@ -1,5 +1,6 @@
 package examples;
 
+import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.Schema;
 import io.vertx.json.schema.SchemaParser;
 import io.vertx.json.schema.common.dsl.SchemaBuilder;
@@ -53,11 +54,11 @@ public class JsonSchemaDslExamples {
   }
 
   public void parse(SchemaParser parser) {
-    Schema schema = objectSchema()
+    JsonObject schema = objectSchema()
       .requiredProperty("name", stringSchema())
       .requiredProperty("age", intSchema())
       .additionalProperties(stringSchema())
-      .build(parser);
+      .toJson();
   }
 
 }

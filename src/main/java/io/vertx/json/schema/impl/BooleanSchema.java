@@ -1,13 +1,13 @@
-package io.vertx.json.schema.validator.impl;
+package io.vertx.json.schema.impl;
 
-import io.vertx.json.schema.validator.Schema;
+import io.vertx.json.schema.JsonSchema;
 
 import java.util.Set;
 
-public final class BooleanSchema implements Schema {
+public final class BooleanSchema implements JsonSchema {
 
-  public static final Schema TRUE = new BooleanSchema(true);
-  public static final Schema FALSE = new BooleanSchema(false);
+  public static final JsonSchema TRUE = new BooleanSchema(true);
+  public static final JsonSchema FALSE = new BooleanSchema(false);
 
   private final boolean bool;
 

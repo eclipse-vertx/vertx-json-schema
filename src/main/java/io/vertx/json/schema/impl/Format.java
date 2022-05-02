@@ -1,4 +1,4 @@
-package io.vertx.json.schema.validator.impl;
+package io.vertx.json.schema.impl;
 
 import java.util.regex.Pattern;
 
@@ -41,7 +41,7 @@ public class Format {
       case "relative-json-pointer":
         return testRelativeJsonPointer(value);
       default:
-        // unknown formats are assumed true, e.g.: idn-hostname
+        // unknown formats are assumed true, e.g.: idn-hostname, binary
         return true;
     }
   }

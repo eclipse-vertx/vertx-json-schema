@@ -2,8 +2,6 @@ package io.vertx.json.schema;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.json.schema.validator.*;
-import io.vertx.json.schema.validator.Schema;
 import io.vertx.junit5.Timeout;
 import org.junit.jupiter.api.Test;
 
@@ -16,8 +14,8 @@ public class ValidatorTest {
   @Test
   @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
   public void testValidates() {
-    final SchemaValidator validator = SchemaValidator.create(
-      Schema.of(new JsonObject().put("type", "number")),
+    final Validator validator = Validator.create(
+      JsonSchema.of(new JsonObject().put("type", "number")),
       new JsonSchemaOptions()
         .setBaseUri("https://vertx.io")
         .setDraft(Draft.DRAFT201909));
@@ -39,13 +37,13 @@ public class ValidatorTest {
           .setDraft(Draft.DRAFT201909));
 
     repository
-      .dereference(Schema.of(
+      .dereference(JsonSchema.of(
         new JsonObject()
           .put("$id", "https://foo.bar/beep")
           .put("type", "boolean")));
 
-    final SchemaValidator validator = repository.validator(
-      Schema.of(
+    final Validator validator = repository.validator(
+      JsonSchema.of(
         new JsonObject()
           .put("$id", "https://foo.bar/baz")
           .put("$ref", "/beep")));
@@ -67,14 +65,14 @@ public class ValidatorTest {
 
     repository
       .dereference(
-        Schema.of(
+        JsonSchema.of(
           new JsonObject()
             .put("$id", "https://foo.bar/beep")
             .put("type", "boolean")));
 
-    final SchemaValidator validator = repository
+    final Validator validator = repository
       .validator(
-        Schema.of(
+        JsonSchema.of(
           new JsonObject()
             .put("$id", "https://foo.bar/baz")
             .put("$ref", "/beep")));
@@ -89,8 +87,8 @@ public class ValidatorTest {
   @Test
   @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
   public void testValidateAllArrayEntriesWithNestedErrors() {
-    final SchemaValidator validator = SchemaValidator.create(
-      Schema.of(
+    final Validator validator = Validator.create(
+      JsonSchema.of(
         new JsonObject()
           .put("type", "array")
           .put("items", new JsonObject()
@@ -115,8 +113,8 @@ public class ValidatorTest {
   @Test
   @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
   public void testValidateAllObjectPropertiesWithNestedErrors() {
-    final SchemaValidator validator = SchemaValidator.create(
-      Schema.of(
+    final Validator validator = Validator.create(
+      JsonSchema.of(
         new JsonObject()
           .put("type", "object")
           .put("properties", new JsonObject()
@@ -152,7 +150,7 @@ public class ValidatorTest {
 
     repository.dereference(
       "http://json-schema.org/draft-04/schema",
-      Schema.of(new JsonObject("{\n" +
+      JsonSchema.of(new JsonObject("{\n" +
         "    \"id\": \"http://json-schema.org/draft-04/schema#\",\n" +
         "    \"$schema\": \"http://json-schema.org/draft-04/schema#\",\n" +
         "    \"description\": \"Core schema meta-schema\",\n" +
@@ -302,8 +300,8 @@ public class ValidatorTest {
         "    \"default\": {}\n" +
         "}\n")));
 
-    final SchemaValidator validator = repository.validator(
-      Schema.of(
+    final Validator validator = repository.validator(
+      JsonSchema.of(
         new JsonObject("{\"$ref\":\"http://json-schema.org/draft-04/schema#\"}")));
 
     final OutputUnit res = validator.validate(
@@ -325,7 +323,7 @@ public class ValidatorTest {
 
     repository.dereference(
       "http://json-schema.org/draft-04/schema",
-      Schema.of(new JsonObject("{\n" +
+      JsonSchema.of(new JsonObject("{\n" +
         "    \"id\": \"http://json-schema.org/draft-04/schema#\",\n" +
         "    \"$schema\": \"http://json-schema.org/draft-04/schema#\",\n" +
         "    \"description\": \"Core schema meta-schema\",\n" +
@@ -475,8 +473,8 @@ public class ValidatorTest {
         "    \"default\": {}\n" +
         "}\n")));
 
-    final SchemaValidator validator = repository.validator(
-      Schema.of(
+    final Validator validator = repository.validator(
+      JsonSchema.of(
         new JsonObject("{\"properties\":{\"foo\\\"bar\":{\"$ref\":\"#/definitions/foo%22bar\"}},\"definitions\":{\"foo\\\"bar\":{\"type\":\"number\"}}}")));
 
     final OutputUnit res = validator.validate(
@@ -490,8 +488,8 @@ public class ValidatorTest {
 
     JsonObject schema = new JsonObject("{\"patternProperties\":{\"oneInteger\":{\"type\":\"integer\",\"$id\":\"urn:vertxschemas:2ea1a0cf-b474-43d0-8167-c2babeb52990\"},\"someIntegers\":{\"type\":\"array\",\"items\":{\"type\":\"integer\",\"$id\":\"urn:vertxschemas:dd85ddbb-e4b6-4cca-8f62-d635440de5b1\"},\"$id\":\"urn:vertxschemas:cfa6873d-c874-4537-a2aa-b6fc0a6ab061\"}},\"additionalProperties\":{\"type\":\"boolean\",\"$id\":\"urn:vertxschemas:135809d9-180b-40da-95a1-7e34caa32f80\"},\"type\":\"object\",\"properties\":{\"someNumbers\":{\"type\":\"array\",\"items\":{\"type\":\"number\",\"$id\":\"urn:vertxschemas:669a50a0-f3f1-4d1e-bb07-72ef8ac062a2\"},\"$id\":\"urn:vertxschemas:31baa881-3506-4b26-bd3b-94e3b9f6c4f9\"},\"oneNumber\":{\"type\":\"number\",\"$id\":\"urn:vertxschemas:43781a85-8ea3-45e3-8ac1-0056df19dde0\"}},\"$id\":\"urn:vertxschemas:ffcf420b-7600-4727-9bc1-4d3f541afcf9\"}");
 
-    SchemaValidator validator = SchemaValidator.create(
-      Schema.of(schema),
+    Validator validator = Validator.create(
+      JsonSchema.of(schema),
       new JsonSchemaOptions().setDraft(Draft.DRAFT7).setBaseUri("app://app.com").setOutputFormat(OutputFormat.Flag));
 
     validator.validate(new JsonObject());

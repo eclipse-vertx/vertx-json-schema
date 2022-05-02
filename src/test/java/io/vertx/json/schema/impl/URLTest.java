@@ -1,4 +1,4 @@
-package io.vertx.json.schema.validator.impl;
+package io.vertx.json.schema.impl;
 
 import org.junit.jupiter.api.Test;
 

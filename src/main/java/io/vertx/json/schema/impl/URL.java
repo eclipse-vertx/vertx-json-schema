@@ -1,4 +1,4 @@
-package io.vertx.json.schema.validator.impl;
+package io.vertx.json.schema.impl;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
