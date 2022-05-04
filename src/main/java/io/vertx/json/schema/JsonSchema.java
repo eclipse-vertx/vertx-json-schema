@@ -43,6 +43,18 @@ public interface JsonSchema {
   }
 
   /**
+   * Factory method to create a {@link JsonSchema} from a {@link JsonObject}.
+   * @param id will force the given id as the schema $id.
+   * @param json a JSON Object.
+   * @return a wrapper for the input object.
+   */
+  static JsonSchema of(String id, JsonObject json) {
+    return new io.vertx.json.schema.impl.JsonSchema(
+      json.copy()
+        .put("id", id));
+  }
+
+  /**
    * Factory method to create a {@link JsonSchema} from a {@link Boolean}.
    * @param bool a boolean.
    * @return a wrapper for the input object.

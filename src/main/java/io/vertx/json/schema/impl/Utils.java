@@ -61,40 +61,52 @@ public class Utils {
       return instance.doubleValue() == 0.0;
     }
 
-    public static boolean lt(Number instance, Number value) {
-      // for big numbers, go slow
-      if (instance instanceof BigDecimal || value instanceof BigDecimal || instance instanceof BigInteger || value instanceof BigInteger) {
-        return toBigDecimal(instance).compareTo(toBigDecimal(value)) < 0;
+    public static boolean lt(Number instance, Object value) {
+      if (value instanceof Number) {
+        // for big numbers, go slow
+        if (instance instanceof BigDecimal || value instanceof BigDecimal || instance instanceof BigInteger || value instanceof BigInteger) {
+          return toBigDecimal(instance).compareTo(toBigDecimal(((Number) value))) < 0;
+        }
+        // approx.
+        return instance.doubleValue() < ((Number) value).doubleValue();
       }
-      // approx.
-      return instance.doubleValue() < value.doubleValue();
+      return false;
     }
 
-    public static boolean lte(Number instance, Number value) {
-      // for big numbers, go slow
-      if (instance instanceof BigDecimal || value instanceof BigDecimal || instance instanceof BigInteger || value instanceof BigInteger) {
-        return toBigDecimal(instance).compareTo(toBigDecimal(value)) <= 0;
+    public static boolean lte(Number instance, Object value) {
+      if (value instanceof Number) {
+        // for big numbers, go slow
+        if (instance instanceof BigDecimal || value instanceof BigDecimal || instance instanceof BigInteger || value instanceof BigInteger) {
+          return toBigDecimal(instance).compareTo(toBigDecimal(((Number) value))) <= 0;
+        }
+        // approx.
+        return instance.doubleValue() <= ((Number) value).doubleValue();
       }
-      // approx.
-      return instance.doubleValue() <= value.doubleValue();
+      return false;
     }
 
-    public static boolean gt(Number instance, Number value) {
-      // for big numbers, go slow
-      if (instance instanceof BigDecimal || value instanceof BigDecimal || instance instanceof BigInteger || value instanceof BigInteger) {
-        return toBigDecimal(instance).compareTo(toBigDecimal(value)) > 0;
+    public static boolean gt(Number instance, Object value) {
+      if (value instanceof Number) {
+        // for big numbers, go slow
+        if (instance instanceof BigDecimal || value instanceof BigDecimal || instance instanceof BigInteger || value instanceof BigInteger) {
+          return toBigDecimal(instance).compareTo(toBigDecimal(((Number) value))) > 0;
+        }
+        // approx.
+        return instance.doubleValue() > ((Number) value).doubleValue();
       }
-      // approx.
-      return instance.doubleValue() > value.doubleValue();
+      return false;
     }
 
-    public static boolean gte(Number instance, Number value) {
-      // for big numbers, go slow
-      if (instance instanceof BigDecimal || value instanceof BigDecimal || instance instanceof BigInteger || value instanceof BigInteger) {
-        return toBigDecimal(instance).compareTo(toBigDecimal(value)) >= 0;
+    public static boolean gte(Number instance, Object value) {
+      if (value instanceof Number) {
+        // for big numbers, go slow
+        if (instance instanceof BigDecimal || value instanceof BigDecimal || instance instanceof BigInteger || value instanceof BigInteger) {
+          return toBigDecimal(instance).compareTo(toBigDecimal(((Number) value))) >= 0;
+        }
+        // approx.
+        return instance.doubleValue() >= ((Number) value).doubleValue();
       }
-      // approx.
-      return instance.doubleValue() >= value.doubleValue();
+      return false;
     }
 
     public static double remainder(Number instance, Number value) {

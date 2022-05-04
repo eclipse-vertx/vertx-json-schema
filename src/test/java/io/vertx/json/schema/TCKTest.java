@@ -64,7 +64,7 @@ public class TCKTest {
     for (String id : ids) {
       String[] relative = id.substring(id.indexOf("://") + 3).split("/");
       String[] segments = new String[relative.length + 2];
-      segments[0] = "test";
+      segments[0] = "main";
       segments[1] = "resources";
       System.arraycopy(relative, 0, segments, 2, relative.length);
       repository.dereference(id, JsonSchema.of(new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", segments))))));
