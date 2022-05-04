@@ -10,9 +10,11 @@
  */
 package io.vertx.json.schema;
 
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.impl.BooleanSchema;
+import io.vertx.json.schema.impl.JsonObjectSchema;
 
 import java.util.Set;
 
@@ -26,7 +28,7 @@ import java.util.Set;
  *   <li>Boolean based</li>
  * </ul>
  *
- * This is a common interface to handle all kids of schemas.
+ * This is a common interface to handle all kinds of schemas.
  *
  * @author Paulo Lopes
  */
@@ -39,7 +41,7 @@ public interface JsonSchema {
    * @return a wrapper for the input object.
    */
   static JsonSchema of(JsonObject json) {
-    return new io.vertx.json.schema.impl.JsonSchema(json);
+    return new JsonObjectSchema(json);
   }
 
   /**
@@ -49,7 +51,7 @@ public interface JsonSchema {
    * @return a wrapper for the input object.
    */
   static JsonSchema of(String id, JsonObject json) {
-    return new io.vertx.json.schema.impl.JsonSchema(
+    return new JsonObjectSchema(
       json.copy()
         .put("id", id));
   }
@@ -72,7 +74,8 @@ public interface JsonSchema {
    * @param key a key
    * @param value a value
    */
-  void annotate(String key, String value);
+  @Fluent
+  JsonSchema annotate(String key, String value);
 
   /**
    * Get a type casted value by key.

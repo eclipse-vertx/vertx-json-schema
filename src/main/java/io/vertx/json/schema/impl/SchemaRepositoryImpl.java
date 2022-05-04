@@ -110,7 +110,7 @@ public class SchemaRepositoryImpl implements SchemaRepository {
   }
 
   static void dereference(Map<String, io.vertx.json.schema.JsonSchema> lookup, io.vertx.json.schema.JsonSchema schema, URL baseURI, String basePointer, boolean schemaRoot) {
-    if (schema instanceof JsonSchema) {
+    if (schema instanceof JsonObjectSchema) {
       // This addresses the Unknown Keyword requirements, non sub-schema's with $id are to ignore the
       // given $id as it could collide with existing resolved schemas
       final String id = schemaRoot ? schema.get("$id", schema.get("id")) : null;

@@ -349,7 +349,7 @@ public class Utils {
       }
 
       if (value instanceof JsonObject) {
-        JsonSchema schema = new io.vertx.json.schema.impl.JsonSchema((JsonObject) value);
+        JsonSchema schema = new JsonObjectSchema((JsonObject) value);
         object.put(key, schema);
         return schema;
       }
@@ -376,7 +376,7 @@ public class Utils {
       }
 
       if (value instanceof JsonObject) {
-        JsonSchema schema = new io.vertx.json.schema.impl.JsonSchema((JsonObject) value);
+        JsonSchema schema = new JsonObjectSchema((JsonObject) value);
         array.set(index, schema);
         return schema;
       }

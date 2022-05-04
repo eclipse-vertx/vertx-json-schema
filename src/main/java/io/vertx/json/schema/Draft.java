@@ -13,7 +13,7 @@ package io.vertx.json.schema;
 import io.vertx.codegen.annotations.VertxGen;
 
 /**
- * Json-Schema draft.
+ * Json-Schema drafts.
  *
  * The enum does not explicitly define all known drafts but a selection of the most widely used ones and supported
  * in the implementation.

@@ -9,7 +9,6 @@ You can use Json Schemas to validate every json structure. This module provides:
 * Implementation of https://datatracker.ietf.org/doc/html/draft-handrews-json-schema-validation-01[draft 7]
 * Implementation of https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00[draft 4]
 * Dereferencing of `$ref` resolution and caching
-* Synchronous validation
 * DSL to build schemas programmatically
 
 == Using Vert.x Json Schema
@@ -50,9 +49,9 @@ underlying type.
 
 === SchemaRepository
 
-The {@link io.vertx.json.schema.SchemaRepository} is the component that holds {@link io.vertx.json.schema.JsonSchema}
-instances. It performs dereferencing of schemas to speed up validation. The repository is a simple key store, this means
-that it does not allow duplicate ids.
+The {@link io.vertx.json.schema.SchemaRepository} holds {@link io.vertx.json.schema.JsonSchema} instances. It performs
+dereferencing of schemas to speed up validation. The repository is a simple key store, this means that it does not allow
+duplicate ids.
 
 The repository can then create {@link io.vertx.json.schema.Validator} instances aware of all sub schemas in the
 repository.

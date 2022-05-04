@@ -1,20 +1,21 @@
 package io.vertx.json.schema.impl;
 
 import io.vertx.core.json.JsonObject;
+import io.vertx.json.schema.JsonSchema;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public final class JsonSchema extends JsonObject implements io.vertx.json.schema.JsonSchema {
+public final class JsonObjectSchema extends JsonObject implements JsonSchema {
 
   private boolean annotated;
 
-  public JsonSchema(JsonObject json) {
+  public JsonObjectSchema(JsonObject json) {
     super(json.getMap());
   }
 
   @Override
-  public void annotate(String key, String value) {
+  public JsonSchema annotate(String key, String value) {
     switch (key) {
       case "__absolute_uri__":
         annotated = true;
@@ -31,6 +32,7 @@ public final class JsonSchema extends JsonObject implements io.vertx.json.schema
       default:
         throw new IllegalArgumentException("Unsupported annotation: " + key);
     }
+    return this;
   }
 
   @Override

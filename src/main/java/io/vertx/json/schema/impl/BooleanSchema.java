@@ -16,7 +16,7 @@ public final class BooleanSchema implements JsonSchema {
   }
 
   @Override
-  public void annotate(String key, String value) {
+  public JsonSchema annotate(String key, String value) {
     throw new UnsupportedOperationException("This schema doesn't support annotate(String, String)");
   }
 
