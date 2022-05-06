@@ -12,6 +12,7 @@ package io.vertx.json.schema;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.impl.SchemaRepositoryImpl;
 
 /**
@@ -46,7 +47,8 @@ public interface SchemaRepository {
   /**
    * Dereferences a schema to the repository.
    *
-   * @param uri the source of the schema used for de-referencing
+   * @param uri the source of the schema used for de-referencing, optionally relative to
+   *            {@link JsonSchemaOptions#getBaseUri()}.
    * @param schema a new schema to list
    * @throws SchemaException when a schema is already present for the same id
    * @return a repository
@@ -61,6 +63,7 @@ public interface SchemaRepository {
    * @return the validator
    */
   Validator validator(JsonSchema schema);
+
   /**
    * A new validator instance overriding this repository options.
    *

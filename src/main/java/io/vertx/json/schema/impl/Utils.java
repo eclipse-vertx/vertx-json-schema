@@ -290,6 +290,19 @@ public class Utils {
 
       return encoded.toString();
     }
+
+    public static String unescape(String p) {
+      return p
+        .replaceAll("~1", "/")
+        .replaceAll("~0", "~");
+    }
+
+    public static String escape(String p) {
+      return p
+        .replaceAll("~", "~0")
+        .replaceAll("/", "~1");
+
+    }
   }
 
   static class Objects {
@@ -327,6 +340,10 @@ public class Utils {
       }
 
       return false;
+    }
+
+    public static boolean isObject(Object instance) {
+      return instance instanceof JsonObject || instance instanceof JsonArray;
     }
   }
 

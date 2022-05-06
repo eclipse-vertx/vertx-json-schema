@@ -48,13 +48,18 @@ public class URL {
       }
 
       if (authority == null) {
+        // https://url.spec.whatwg.org/#special-scheme
         switch (scheme) {
+          case "http":
+          case "https":
+          case "ws":
+          case "wss":
+          case "ftp":
+            throw new IllegalStateException("(strict) url isn't valid: " + url);
           case "file":
-          case "urn":
+          default:
             // OK
             break;
-          default:
-            throw new IllegalStateException("(strict) url isn't valid: " + url);
         }
       }
 

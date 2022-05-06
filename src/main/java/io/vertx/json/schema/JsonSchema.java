@@ -108,4 +108,16 @@ public interface JsonSchema {
    * @return field names
    */
   Set<String> fieldNames();
+
+  /**
+   * Tries to resolve all internal references. External references are resolved so you need to
+   * inline them yourself if required.
+   *
+   * The result is an object where all references have been resolved. Resolution of references is shallow This
+   * should normally not be a problem for this use case.
+   *
+   * @return a new {@link JsonObject} representing the schema with {@code $refs} replaced by their value.
+   * @throws SchemaException when the resolution is impossible. One of such cases is circular referencing.
+   */
+  JsonObject resolve();
 }

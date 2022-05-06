@@ -39,6 +39,13 @@ class URLTest {
   }
 
   @Test
+  public void testFileMerge() {
+    URL url =  new URL("schema.json", "file://");
+    assertThat(url.href())
+      .isEqualTo("file:///schema.json");
+  }
+
+  @Test
   public void testSchema() {
     URL a = new URL("http://json-schema.org/draft-4/schema#", "http://json-schema.org/draft-4/schema");
     assertThat(a.href())
