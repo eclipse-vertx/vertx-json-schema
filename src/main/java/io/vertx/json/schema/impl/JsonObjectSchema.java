@@ -25,6 +25,11 @@ public final class JsonObjectSchema extends JsonObject implements JsonSchema {
 
   public JsonObjectSchema(JsonObject json) {
     super(json.getMap());
+    // inherit the annotated flag
+    this.annotated =
+      json.containsKey("__absolute_uri__") ||
+      json.containsKey("__absolute_ref__") ||
+      json.containsKey("__absolute_recursive_ref__");
   }
 
   @Override
@@ -81,7 +86,7 @@ public final class JsonObjectSchema extends JsonObject implements JsonSchema {
     final Map<String, List<Ref>> pointers = new HashMap<>();
 
     // find all refs
-    parse(tree, "#", "", pointers);
+    findRefsAndClean(tree, "#", "", pointers);
 
     // resolve them
     final Map<String, JsonObject> anchors = new HashMap<>();
@@ -229,22 +234,31 @@ public final class JsonObjectSchema extends JsonObject implements JsonSchema {
     }
   }
 
-  private static void parse(Object obj, String path, String id, Map<String, List<Ref>> pointers) {
+  private static void findRefsAndClean(Object obj, String path, String id, Map<String, List<Ref>> pointers) {
     if (!isObject(obj)) {
       return;
     }
     if (obj instanceof JsonObject) {
       final JsonObject json = (JsonObject) obj;
+
+      // clean up annotations
+      json.remove("__absolute_uri__");
+      json.remove("__absolute_ref__");
+      json.remove("__absolute_recursive_ref__");
+
+      // compute the id (according to draft-4 or later)
       if (json.containsKey("$id") || json.containsKey("id")) {
         id = json.getString("$id", json.getString("id"));
       }
+
+      // process the object
       for (String prop : json.fieldNames()) {
         if (POINTER_KEYWORD.contains(prop)) {
           pointers
             .computeIfAbsent(prop, key -> new ArrayList<>())
             .add(new Ref(json.getString(prop), json, prop, path, id));
         }
-        parse(json.getValue(prop), path + "/" + Utils.Pointers.encode(prop), id, pointers);
+        findRefsAndClean(json.getValue(prop), path + "/" + Utils.Pointers.encode(prop), id, pointers);
       }
     }
   }

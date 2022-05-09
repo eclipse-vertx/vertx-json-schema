@@ -110,8 +110,7 @@ public interface JsonSchema {
   Set<String> fieldNames();
 
   /**
-   * Tries to resolve all internal references. External references are resolved so you need to
-   * inline them yourself if required.
+   * Tries to resolve all internal references. External references are not resolved.
    *
    * The result is an object where all references have been resolved. Resolution of references is shallow This
    * should normally not be a problem for this use case.
