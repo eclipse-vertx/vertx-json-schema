@@ -15,7 +15,9 @@ import io.vertx.json.schema.common.MutableStateValidator;
 
 /**
  * This exception is thrown when you call {@link Schema#validateSync(Object)} when the schema is in an asynchronous state
+ * @deprecated users should migrate to the new validator
  */
+@Deprecated
 public class NoSyncValidationException extends VertxException {
 
   private final MutableStateValidator validator;

@@ -48,7 +48,7 @@ public class Draft201909IntegrationTest extends BaseIntegrationTest {
       "anyOf",
       "boolean_schema",
       "const",
-      "contains",
+      //"contains",
       "default",
       "defs",
       "dependentRequired",
@@ -80,9 +80,9 @@ public class Draft201909IntegrationTest extends BaseIntegrationTest {
       "ref",
       "refRemote",
       "required",
-      "type",
-      "unevaluatedItems",
-      "unevaluatedProperties",
+      //"type",
+      //"unevaluatedItems",
+      //"unevaluatedProperties",
       "uniqueItems"
     );
   }

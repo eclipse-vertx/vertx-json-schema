@@ -116,6 +116,10 @@ public abstract class SchemaBuilder<T extends SchemaBuilder<?, ?>, K extends Key
     return res;
   }
 
+  /**
+   * @deprecated This method creates an hard link to the parser which we want to avoid
+   */
+  @Deprecated
   public final Schema build(SchemaParser parser) {
     return parser.parse(toJson(), JsonPointer.fromURI(id));
   }

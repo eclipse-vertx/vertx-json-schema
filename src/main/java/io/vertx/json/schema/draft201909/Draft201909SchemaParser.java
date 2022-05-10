@@ -24,6 +24,7 @@ import io.vertx.json.schema.draft7.*;
 import java.net.URI;
 import java.util.*;
 
+@Deprecated
 public class Draft201909SchemaParser extends BaseSchemaParser {
 
   protected Draft201909SchemaParser(SchemaRouter router) {

@@ -24,7 +24,9 @@ import java.util.function.Predicate;
 
 /**
  * Parse a Json Schema. The parser can be extended to support custom keywords using {@link this#withValidatorFactory(ValidatorFactory)}
+ * @deprecated users should migrate to the new validator
  */
+@Deprecated
 @VertxGen
 public interface SchemaParser {
 

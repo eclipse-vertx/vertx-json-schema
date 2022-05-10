@@ -16,6 +16,7 @@ import io.vertx.json.schema.SchemaParser;
 
 import java.net.URI;
 
+@Deprecated
 public interface SchemaParserInternal extends SchemaParser {
 
   @Override

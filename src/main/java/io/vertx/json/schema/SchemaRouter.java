@@ -35,7 +35,9 @@ import java.util.List;
  * You should not share this object between different threads
  *
  * @author slinkydeveloper
+ * @deprecated users should migrate to the new validator
  */
+@Deprecated
 @VertxGen
 public interface SchemaRouter {
 
