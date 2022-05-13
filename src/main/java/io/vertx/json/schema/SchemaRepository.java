@@ -72,4 +72,15 @@ public interface SchemaRepository {
    * @return the validator
    */
   Validator validator(JsonSchema schema, JsonSchemaOptions options);
+
+  /**
+   * Tries to resolve all internal and repository local references. External references are not resolved.
+   *
+   * The result is an object where all references have been resolved. Resolution of references is shallow. This
+   * should normally not be a problem for this use case.
+   *
+   * @return a new {@link JsonObject} representing the schema with {@code $ref}s replaced by their value.
+   * @throws SchemaException when the resolution is impossible. One of such cases is circular referencing.
+   */
+  JsonObject resolve(JsonSchema schema);
 }

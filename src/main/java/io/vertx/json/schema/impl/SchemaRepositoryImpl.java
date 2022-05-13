@@ -65,6 +65,7 @@ public class SchemaRepositoryImpl implements SchemaRepository {
   );
 
   private final Map<String, JsonSchema> lookup = new HashMap<>();
+  private final Map<String, JsonSchema> refs = new HashMap<>();
 
   private final JsonSchemaOptions options;
   private final URL baseUri;
@@ -79,12 +80,14 @@ public class SchemaRepositoryImpl implements SchemaRepository {
   @Override
   public SchemaRepository dereference(JsonSchema schema) throws SchemaException {
     dereference(lookup, schema, baseUri, "", true);
+    refs.put(schema.get("$id", schema.get("id", "")), schema);
     return this;
   }
 
   @Override
   public SchemaRepository dereference(String uri, JsonSchema schema) throws SchemaException {
     dereference(lookup, schema, new URL(uri, options.getBaseUri()), "", true);
+    refs.put(uri, schema);
     return this;
   }
 
@@ -104,6 +107,20 @@ public class SchemaRepositoryImpl implements SchemaRepository {
       config = options;
     }
     return new SchemaValidatorImpl(schema, config, Collections.unmodifiableMap(lookup));
+  }
+
+  private JsonSchema lookup(JsonSchema schema) {
+    // this will perform a dereference of the given schema
+    // the deference will ensure that there are no cyclic references
+    // and the given schema is valid to resolved if needed
+    final Map<String, JsonSchema> lookup = new HashMap<>(Collections.unmodifiableMap(this.lookup));
+    dereference(lookup, schema, baseUri, "", true);
+    return schema;
+  }
+
+  @Override
+  public JsonObject resolve(JsonSchema schema) {
+    return Ref.resolve(Collections.unmodifiableMap(refs), lookup(schema));
   }
 
   static void dereference(Map<String, JsonSchema> lookup, JsonSchema schema, URL baseURI, String basePointer, boolean schemaRoot) {

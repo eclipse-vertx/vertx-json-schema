@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+import static io.vertx.json.schema.impl.SchemaRepositoryImpl.dereference;
 import static io.vertx.json.schema.impl.Utils.*;
 
 public class SchemaValidatorImpl implements SchemaValidatorInternal {
@@ -36,7 +37,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
     URL baseUri = new URL(options.getBaseUri());
     this.lookup = new HashMap<>(lookup);
     // add the root schema
-    SchemaRepositoryImpl.dereference(this.lookup, schema, baseUri, "", true);
+    dereference(this.lookup, schema, baseUri, "", true);
   }
 
   @Override

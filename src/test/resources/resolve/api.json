@@ -1,0 +1,135 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Swagger Petstore",
+    "description": "This is a sample server Petstore server.  You can find out more about     Swagger\nat [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).      For\nthis sample, you can use the api key `special-key` to test the authorization     filters.",
+    "termsOfService": "http://swagger.io/terms/",
+    "contact": {
+      "email": "apiteam@swagger.io"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "version": "1.0.0"
+  },
+  "externalDocs": {
+    "description": "Find out more about Swagger",
+    "url": "http://swagger.io"
+  },
+  "servers": [
+    {
+      "url": "https://petstore.swagger.io/v2"
+    },
+    {
+      "url": "http://petstore.swagger.io/v2"
+    }
+  ],
+  "tags": [
+    {
+      "name": "pet",
+      "description": "Everything about your Pets",
+      "externalDocs": {
+        "description": "Find out more",
+        "url": "http://swagger.io"
+      }
+    },
+    {
+      "name": "store",
+      "description": "Access to Petstore orders"
+    },
+    {
+      "name": "user",
+      "description": "Operations about user",
+      "externalDocs": {
+        "description": "Find out more about our store",
+        "url": "http://swagger.io"
+      }
+    }
+  ],
+  "paths": {
+    "/pet": {
+      "$ref": "pet.api.json#/pet"
+    },
+    "/pet/findByStatus": {
+      "$ref": "pet.api.json#/pet-findByStatus"
+    },
+    "/pet/findByTags": {
+      "$ref": "pet.api.json#/pet-findByTags"
+    },
+    "/pet/{petId}": {
+      "$ref": "pet.api.json#/pet-petId"
+    },
+    "/pet/{petId}/uploadImage": {
+      "$ref": "pet.api.json#/pet-petId-uploadImage"
+    },
+    "/store/inventory": {
+      "$ref": "store.api.json#/store-inventory"
+    },
+    "/store/order": {
+      "$ref": "store.api.json#/store-order"
+    },
+    "/store/order/{orderId}": {
+      "$ref": "store.api.json#/store-order-orderId"
+    },
+    "/user": {
+      "$ref": "user.api.json#/user"
+    },
+    "/user/createWithArray": {
+      "$ref": "user.api.json#/user-createWithArray"
+    },
+    "/user/createWithList": {
+      "$ref": "user.api.json#/user-createWithList"
+    },
+    "/user/login": {
+      "$ref": "user.api.json#/user-login"
+    },
+    "/user/logout": {
+      "$ref": "user.api.json#/user-logout"
+    },
+    "/user/{username}": {
+      "$ref": "user.api.json#/user-username"
+    }
+  },
+  "components": {
+    "schemas": {
+      "Order": {
+        "$ref": "store.model.json#/Order"
+      },
+      "User": {
+        "$ref": "user.model.json#/User"
+      },
+      "Tag": {
+        "$ref": "pet.model.json#/Tag"
+      },
+      "Category": {
+        "$ref": "pet.model.json#/Category"
+      },
+      "Pet": {
+        "$ref": "pet.model.json#/Pet"
+      },
+      "ApiResponse": {
+        "$ref": "pet.model.json#/ApiResponse"
+      }
+    },
+    "securitySchemes": {
+      "petstore_auth": {
+        "type": "oauth2",
+        "flows": {
+          "implicit": {
+            "authorizationUrl": "http://petstore.swagger.io/oauth/dialog",
+            "scopes": {
+              "write:pets": "modify pets in your account",
+              "read:pets": "read your pets"
+            }
+          }
+        }
+      },
+      "api_key": {
+        "type": "apiKey",
+        "name": "api_key",
+        "in": "header"
+      }
+    }
+  }
+}
