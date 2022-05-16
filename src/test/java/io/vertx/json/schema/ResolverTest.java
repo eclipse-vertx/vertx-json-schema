@@ -97,4 +97,15 @@ public class ResolverTest {
     JsonObject json = repository.resolve(JsonSchema.of(new JsonObject(vertx.fileSystem().readFileBlocking("resolve/api.json"))));
     System.out.println(json.encodePrettily());
   }
+
+  @Test
+  public void testResolveRefsWithinArray(Vertx vertx) {
+
+    JsonSchema schema = JsonSchema.of(new JsonObject(vertx.fileSystem().readFileBlocking("resolve/array.json")));
+
+    JsonObject json = schema.resolve();
+
+    assertThat(json.getJsonArray("parameters").getValue(0))
+      .isInstanceOf(JsonObject.class);
+  }
 }

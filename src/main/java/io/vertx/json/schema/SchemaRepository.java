@@ -83,4 +83,11 @@ public interface SchemaRepository {
    * @throws SchemaException when the resolution is impossible. One of such cases is circular referencing.
    */
   JsonObject resolve(JsonSchema schema);
+
+  /**
+   * Look up a schema using a JSON pointer notation
+   * @param pointer the JSON pointer
+   * @return the schema
+   */
+  JsonSchema find(String pointer);
 }

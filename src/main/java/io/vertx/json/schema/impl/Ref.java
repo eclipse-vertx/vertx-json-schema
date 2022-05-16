@@ -1,5 +1,6 @@
 package io.vertx.json.schema.impl;
 
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.JsonSchema;
 import io.vertx.json.schema.SchemaException;
@@ -35,7 +36,7 @@ public final class Ref {
     this.id = id;
   }
 
-  public static JsonObject resolve(Map<String, JsonSchema> refs, JsonSchema schema) {
+  public static JsonObject resolve(Map<String, JsonSchema> refs, URL baseUri, JsonSchema schema) {
     final JsonObject tree = ((JsonObject) schema).copy();
     final Map<String, List<Ref>> pointers = new HashMap<>();
 
@@ -104,7 +105,7 @@ public final class Ref {
         // re-assign the obj
         obj.mergeIn(
           new JsonObject(
-            resolveUri(refs, schema, fullRef, anchors)
+            resolveUri(refs, baseUri, schema, fullRef, anchors)
               // filter out pointer keywords
               .stream()
               .filter(kv -> !POINTER_KEYWORD.contains(kv.getKey()))
@@ -138,6 +139,14 @@ public final class Ref {
     if (!isObject(obj)) {
       return;
     }
+    if (obj instanceof JsonArray) {
+      final JsonArray json = (JsonArray) obj;
+      // process the array
+      for (int i = 0; i < json.size(); i++) {
+        findRefsAndClean(json.getValue(i), path + "/" + i, id, pointers);
+      }
+    }
+
     if (obj instanceof JsonObject) {
       final JsonObject json = (JsonObject) obj;
 
@@ -162,7 +171,7 @@ public final class Ref {
     }
   }
 
-  private static JsonObject resolveUri(Map<String, JsonSchema> refs, JsonSchema schema, String uri, Map<String, JsonObject> anchors) {
+  private static JsonObject resolveUri(Map<String, JsonSchema> refs, URL baseUri, JsonSchema schema, String uri, Map<String, JsonObject> anchors) {
     //  [prefix, path]
     final String[] parts = uri.split("#", 2);
 
@@ -179,8 +188,11 @@ public final class Ref {
     }
 
     if (!anchors.containsKey(prefix)) {
-      if (refs != null && refs.containsKey(prefix)) {
-        return resolve(refs, refs.get(prefix));
+      if (!refs.isEmpty()) {
+        String resolved = new URL(prefix, baseUri).href();
+        if (refs.containsKey(resolved)) {
+          return resolve(refs, baseUri, refs.get(resolved));
+        }
       }
       throw new SchemaException(schema, "Can't resolve '" + uri + "', only internal refs are supported.");
     }

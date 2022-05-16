@@ -65,7 +65,6 @@ public class SchemaRepositoryImpl implements SchemaRepository {
   );
 
   private final Map<String, JsonSchema> lookup = new HashMap<>();
-  private final Map<String, JsonSchema> refs = new HashMap<>();
 
   private final JsonSchemaOptions options;
   private final URL baseUri;
@@ -80,14 +79,12 @@ public class SchemaRepositoryImpl implements SchemaRepository {
   @Override
   public SchemaRepository dereference(JsonSchema schema) throws SchemaException {
     dereference(lookup, schema, baseUri, "", true);
-    refs.put(schema.get("$id", schema.get("id", "")), schema);
     return this;
   }
 
   @Override
   public SchemaRepository dereference(String uri, JsonSchema schema) throws SchemaException {
     dereference(lookup, schema, new URL(uri, options.getBaseUri()), "", true);
-    refs.put(uri, schema);
     return this;
   }
 
@@ -109,18 +106,21 @@ public class SchemaRepositoryImpl implements SchemaRepository {
     return new SchemaValidatorImpl(schema, config, Collections.unmodifiableMap(lookup));
   }
 
-  private JsonSchema lookup(JsonSchema schema) {
+  @Override
+  public JsonObject resolve(JsonSchema schema) {
     // this will perform a dereference of the given schema
+    final Map<String, JsonSchema> lookup = new HashMap<>(Collections.unmodifiableMap(this.lookup));
     // the deference will ensure that there are no cyclic references
     // and the given schema is valid to resolved if needed
-    final Map<String, JsonSchema> lookup = new HashMap<>(Collections.unmodifiableMap(this.lookup));
     dereference(lookup, schema, baseUri, "", true);
-    return schema;
+    return Ref.resolve(lookup, baseUri, schema);
   }
 
   @Override
-  public JsonObject resolve(JsonSchema schema) {
-    return Ref.resolve(Collections.unmodifiableMap(refs), lookup(schema));
+  public JsonSchema find(String pointer) {
+    // resolve the pointer to an absolute path
+    final URL url = new URL(pointer, baseUri);
+    return lookup.get(url.href());
   }
 
   static void dereference(Map<String, JsonSchema> lookup, JsonSchema schema, URL baseURI, String basePointer, boolean schemaRoot) {
