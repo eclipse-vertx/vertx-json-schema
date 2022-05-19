@@ -65,6 +65,14 @@ public interface SchemaRepository {
   Validator validator(JsonSchema schema);
 
   /**
+   * A new validator instance using this repository options.
+   *
+   * @param ref the start validation reference in JSON pointer format
+   * @return the validator
+   */
+  Validator validator(String ref);
+
+  /**
    * A new validator instance overriding this repository options.
    *
    * @param schema the start validation schema
@@ -72,6 +80,15 @@ public interface SchemaRepository {
    * @return the validator
    */
   Validator validator(JsonSchema schema, JsonSchemaOptions options);
+
+  /**
+   * A new validator instance overriding this repository options.
+   *
+   * @param ref the start validation reference in JSON pointer format
+   * @param options the options to be using on the validator instance
+   * @return the validator
+   */
+  Validator validator(String ref, JsonSchemaOptions options);
 
   /**
    * Tries to resolve all internal and repository local references. External references are not resolved.
@@ -83,6 +100,18 @@ public interface SchemaRepository {
    * @throws SchemaException when the resolution is impossible. One of such cases is circular referencing.
    */
   JsonObject resolve(JsonSchema schema);
+
+  /**
+   * Tries to resolve all internal and repository local references. External references are not resolved.
+   *
+   * The result is an object where all references have been resolved. Resolution of references is shallow. This
+   * should normally not be a problem for this use case.
+   *
+   * @param ref the start resolution reference in JSON pointer format
+   * @return a new {@link JsonObject} representing the schema with {@code $ref}s replaced by their value.
+   * @throws SchemaException when the resolution is impossible. One of such cases is circular referencing.
+   */
+  JsonObject resolve(String ref);
 
   /**
    * Look up a schema using a JSON pointer notation

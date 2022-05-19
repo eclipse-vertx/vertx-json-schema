@@ -94,6 +94,17 @@ public class SchemaRepositoryImpl implements SchemaRepository {
   }
 
   @Override
+  public Validator validator(String ref) {
+    // resolve the pointer to an absolute path
+    final URL url = new URL(ref, baseUri);
+    final String uri = url.href();
+    if (lookup.containsKey(uri)) {
+      return new SchemaValidatorImpl(uri, options, Collections.unmodifiableMap(lookup));
+    }
+    throw new IllegalArgumentException("Unknown $ref: " + ref);
+  }
+
+  @Override
   public Validator validator(JsonSchema schema, JsonSchemaOptions options) {
     final JsonSchemaOptions config;
     if (options.getBaseUri() == null) {
@@ -107,6 +118,26 @@ public class SchemaRepositoryImpl implements SchemaRepository {
   }
 
   @Override
+  public Validator validator(String ref, JsonSchemaOptions options) {
+    final JsonSchemaOptions config;
+    if (options.getBaseUri() == null) {
+      // add the default base if missing
+      config = new JsonSchemaOptions(options)
+        .setBaseUri(options.getBaseUri());
+    } else {
+      config = options;
+    }
+
+    // resolve the pointer to an absolute path
+    final URL url = new URL(ref, baseUri);
+    final String uri = url.href();
+    if (lookup.containsKey(uri)) {
+      return new SchemaValidatorImpl(uri, config, Collections.unmodifiableMap(lookup));
+    }
+    throw new IllegalArgumentException("Unknown $ref: " + ref);
+  }
+
+  @Override
   public JsonObject resolve(JsonSchema schema) {
     // this will perform a dereference of the given schema
     final Map<String, JsonSchema> lookup = new HashMap<>(Collections.unmodifiableMap(this.lookup));
@@ -114,6 +145,17 @@ public class SchemaRepositoryImpl implements SchemaRepository {
     // and the given schema is valid to resolved if needed
     dereference(lookup, schema, baseUri, "", true);
     return Ref.resolve(lookup, baseUri, schema);
+  }
+
+  @Override
+  public JsonObject resolve(String ref) {
+    // resolve the pointer to an absolute path
+    final URL url = new URL(ref, baseUri);
+    final String uri = url.href();
+    if (lookup.containsKey(uri)) {
+      return Ref.resolve(Collections.unmodifiableMap(lookup), baseUri, lookup.get(uri));
+    }
+    throw new IllegalArgumentException("Unknown $ref: " + ref);
   }
 
   @Override

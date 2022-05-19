@@ -495,4 +495,31 @@ public class ValidatorTest {
     validator.validate(new JsonObject());
 
   }
+
+  @Test
+  @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
+  public void testValidatorByRef() {
+    final SchemaRepository repository = SchemaRepository
+      .create(
+        new JsonSchemaOptions()
+          .setBaseUri("https://vertx.io")
+          .setDraft(Draft.DRAFT201909));
+
+    repository
+      .dereference(JsonSchema.of(
+        new JsonObject()
+          .put("$id", "https://foo.bar/beep")
+          .put("type", "boolean")))
+      .dereference(JsonSchema.of(
+        new JsonObject()
+          .put("$id", "https://foo.bar/baz")
+          .put("$ref", "/beep")));
+
+    Validator validator = repository.validator("https://foo.bar/baz");
+
+    assertThat(validator.validate(true).getValid())
+      .isEqualTo(true);
+    assertThat(validator.validate("hello world").getValid())
+      .isEqualTo(false);
+  }
 }

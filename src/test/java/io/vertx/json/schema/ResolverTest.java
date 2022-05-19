@@ -94,8 +94,22 @@ public class ResolverTest {
         .dereference(uri, JsonSchema.of(new JsonObject(vertx.fileSystem().readFileBlocking("resolve/" + uri))));
     }
 
-    JsonObject json = repository.resolve(JsonSchema.of(new JsonObject(vertx.fileSystem().readFileBlocking("resolve/api.json"))));
-    System.out.println(json.encodePrettily());
+    assertThat(repository.resolve(JsonSchema.of(new JsonObject(vertx.fileSystem().readFileBlocking("resolve/api.json")))).encode().length())
+      .isEqualTo(137509);
+  }
+
+  @Test
+  public void testResolveRefsFromRepositoryWithRefsByRef(Vertx vertx) {
+
+    SchemaRepository repository = SchemaRepository.create(new JsonSchemaOptions().setDraft(Draft.DRAFT4).setBaseUri("https://vertx.io"));
+
+    for (String uri : Arrays.asList("api.json", "pet.api.json", "pet.model.json", "store.api.json", "store.model.json", "user.api.json", "user.model.json")) {
+      repository
+        .dereference(uri, JsonSchema.of(new JsonObject(vertx.fileSystem().readFileBlocking("resolve/" + uri))));
+    }
+
+    assertThat(repository.resolve("api.json").encode().length())
+      .isEqualTo(137509);
   }
 
   @Test
