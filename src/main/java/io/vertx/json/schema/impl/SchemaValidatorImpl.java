@@ -40,6 +40,22 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
     dereference(this.lookup, schema, baseUri, "", true);
   }
 
+  public SchemaValidatorImpl(String ref, JsonSchemaOptions options, Map<String, JsonSchema> lookup) {
+    Objects.requireNonNull(ref, "'ref' cannot be null");
+    Objects.requireNonNull(options, "'options' cannot be null");
+    Objects.requireNonNull(options.getOutputFormat(), "'options.outputFormat' cannot be null");
+    Objects.requireNonNull(options.getBaseUri(), "'options.baseUri' cannot be null");
+    Objects.requireNonNull(options, "'lookup' cannot be null");
+    this.schema = lookup.get(ref);
+    // extract the draft from schema when no specific draft is configured in the options
+    this.draft = options.getDraft() == null ?
+      Draft.fromIdentifier(schema.get("$schema")) :
+      options.getDraft();
+    Objects.requireNonNull(schema, "'draft' cannot be null either #schema.$draft or options.draft");
+    this.outputFormat = options.getOutputFormat();
+    this.lookup = lookup;
+  }
+
   @Override
   public JsonSchema schema() {
     return schema;
