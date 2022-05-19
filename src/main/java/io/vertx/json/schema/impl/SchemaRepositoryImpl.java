@@ -106,6 +106,23 @@ public class SchemaRepositoryImpl implements SchemaRepository {
     return new SchemaValidatorImpl(schema, config, Collections.unmodifiableMap(lookup));
   }
 
+  @Override
+  public JsonObject resolve(JsonSchema schema) {
+    // this will perform a dereference of the given schema
+    final Map<String, JsonSchema> lookup = new HashMap<>(Collections.unmodifiableMap(this.lookup));
+    // the deference will ensure that there are no cyclic references
+    // and the given schema is valid to resolved if needed
+    dereference(lookup, schema, baseUri, "", true);
+    return Ref.resolve(lookup, baseUri, schema);
+  }
+
+  @Override
+  public JsonSchema find(String pointer) {
+    // resolve the pointer to an absolute path
+    final URL url = new URL(pointer, baseUri);
+    return lookup.get(url.href());
+  }
+
   static void dereference(Map<String, JsonSchema> lookup, JsonSchema schema, URL baseURI, String basePointer, boolean schemaRoot) {
     if (schema == null) {
       return;

@@ -1,16 +1,21 @@
 package io.vertx.json.schema;
 
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
+import io.vertx.junit5.VertxExtension;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
+@ExtendWith(VertxExtension.class)
 public class ResolverTest {
 
   @Test
@@ -63,5 +68,44 @@ public class ResolverTest {
     } catch (SchemaException e) {
       // OK
     }
+  }
+
+  @Test
+  public void testResolveRefsFromRepository(Vertx vertx) {
+
+    SchemaRepository repository = SchemaRepository.create(new JsonSchemaOptions().setDraft(Draft.DRAFT4).setBaseUri("https://vertx.io"));
+
+    try {
+      repository.resolve(JsonSchema.of(new JsonObject(vertx.fileSystem().readFileBlocking("resolve/api.json"))));
+      // fail
+      fail("Should fail as no other references are loaded");
+    } catch (SchemaException e) {
+      // OK
+    }
+  }
+
+  @Test
+  public void testResolveRefsFromRepositoryWithRefs(Vertx vertx) {
+
+    SchemaRepository repository = SchemaRepository.create(new JsonSchemaOptions().setDraft(Draft.DRAFT4).setBaseUri("https://vertx.io"));
+
+    for (String uri : Arrays.asList("pet.api.json", "pet.model.json", "store.api.json", "store.model.json", "user.api.json", "user.model.json")) {
+      repository
+        .dereference(uri, JsonSchema.of(new JsonObject(vertx.fileSystem().readFileBlocking("resolve/" + uri))));
+    }
+
+    JsonObject json = repository.resolve(JsonSchema.of(new JsonObject(vertx.fileSystem().readFileBlocking("resolve/api.json"))));
+    System.out.println(json.encodePrettily());
+  }
+
+  @Test
+  public void testResolveRefsWithinArray(Vertx vertx) {
+
+    JsonSchema schema = JsonSchema.of(new JsonObject(vertx.fileSystem().readFileBlocking("resolve/array.json")));
+
+    JsonObject json = schema.resolve();
+
+    assertThat(json.getJsonArray("parameters").getValue(0))
+      .isInstanceOf(JsonObject.class);
   }
 }

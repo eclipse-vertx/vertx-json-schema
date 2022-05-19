@@ -1,0 +1,13 @@
+{
+  "parameters": [
+    {"$ref":"#/components/parameters-query/aQeueryKey"}
+  ],
+
+  "components" : {
+    "parameters-query": {
+      "aQeueryKey": {
+        "foo": "far"
+      }
+    }
+  }
+}
