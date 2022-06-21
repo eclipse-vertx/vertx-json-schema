@@ -41,7 +41,7 @@ dependencies {
 
 Schemas can exist in 2 flavours:
 
-* JSON as in JSON natation
+* JSON as in JSON notation
 * Boolean as in `true/false`
 
 The {@link io.vertx.json.schema.JsonSchema} interface allows both types to be handled without the constant check of the
