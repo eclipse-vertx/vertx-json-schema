@@ -156,19 +156,20 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
       if (o instanceof Map<?, ?>) {
         Map<String, ?> obj = (Map<String, ?>) o;
         List<Future> futs = new ArrayList<>();
-        for (String key : obj.keySet()) {
+        for (Map.Entry<String, ?> entry: obj.entrySet()) {
           boolean found = false;
+          String key = entry.getKey();
           if (properties != null && properties.containsKey(key)) {
             SchemaInternal s = properties.get(key);
             context.markEvaluatedProperty(key);
             if (s.isSync()) {
               try {
-                s.validateSync(context.lowerLevelContext(key), obj.get(key));
+                s.validateSync(context.lowerLevelContext(key), entry.getValue());
               } catch (ValidationException e) {
                 return Future.failedFuture(e);
               }
             } else {
-              futs.add(s.validateAsync(context.lowerLevelContext(key), obj.get(key)));
+              futs.add(s.validateAsync(context.lowerLevelContext(key), entry.getValue()));
             }
             found = true;
           }
@@ -179,12 +180,12 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
                 context.markEvaluatedProperty(key);
                 if (s.isSync()) {
                   try {
-                    s.validateSync(context.lowerLevelContext(key), obj.get(key));
+                    s.validateSync(context.lowerLevelContext(key), entry.getValue());
                   } catch (ValidationException e) {
                     return Future.failedFuture(e);
                   }
                 } else {
-                  futs.add(s.validateAsync(context.lowerLevelContext(key), obj.get(key)));
+                  futs.add(s.validateAsync(context.lowerLevelContext(key), entry.getValue()));
                 }
                 found = true;
               }
@@ -196,13 +197,13 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
                 context.markEvaluatedProperty(key);
                 if (additionalPropertiesSchema.isSync()) {
                   try {
-                    additionalPropertiesSchema.validateSync(context.lowerLevelContext(key), obj.get(key));
+                    additionalPropertiesSchema.validateSync(context.lowerLevelContext(key), entry.getValue());
                   } catch (ValidationException e) {
                     return fillAdditionalPropertyException(e, in);
                   }
                 } else {
                   futs.add(additionalPropertiesSchema
-                    .validateAsync(context.lowerLevelContext(key), obj.get(key))
+                    .validateAsync(context.lowerLevelContext(key), entry.getValue())
                     .recover(t -> fillAdditionalPropertyException(t, in))
                   );
                 }
@@ -223,12 +224,13 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
       Object o = unwrap(in);
       if (o instanceof Map<?, ?>) {
         Map<String, ?> obj = (Map<String, ?>) o;
-        for (String key : obj.keySet()) {
+        for (Map.Entry<String, ?> entry : obj.entrySet()) {
           boolean found = false;
+          String key = entry.getKey();
           if (properties != null && properties.containsKey(key)) {
             SchemaInternal s = properties.get(key);
             context.markEvaluatedProperty(key);
-            s.validateSync(context.lowerLevelContext(key), obj.get(key));
+            s.validateSync(context.lowerLevelContext(key), entry.getValue());
             found = true;
           }
           if (patternProperties != null) {
@@ -236,7 +238,7 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
               if (patternProperty.getKey().matcher(key).find()) {
                 SchemaInternal s = patternProperty.getValue();
                 context.markEvaluatedProperty(key);
-                s.validateSync(context.lowerLevelContext(key), obj.get(key));
+                s.validateSync(context.lowerLevelContext(key), entry.getValue());
                 found = true;
               }
             }
@@ -245,7 +247,7 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
             if (allowAdditionalProperties) {
               if (additionalPropertiesSchema != null) {
                 context.markEvaluatedProperty(key);
-                additionalPropertiesSchema.validateSync(context.lowerLevelContext(key), obj.get(key));
+                additionalPropertiesSchema.validateSync(context.lowerLevelContext(key), entry.getValue());
               }
             } else {
               throw create("Provided object contains unexpected additional property: " + key, "additionalProperties", in);
