@@ -12,6 +12,7 @@ package io.vertx.json.schema;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.file.FileSystem;
 import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.impl.SchemaRepositoryImpl;
 
@@ -55,6 +56,15 @@ public interface SchemaRepository {
    */
   @Fluent
   SchemaRepository dereference(String uri, JsonSchema schema) throws SchemaException;
+
+  /**
+   * Preloads the repository with the meta schemas for the related draft version.
+   * @param fs The Vert.x file system to load the related schema meta files from classpath
+   * @param draft The draft version of the meta files to load
+   * @return a repository
+   */
+  @Fluent
+  SchemaRepository preloadMetaSchema(FileSystem fs, Draft draft);
 
   /**
    * A new validator instance using this repository options.
