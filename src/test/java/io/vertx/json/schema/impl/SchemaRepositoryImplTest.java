@@ -6,6 +6,9 @@ import io.vertx.json.schema.Draft;
 import io.vertx.json.schema.JsonSchemaOptions;
 import io.vertx.json.schema.SchemaRepository;
 import io.vertx.junit5.VertxExtension;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -22,7 +25,9 @@ import static io.vertx.json.schema.impl.SchemaRepositoryImpl.DRAFT_201909_META_F
 import static io.vertx.json.schema.impl.SchemaRepositoryImpl.DRAFT_202012_META_FILES;
 import static io.vertx.json.schema.impl.SchemaRepositoryImpl.DRAFT_4_META_FILES;
 import static io.vertx.json.schema.impl.SchemaRepositoryImpl.DRAFT_7_META_FILES;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.endsWith;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
@@ -50,5 +55,24 @@ class SchemaRepositoryImplTest {
       String classpath = id.replace("http://", "").replace("https://", "");
       verify(fileSystemSpy).readFileBlocking(endsWith(classpath));
     }
+  }
+
+  @Test
+  @DisplayName("preloadMetaSchema(fs) should throw an error if no draft is set in the options")
+  void testPreloadMetaSchemaException(Vertx vertx) {
+    JsonSchemaOptions opts = new JsonSchemaOptions().setBaseUri("https://example.org");
+    SchemaRepository repo = SchemaRepository.create(opts);
+
+    Assertions.assertThrows(IllegalStateException.class, () -> repo.preloadMetaSchema(vertx.fileSystem()));
+  }
+
+  @Test
+  @DisplayName("preloadMetaSchema(fs) should get the draft from the options")
+  void testPreloadMetaSchemaDraftFromOptions(Vertx vertx) {
+    JsonSchemaOptions opts = new JsonSchemaOptions().setBaseUri("https://example.org").setDraft(DRAFT4);
+    SchemaRepository repoSpy = spy(SchemaRepository.create(opts));
+    repoSpy.preloadMetaSchema(vertx.fileSystem());
+
+    verify(repoSpy).preloadMetaSchema(any(), eq(DRAFT4));
   }
 }

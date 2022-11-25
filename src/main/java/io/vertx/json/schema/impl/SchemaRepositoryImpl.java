@@ -118,7 +118,16 @@ public class SchemaRepositoryImpl implements SchemaRepository {
     return this;
   }
 
-  @Override public SchemaRepository preloadMetaSchema(FileSystem fs, Draft draft) {
+  @Override
+  public SchemaRepository preloadMetaSchema(FileSystem fs) {
+    if (options.getDraft() == null) {
+      throw new IllegalStateException("No draft version is defined in the options of the repository");
+    }
+    return preloadMetaSchema(fs, options.getDraft());
+  }
+
+  @Override
+  public SchemaRepository preloadMetaSchema(FileSystem fs, Draft draft) {
     List<String> metaSchemaIds;
     switch (draft) {
       case DRAFT4:
