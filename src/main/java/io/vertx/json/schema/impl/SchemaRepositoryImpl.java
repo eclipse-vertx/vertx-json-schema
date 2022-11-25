@@ -140,7 +140,8 @@ public class SchemaRepositoryImpl implements SchemaRepository {
     for (String id : metaSchemaIds) {
       // read files from classpath
       JsonSchema schema = JsonSchema.of(fs.readFileBlocking(id.substring(id.indexOf("://") + 3)).toJsonObject());
-      dereference(id, schema);
+      // try to extract the '$id' from the schema itself, fallback to old field 'id' and if not present to the given url
+      dereference(schema.get("$id", schema.get("id", id)), schema);
     }
     return this;
   }
@@ -154,6 +155,9 @@ public class SchemaRepositoryImpl implements SchemaRepository {
   public Validator validator(String ref) {
     // resolve the pointer to an absolute path
     final URL url = new URL(ref, baseUri);
+    if ("".equals(url.fragment())) {
+      url.anchor(""); // normalize hash https://url.spec.whatwg.org/#dom-url-hash
+    }
     final String uri = url.href();
     if (lookup.containsKey(uri)) {
       return new SchemaValidatorImpl(uri, options, Collections.unmodifiableMap(lookup));
@@ -188,6 +192,9 @@ public class SchemaRepositoryImpl implements SchemaRepository {
     // resolve the pointer to an absolute path
     final URL url = new URL(ref, baseUri);
     final String uri = url.href();
+    if ("".equals(url.fragment())) {
+      url.anchor(""); // normalize hash https://url.spec.whatwg.org/#dom-url-hash
+    }
     if (lookup.containsKey(uri)) {
       return new SchemaValidatorImpl(uri, config, Collections.unmodifiableMap(lookup));
     }
@@ -208,6 +215,9 @@ public class SchemaRepositoryImpl implements SchemaRepository {
   public JsonObject resolve(String ref) {
     // resolve the pointer to an absolute path
     final URL url = new URL(ref, baseUri);
+    if ("".equals(url.fragment())) {
+      url.anchor(""); // normalize hash https://url.spec.whatwg.org/#dom-url-hash
+    }
     final String uri = url.href();
     if (lookup.containsKey(uri)) {
       return Ref.resolve(Collections.unmodifiableMap(lookup), baseUri, lookup.get(uri));
