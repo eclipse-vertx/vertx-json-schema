@@ -25,30 +25,43 @@ public enum Draft {
   /**
    * Draft 4 - <a href="http://json-schema.org/draft-04/schema#">http://json-schema.org/draft-04/schema#</a>
    *
-   * Usually used by Swagger 2.0
+   * Usually used by OpenAPI 3.0
    */
-  DRAFT4,
+  DRAFT4("http://json-schema.org/draft-04/schema#"),
 
   /**
    * Draft 7 - <a href="http://json-schema.org/draft-07/schema#">http://json-schema.org/draft-07/schema#</a>
    *
-   * Usually used by OpenAPI 3.0
+   * Commonly used by many projects
    */
-  DRAFT7,
+  DRAFT7("http://json-schema.org/draft-07/schema#"),
 
   /**
    * Draft 2019-09 - <a href="https://json-schema.org/draft/2019-09/schema">https://json-schema.org/draft/2019-09/schema</a>
    *
    * Commonly used by many projects
    */
-  DRAFT201909,
+  DRAFT201909("https://json-schema.org/draft/2019-09/schema"),
 
   /**
-   * Draft 2019-09 - <a href="https://json-schema.org/draft/2020-12/schema">https://json-schema.org/draft/2020-12/schema</a>
+   * Draft 2020-12 - <a href="https://json-schema.org/draft/2020-12/schema">https://json-schema.org/draft/2020-12/schema</a>
    *
    * Usually used by OpenAPI 3.1
    */
-  DRAFT202012;
+  DRAFT202012("https://json-schema.org/draft/2020-12/schema");
+
+  private final String identifier;
+
+  Draft(String identifier) {
+    this.identifier = identifier;
+  }
+
+  /**
+   * @return the identifier of the draft version.
+   */
+  public String getIdentifier() {
+    return identifier;
+  }
 
   /**
    * Converts a draft number to a {@link Draft} enum value.
@@ -75,7 +88,7 @@ public enum Draft {
   }
 
   /**
-   * Converts a draft idenfifier to a {@link Draft} enum value.
+   * Converts a draft identifier to a {@link Draft} enum value.
    * @param string The identifier (in URL format)
    * @return a Draft enum value
    */
@@ -83,17 +96,16 @@ public enum Draft {
     if (string == null) {
       throw new IllegalArgumentException("Invalid draft identifier: null");
     }
-    switch (string) {
-      case "http://json-schema.org/draft-04/schema#":
-        return DRAFT4;
-      case "http://json-schema.org/draft-07/schema#":
-        return DRAFT7;
-      case "https://json-schema.org/draft/2019-09/schema":
-        return DRAFT201909;
-      case "https://json-schema.org/draft/2020-12/schema":
-        return DRAFT202012;
-      default:
-        throw new IllegalArgumentException("Unsupported draft identifier: " + string);
+    if(DRAFT4.identifier.equals(string)) {
+      return DRAFT4;
+    } else if(DRAFT7.identifier.equals(string)) {
+      return DRAFT7;
+    } else if(DRAFT201909.identifier.equals(string)) {
+      return DRAFT201909;
+    } else if(DRAFT202012.identifier.equals(string)) {
+      return DRAFT202012;
+    } else {
+      throw new IllegalArgumentException("Unsupported draft identifier: " + string);
     }
   }
 }
