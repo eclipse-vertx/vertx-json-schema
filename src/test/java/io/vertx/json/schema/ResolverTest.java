@@ -134,7 +134,6 @@ public class ResolverTest {
 
     JsonObject json = JsonSchema.of(new JsonObject(source)).resolve();
 
-    System.out.println(json.encodePrettily());
     assertThat(ref.matcher(json.encode()).find()).isFalse();
   }
 }
