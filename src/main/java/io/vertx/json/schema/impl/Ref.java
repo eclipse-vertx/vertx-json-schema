@@ -13,6 +13,8 @@ import static io.vertx.json.schema.impl.Utils.Objects.isObject;
 
 public final class Ref {
 
+  private static final int RESOLVE_LIMIT = Integer.getInteger("io.vertx.json.schema.resolve.limit", 50);
+
   public static final List<String> POINTER_KEYWORD = Arrays.asList(
     "$ref",
     "$id",
@@ -37,6 +39,13 @@ public final class Ref {
   }
 
   public static JsonObject resolve(Map<String, JsonSchema> refs, URL baseUri, JsonSchema schema) {
+    return resolve(refs, baseUri, schema, RESOLVE_LIMIT);
+  }
+  private static JsonObject resolve(Map<String, JsonSchema> refs, URL baseUri, JsonSchema schema, int limit) {
+    if (limit == 0) {
+      throw new RuntimeException("Too much recursion resolving schema");
+    }
+
     final JsonObject tree = ((JsonObject) schema).copy();
     final Map<String, List<Ref>> pointers = new HashMap<>();
 
@@ -48,6 +57,8 @@ public final class Ref {
     anchors.put("", tree);
 
     final JsonObject dynamicAnchors = new JsonObject();
+
+    boolean updated = false;
 
     pointers
       .computeIfAbsent("$id", key -> Collections.emptyList())
@@ -90,31 +101,30 @@ public final class Ref {
         dynamicAnchors.put("#" + ref, obj);
       });
 
-    pointers
-      .computeIfAbsent("$ref", key -> Collections.emptyList())
-      .forEach(item -> {
-        final String ref = item.ref;
-        final String prop = item.prop;
-        final JsonObject obj = item.obj;
-        final String id = item.id;
+    for (Ref item : pointers.computeIfAbsent("$ref", key -> Collections.emptyList())) {
+      final String ref = item.ref;
+      final String prop = item.prop;
+      final JsonObject obj = item.obj;
+      final String id = item.id;
 
-        obj.remove(prop);
+      obj.remove(prop);
 
-        final String decodedRef = decodeURIComponent(ref);
-        final String fullRef = decodedRef.charAt(0) != '#' ? decodedRef : id + decodedRef;
-        // re-assign the obj
-        obj.mergeIn(
-          new JsonObject(
-            resolveUri(refs, baseUri, schema, fullRef, anchors)
-              // filter out pointer keywords
-              .stream()
-              .filter(kv -> !POINTER_KEYWORD.contains(kv.getKey()))
-              .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))));
-      });
+      final String decodedRef = decodeURIComponent(ref);
+      final String fullRef = decodedRef.charAt(0) != '#' ? decodedRef : id + decodedRef;
+      // re-assign the obj
+      obj.mergeIn(
+        new JsonObject(
+          resolveUri(refs, baseUri, schema, fullRef, anchors)
+            // filter out pointer keywords
+            .stream()
+            .filter(kv -> !POINTER_KEYWORD.contains(kv.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))));
 
-    pointers
-      .computeIfAbsent("$dynamicRef", key -> Collections.emptyList())
-      .forEach(item -> {
+      // the underlying schema was updated
+      updated = true;
+    }
+
+    for (Ref item : pointers.computeIfAbsent("$dynamicRef", key -> Collections.emptyList())) {
         final String ref = item.ref;
         final String prop = item.prop;
         final JsonObject obj = item.obj;
@@ -130,9 +140,17 @@ public final class Ref {
               .stream()
               .filter(kv -> !POINTER_KEYWORD.contains(kv.getKey()))
               .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))));
-      });
 
-    return tree;
+      // the underlying schema was updated
+      updated = true;
+    }
+
+    if (updated) {
+      // the schema changed we need to re-run
+      return resolve(refs, baseUri, JsonSchema.of(tree), limit - 1);
+    } else {
+      return tree;
+    }
   }
 
   private static void findRefsAndClean(Object obj, String path, String id, Map<String, List<Ref>> pointers) {
