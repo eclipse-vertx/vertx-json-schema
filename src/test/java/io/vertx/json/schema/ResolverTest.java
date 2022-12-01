@@ -2,6 +2,7 @@ package io.vertx.json.schema;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -121,5 +123,17 @@ public class ResolverTest {
 
     assertThat(json.getJsonArray("parameters").getValue(0))
       .isInstanceOf(JsonObject.class);
+  }
+
+  @Test
+  public void testResolveShouldHaveNoRefReferences(Vertx vertx) {
+
+    Buffer source = vertx.fileSystem().readFileBlocking("resolve/petstore.json");
+    Pattern ref = Pattern.compile("\\$ref", Pattern.MULTILINE);
+    assertThat(ref.matcher(source.toString()).find()).isTrue();
+
+    JsonObject json = JsonSchema.of(new JsonObject(source)).resolve();
+
+    assertThat(ref.matcher(json.encode()).find()).isFalse();
   }
 }
