@@ -21,7 +21,7 @@ public class JsonSchemaDslExamples {
     arraySchema()
       .with(maxItems(10));
     schema() // Generic schema that accepts both arrays and integers
-      .with(type(SchemaType.ARRAY, SchemaType.INT));
+      .with(type(SchemaType.ARRAY, SchemaType.INTEGER));
   }
 
   public void createObject() {
