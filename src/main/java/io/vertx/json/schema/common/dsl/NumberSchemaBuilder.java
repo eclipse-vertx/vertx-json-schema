@@ -20,12 +20,13 @@ public final class NumberSchemaBuilder extends SchemaBuilder<NumberSchemaBuilder
 
   @Fluent
   public NumberSchemaBuilder asInteger() {
-    type(SchemaType.INT);
+    type(SchemaType.INTEGER);
     return this;
   }
 
   public boolean isIntegerSchema() {
-    return this.type.equals(SchemaType.INT);
+    // for legacy, while the deprecation is still in place
+    return this.type.equals(SchemaType.INT) || this.type.equals(SchemaType.INTEGER);
   }
 
 }

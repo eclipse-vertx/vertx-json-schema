@@ -44,7 +44,7 @@ public class SchemaBuilderTest {
     assertThat(
       schema()
         .with(
-          type(SchemaType.INT, SchemaType.STRING)
+          type(SchemaType.INTEGER, SchemaType.STRING)
         )
         .toJson()
     )
