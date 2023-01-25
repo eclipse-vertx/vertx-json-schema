@@ -97,7 +97,7 @@ public class ResolverTest {
     }
 
     assertThat(repository.resolve(JsonSchema.of(new JsonObject(vertx.fileSystem().readFileBlocking("resolve/api.json")))).encode().length())
-      .isEqualTo(137509);
+      .isEqualTo(24612);
   }
 
   @Test
@@ -111,7 +111,7 @@ public class ResolverTest {
     }
 
     assertThat(repository.resolve("api.json").encode().length())
-      .isEqualTo(137509);
+      .isEqualTo(24612);
   }
 
   @Test
@@ -143,9 +143,10 @@ public class ResolverTest {
     repository.preloadMetaSchema(vertx.fileSystem());
 
     JsonObject apiJson = new JsonObject(vertx.fileSystem().readFileBlocking("resolve/guestbook_api.json"));
+    repository.dereference(JsonSchema.of(apiJson));
+
     JsonObject componentsJson = new JsonObject(vertx.fileSystem().readFileBlocking("resolve/guestbook_components.json"));
     String componentsRef = "https://example.com/guestbook/components";
-    repository.dereference(JsonSchema.of(apiJson));
     repository.dereference(componentsRef, JsonSchema.of(componentsJson));
 
     JsonObject expectedJson = new JsonObject(vertx.fileSystem().readFileBlocking("resolve/guestbook_bundle.json"));

@@ -209,25 +209,38 @@ public final class Ref {
       if (!refs.isEmpty()) {
         String resolved = new URL(prefix, baseUri).href();
         if (refs.containsKey(resolved)) {
-          return resolve(refs, baseUri, refs.get(resolved));
+          // if there is no hash we can safely return the full object
+          if (!hashPresent) {
+            return resolve(refs, baseUri, refs.get(resolved));
+          }
+          // in case of hash we need to reduce...
+          return reduce(schema, path, resolve(refs, baseUri, refs.get(resolved)));
         }
       }
       throw new SchemaException(schema, "Can't resolve '" + uri + "', only internal refs are supported.");
     }
 
+    // if there is no hash we can safely return the full object
     if (!hashPresent) {
       return anchors.get(prefix);
     }
 
+    // in case of hash we need to reduce...
+    return reduce(schema, path, anchors.get(prefix));
+  }
+
+  private static JsonObject reduce(JsonSchema schema, String path, JsonObject value) {
     final String[] paths = path.split("/");
-    JsonObject value = anchors.get(prefix).copy();
+    // work with a copy to avoid mutations
+    value = value.copy();
+
     // perform a reduce operation
     for (int i = 1; i < paths.length; i++) {
       value = value
         .getJsonObject(Utils.Pointers.unescape(paths[i]));
 
       if (value == null) {
-        throw new SchemaException(schema, "Can't resolve '" + uri + "', only internal refs are supported.");
+        throw new SchemaException(schema, "Can't reduce [" + i + "] '" + path + "', value is null.");
       }
     }
     return value;
