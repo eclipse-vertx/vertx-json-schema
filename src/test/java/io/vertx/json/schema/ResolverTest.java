@@ -97,7 +97,7 @@ public class ResolverTest {
     }
 
     assertThat(repository.resolve(JsonSchema.of(new JsonObject(vertx.fileSystem().readFileBlocking("resolve/api.json")))).encode().length())
-      .isEqualTo(137509);
+      .isEqualTo(24612);
   }
 
   @Test
@@ -111,7 +111,7 @@ public class ResolverTest {
     }
 
     assertThat(repository.resolve("api.json").encode().length())
-      .isEqualTo(137509);
+      .isEqualTo(24612);
   }
 
   @Test
@@ -135,5 +135,21 @@ public class ResolverTest {
     JsonObject json = JsonSchema.of(new JsonObject(source)).resolve();
 
     assertThat(ref.matcher(json.encode()).find()).isFalse();
+  }
+
+  @Test
+  public void testResolveRefsFromOpenAPISource(Vertx vertx) {
+    SchemaRepository repository = SchemaRepository.create(new JsonSchemaOptions().setDraft(Draft.DRAFT202012).setBaseUri("app://"));
+    repository.preloadMetaSchema(vertx.fileSystem());
+
+    JsonObject apiJson = new JsonObject(vertx.fileSystem().readFileBlocking("resolve/guestbook_api.json"));
+    repository.dereference(JsonSchema.of(apiJson));
+
+    JsonObject componentsJson = new JsonObject(vertx.fileSystem().readFileBlocking("resolve/guestbook_components.json"));
+    String componentsRef = "https://example.com/guestbook/components";
+    repository.dereference(componentsRef, JsonSchema.of(componentsJson));
+
+    JsonObject expectedJson = new JsonObject(vertx.fileSystem().readFileBlocking("resolve/guestbook_bundle.json"));
+    assertThat(repository.resolve(JsonSchema.of(apiJson))).isEqualTo(expectedJson);
   }
 }
