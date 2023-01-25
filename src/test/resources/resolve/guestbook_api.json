@@ -1,0 +1,55 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Guestbook Service",
+    "license": {
+      "identifier": "MIT",
+      "name": "MIT License"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://example.com/guestbook/v1"
+    }
+  ],
+  "security": [
+    {
+      "BasicAuth": []
+    }
+  ],
+  "paths": {
+    "/bookentry": {
+      "post": {
+        "summary": "Create a new book entry",
+        "operationId": "createEntry",
+        "tags": [
+          "entry"
+        ],
+        "requestBody": {
+          "description": "Create a new entry in the guest book",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "https://example.com/guestbook/components#/components/schemas/Entry"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "https://example.com/guestbook/components#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

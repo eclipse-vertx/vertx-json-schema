@@ -136,4 +136,19 @@ public class ResolverTest {
 
     assertThat(ref.matcher(json.encode()).find()).isFalse();
   }
+
+  @Test
+  public void testResolveRefsFromOpenAPISource(Vertx vertx) {
+    SchemaRepository repository = SchemaRepository.create(new JsonSchemaOptions().setDraft(Draft.DRAFT202012).setBaseUri("app://"));
+    repository.preloadMetaSchema(vertx.fileSystem());
+
+    JsonObject apiJson = new JsonObject(vertx.fileSystem().readFileBlocking("resolve/guestbook_api.json"));
+    JsonObject componentsJson = new JsonObject(vertx.fileSystem().readFileBlocking("resolve/guestbook_components.json"));
+    String componentsRef = "https://example.com/guestbook/components";
+    repository.dereference(JsonSchema.of(apiJson));
+    repository.dereference(componentsRef, JsonSchema.of(componentsJson));
+
+    JsonObject expectedJson = new JsonObject(vertx.fileSystem().readFileBlocking("resolve/guestbook_bundle.json"));
+    assertThat(repository.resolve(JsonSchema.of(apiJson))).isEqualTo(expectedJson);
+  }
 }
