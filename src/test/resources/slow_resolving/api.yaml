@@ -1,0 +1,61 @@
+openapi: 3.0.3
+info:
+  title: DotAAS Part 2 | HTTP/REST | Entire API Collection
+  description: The entire API collection as part of Details of the Asset Administration Shell Part 2
+  contact:
+    name: Constantin Ziesche, Andreas Orzelski, Florian Krebs, Bastian Rössl, Manuel Sauer, Jens Vialkowitsch, Michael Hoffmeister, Torben Miny, Sebastian Bader, Marko Ristin, Nico Braunisch
+  version: V3.0
+  termsOfService: https://github.com/admin-shell-io/aas-specs
+paths:
+  /shells:
+    get:
+      tags:
+        - Asset Administration Shell Repository API
+      summary: Returns all Asset Administration Shells
+      operationId: GetAllAssetAdministrationShells
+      x-semanticIds:
+        - https://admin-shell.io/aas/API/GetAllAssetAdministrationShells/3/0
+        - https://admin-shell.io/aas/API/GetAllAssetAdministrationShellsByAssetId/3/0
+        - https://admin-shell.io/aas/API/GetAllAssetAdministrationShellsByIdShort/3/0
+      parameters:
+        - name: assetIds
+          in: query
+          description: A list of specific Asset identifiers
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              $ref: 'https://api.swaggerhub.com/domains/Plattform_i40/Part1-MetaModel-Schemas/V3.0#/components/schemas/SpecificAssetId'
+            example: '[ { "name": "some-asset-id", "value": "http://example-company.com/myAsset", "externalSubjectId": { "keys": [ { "type": "GlobalReference", "value": "http://example-company.com/example-companys-asset-keys" } ], "type": "GlobalReference" } }, { "name": "some-other-asset-id", "value": "12345ABC", "externalSubjectId": { "keys": [ { "type": "GlobalReference", "value": "http://my-own-company.com/keys" } ], "type": "GlobalReference" } } ]'
+        - name: idShort
+          in: query
+          description: The Asset Administration Shell’s IdShort
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+        - $ref: 'https://api.swaggerhub.com/domains/Plattform_i40/Part2-API-Schemas/V3.0#/components/parameters/Level'
+        - $ref: 'https://api.swaggerhub.com/domains/Plattform_i40/Part2-API-Schemas/V3.0#/components/parameters/Content'
+      #   - $ref: 'https://api.swaggerhub.com/domains/Plattform_i40/Part2-API-Schemas/V3.0#/components/parameters/Extent'
+      #   - $ref: 'https://api.swaggerhub.com/domains/Plattform_i40/Part2-API-Schemas/V3.0#/components/parameters/From'
+      #   - $ref: 'https://api.swaggerhub.com/domains/Plattform_i40/Part2-API-Schemas/V3.0#/components/parameters/Size'
+      #   - $ref: 'https://api.swaggerhub.com/domains/Plattform_i40/Part2-API-Schemas/V3.0#/components/parameters/SortShells'
+      responses:
+        '200':
+          description: Requested Asset Administration Shells
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: 'https://api.swaggerhub.com/domains/Plattform_i40/Part1-MetaModel-Schemas/V3.0#/components/schemas/AssetAdministrationShell'
+        default:
+          description: Default error handling for unmentioned status codes
+          content:
+            application/json:
+              schema:
+                $ref: 'https://api.swaggerhub.com/domains/Plattform_i40/Part2-API-Schemas/V3.0#/components/schemas/Result'
+
