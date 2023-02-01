@@ -104,8 +104,6 @@ public final class Ref {
 
     final Map<String, JsonObject> dejaVu = new HashMap<>();
 
-    List<Ref> l = pointers.computeIfAbsent("$ref", key -> Collections.emptyList());
-
     for (Ref item : pointers.computeIfAbsent("$ref", key -> Collections.emptyList())) {
       final String ref = item.ref;
       final String prop = item.prop;
