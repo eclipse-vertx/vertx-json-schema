@@ -1,0 +1,1171 @@
+{
+  "openapi" : "3.0.3",
+  "info" : {
+    "title" : "DotAAS Part 2 | HTTP/REST | Entire API Collection",
+    "description" : "The entire API collection as part of Details of the Asset Administration Shell Part 2",
+    "contact" : {
+      "name" : "Constantin Ziesche, Andreas Orzelski, Florian Krebs, Bastian Rössl, Manuel Sauer, Jens Vialkowitsch, Michael Hoffmeister, Torben Miny, Sebastian Bader, Marko Ristin, Nico Braunisch"
+    },
+    "version" : "V3.0",
+    "termsOfService" : "https://github.com/admin-shell-io/aas-specs"
+  },
+  "paths" : {
+    "/shells" : {
+      "get" : {
+        "tags" : [ "Asset Administration Shell Repository API" ],
+        "summary" : "Returns all Asset Administration Shells",
+        "operationId" : "GetAllAssetAdministrationShells",
+        "x-semanticIds" : [ "https://admin-shell.io/aas/API/GetAllAssetAdministrationShells/3/0", "https://admin-shell.io/aas/API/GetAllAssetAdministrationShellsByAssetId/3/0", "https://admin-shell.io/aas/API/GetAllAssetAdministrationShellsByIdShort/3/0" ],
+        "parameters" : [ {
+          "name" : "assetIds",
+          "in" : "query",
+          "description" : "A list of specific Asset identifiers",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "allOf" : [ {
+                "type" : "object",
+                "properties" : {
+                  "semanticId" : {
+                    "allOf" : [ {
+                      "properties" : {
+                        "type" : {
+                          "type" : "string",
+                          "enum" : [ "GlobalReference", "ModelReference" ]
+                        },
+                        "keys" : {
+                          "type" : "array",
+                          "items" : {
+                            "type" : "object",
+                            "properties" : {
+                              "type" : {
+                                "type" : "string",
+                                "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataElement", "Entity", "EventElement", "File", "FragmentReference", "GlobalReference", "Identifiable", "MultiLanguageProperty", "Operation", "Property", "Range", "Referable", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElement", "SubmodelElementCollection", "SubmodelElementList" ]
+                              },
+                              "value" : {
+                                "type" : "string",
+                                "minLength" : 1
+                              }
+                            },
+                            "required" : [ "type", "value" ]
+                          },
+                          "minItems" : 1
+                        }
+                      },
+                      "required" : [ "type", "keys" ]
+                    }, {
+                      "properties" : {
+                        "referredSemanticId" : {
+                          "properties" : {
+                            "type" : {
+                              "type" : "string",
+                              "enum" : [ "GlobalReference", "ModelReference" ]
+                            },
+                            "keys" : {
+                              "type" : "array",
+                              "items" : {
+                                "type" : "object",
+                                "properties" : {
+                                  "type" : {
+                                    "type" : "string",
+                                    "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataElement", "Entity", "EventElement", "File", "FragmentReference", "GlobalReference", "Identifiable", "MultiLanguageProperty", "Operation", "Property", "Range", "Referable", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElement", "SubmodelElementCollection", "SubmodelElementList" ]
+                                  },
+                                  "value" : {
+                                    "type" : "string",
+                                    "minLength" : 1
+                                  }
+                                },
+                                "required" : [ "type", "value" ]
+                              },
+                              "minItems" : 1
+                            }
+                          },
+                          "required" : [ "type", "keys" ]
+                        }
+                      }
+                    } ]
+                  },
+                  "supplementalSemanticIds" : {
+                    "type" : "array",
+                    "items" : {
+                      "allOf" : [ {
+                        "properties" : {
+                          "type" : {
+                            "type" : "string",
+                            "enum" : [ "GlobalReference", "ModelReference" ]
+                          },
+                          "keys" : {
+                            "type" : "array",
+                            "items" : {
+                              "type" : "object",
+                              "properties" : {
+                                "type" : {
+                                  "type" : "string",
+                                  "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataElement", "Entity", "EventElement", "File", "FragmentReference", "GlobalReference", "Identifiable", "MultiLanguageProperty", "Operation", "Property", "Range", "Referable", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElement", "SubmodelElementCollection", "SubmodelElementList" ]
+                                },
+                                "value" : {
+                                  "type" : "string",
+                                  "minLength" : 1
+                                }
+                              },
+                              "required" : [ "type", "value" ]
+                            },
+                            "minItems" : 1
+                          }
+                        },
+                        "required" : [ "type", "keys" ]
+                      }, {
+                        "properties" : {
+                          "referredSemanticId" : {
+                            "properties" : {
+                              "type" : {
+                                "type" : "string",
+                                "enum" : [ "GlobalReference", "ModelReference" ]
+                              },
+                              "keys" : {
+                                "type" : "array",
+                                "items" : {
+                                  "type" : "object",
+                                  "properties" : {
+                                    "type" : {
+                                      "type" : "string",
+                                      "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataElement", "Entity", "EventElement", "File", "FragmentReference", "GlobalReference", "Identifiable", "MultiLanguageProperty", "Operation", "Property", "Range", "Referable", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElement", "SubmodelElementCollection", "SubmodelElementList" ]
+                                    },
+                                    "value" : {
+                                      "type" : "string",
+                                      "minLength" : 1
+                                    }
+                                  },
+                                  "required" : [ "type", "value" ]
+                                },
+                                "minItems" : 1
+                              }
+                            },
+                            "required" : [ "type", "keys" ]
+                          }
+                        }
+                      } ]
+                    },
+                    "minItems" : 1
+                  }
+                }
+              }, {
+                "properties" : {
+                  "name" : {
+                    "type" : "string",
+                    "minLength" : 1
+                  },
+                  "value" : {
+                    "type" : "string",
+                    "minLength" : 1
+                  },
+                  "externalSubjectId" : {
+                    "allOf" : [ {
+                      "properties" : {
+                        "type" : {
+                          "type" : "string",
+                          "enum" : [ "GlobalReference", "ModelReference" ]
+                        },
+                        "keys" : {
+                          "type" : "array",
+                          "items" : {
+                            "type" : "object",
+                            "properties" : {
+                              "type" : {
+                                "type" : "string",
+                                "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataElement", "Entity", "EventElement", "File", "FragmentReference", "GlobalReference", "Identifiable", "MultiLanguageProperty", "Operation", "Property", "Range", "Referable", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElement", "SubmodelElementCollection", "SubmodelElementList" ]
+                              },
+                              "value" : {
+                                "type" : "string",
+                                "minLength" : 1
+                              }
+                            },
+                            "required" : [ "type", "value" ]
+                          },
+                          "minItems" : 1
+                        }
+                      },
+                      "required" : [ "type", "keys" ]
+                    }, {
+                      "properties" : {
+                        "referredSemanticId" : {
+                          "properties" : {
+                            "type" : {
+                              "type" : "string",
+                              "enum" : [ "GlobalReference", "ModelReference" ]
+                            },
+                            "keys" : {
+                              "type" : "array",
+                              "items" : {
+                                "type" : "object",
+                                "properties" : {
+                                  "type" : {
+                                    "type" : "string",
+                                    "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataElement", "Entity", "EventElement", "File", "FragmentReference", "GlobalReference", "Identifiable", "MultiLanguageProperty", "Operation", "Property", "Range", "Referable", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElement", "SubmodelElementCollection", "SubmodelElementList" ]
+                                  },
+                                  "value" : {
+                                    "type" : "string",
+                                    "minLength" : 1
+                                  }
+                                },
+                                "required" : [ "type", "value" ]
+                              },
+                              "minItems" : 1
+                            }
+                          },
+                          "required" : [ "type", "keys" ]
+                        }
+                      }
+                    } ]
+                  }
+                },
+                "required" : [ "name", "value", "externalSubjectId" ]
+              } ]
+            },
+            "example" : "[ { \"name\": \"some-asset-id\", \"value\": \"http://example-company.com/myAsset\", \"externalSubjectId\": { \"keys\": [ { \"type\": \"GlobalReference\", \"value\": \"http://example-company.com/example-companys-asset-keys\" } ], \"type\": \"GlobalReference\" } }, { \"name\": \"some-other-asset-id\", \"value\": \"12345ABC\", \"externalSubjectId\": { \"keys\": [ { \"type\": \"GlobalReference\", \"value\": \"http://my-own-company.com/keys\" } ], \"type\": \"GlobalReference\" } } ]"
+          }
+        }, {
+          "name" : "idShort",
+          "in" : "query",
+          "description" : "The Asset Administration Shell’s IdShort",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "schema" : {
+            "type" : "string",
+            "default" : "deep",
+            "enum" : [ "deep", "core" ]
+          },
+          "in" : "query",
+          "name" : "level",
+          "description" : "Determines the structural depth of the respective resource content",
+          "required" : false
+        }, {
+          "schema" : {
+            "type" : "string",
+            "default" : "normal",
+            "enum" : [ "normal", "metadata", "value", "reference", "path" ]
+          },
+          "in" : "query",
+          "name" : "content",
+          "description" : "Determines the request or response kind of the resource",
+          "required" : false
+        }, {
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "withBlobValue", "withoutBlobValue" ]
+          },
+          "in" : "query",
+          "name" : "extent",
+          "description" : "Determines to which extent the resource is being serialized",
+          "required" : false
+        }, {
+          "schema" : {
+            "type" : "integer",
+            "minimum" : 0,
+            "default" : 0
+          },
+          "in" : "query",
+          "name" : "from",
+          "description" : "A non-negative number defining the offset item.",
+          "required" : false
+        }, {
+          "schema" : {
+            "type" : "integer",
+            "minimum" : 0
+          },
+          "in" : "query",
+          "name" : "size",
+          "description" : "The maximum number of elements in the response array.",
+          "required" : false
+        }, {
+          "schema" : {
+            "type" : "string",
+            "default" : "id:asc",
+            "enum" : [ "id:asc", "id:dsc", "idShort:asc", "idShort:dsc", "displayName:asc", "displayName:dsc", "globalAssetId:asc", "globalAssetId:dsc" ]
+          },
+          "in" : "query",
+          "name" : "sort",
+          "description" : "The sorting pattern which shall be applied. A combination of <attribute>:<direction> is used where <attribute> is an attribute of the AAS element and <direction> is either ascending ('asc') or descending ('dsc'). Note that not all possible AAS attributes are allowed for sorting.",
+          "required" : false
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Requested Asset Administration Shells",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "allOf" : [ {
+                      "allOf" : [ {
+                        "allOf" : [ {
+                          "type" : "object",
+                          "properties" : {
+                            "extensions" : {
+                              "type" : "array",
+                              "items" : {
+                                "allOf" : [ {
+                                  "type" : "object",
+                                  "properties" : {
+                                    "semanticId" : {
+                                      "allOf" : [ {
+                                        "properties" : {
+                                          "type" : {
+                                            "type" : "string",
+                                            "enum" : [ "GlobalReference", "ModelReference" ]
+                                          },
+                                          "keys" : {
+                                            "type" : "array",
+                                            "items" : {
+                                              "type" : "object",
+                                              "properties" : {
+                                                "type" : {
+                                                  "type" : "string",
+                                                  "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataElement", "Entity", "EventElement", "File", "FragmentReference", "GlobalReference", "Identifiable", "MultiLanguageProperty", "Operation", "Property", "Range", "Referable", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElement", "SubmodelElementCollection", "SubmodelElementList" ]
+                                                },
+                                                "value" : {
+                                                  "type" : "string",
+                                                  "minLength" : 1
+                                                }
+                                              },
+                                              "required" : [ "type", "value" ]
+                                            },
+                                            "minItems" : 1
+                                          }
+                                        },
+                                        "required" : [ "type", "keys" ]
+                                      }, {
+                                        "properties" : {
+                                          "referredSemanticId" : {
+                                            "properties" : {
+                                              "type" : {
+                                                "type" : "string",
+                                                "enum" : [ "GlobalReference", "ModelReference" ]
+                                              },
+                                              "keys" : {
+                                                "type" : "array",
+                                                "items" : {
+                                                  "type" : "object",
+                                                  "properties" : {
+                                                    "type" : {
+                                                      "type" : "string",
+                                                      "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataElement", "Entity", "EventElement", "File", "FragmentReference", "GlobalReference", "Identifiable", "MultiLanguageProperty", "Operation", "Property", "Range", "Referable", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElement", "SubmodelElementCollection", "SubmodelElementList" ]
+                                                    },
+                                                    "value" : {
+                                                      "type" : "string",
+                                                      "minLength" : 1
+                                                    }
+                                                  },
+                                                  "required" : [ "type", "value" ]
+                                                },
+                                                "minItems" : 1
+                                              }
+                                            },
+                                            "required" : [ "type", "keys" ]
+                                          }
+                                        }
+                                      } ]
+                                    },
+                                    "supplementalSemanticIds" : {
+                                      "type" : "array",
+                                      "items" : {
+                                        "allOf" : [ {
+                                          "properties" : {
+                                            "type" : {
+                                              "type" : "string",
+                                              "enum" : [ "GlobalReference", "ModelReference" ]
+                                            },
+                                            "keys" : {
+                                              "type" : "array",
+                                              "items" : {
+                                                "type" : "object",
+                                                "properties" : {
+                                                  "type" : {
+                                                    "type" : "string",
+                                                    "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataElement", "Entity", "EventElement", "File", "FragmentReference", "GlobalReference", "Identifiable", "MultiLanguageProperty", "Operation", "Property", "Range", "Referable", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElement", "SubmodelElementCollection", "SubmodelElementList" ]
+                                                  },
+                                                  "value" : {
+                                                    "type" : "string",
+                                                    "minLength" : 1
+                                                  }
+                                                },
+                                                "required" : [ "type", "value" ]
+                                              },
+                                              "minItems" : 1
+                                            }
+                                          },
+                                          "required" : [ "type", "keys" ]
+                                        }, {
+                                          "properties" : {
+                                            "referredSemanticId" : {
+                                              "properties" : {
+                                                "type" : {
+                                                  "type" : "string",
+                                                  "enum" : [ "GlobalReference", "ModelReference" ]
+                                                },
+                                                "keys" : {
+                                                  "type" : "array",
+                                                  "items" : {
+                                                    "type" : "object",
+                                                    "properties" : {
+                                                      "type" : {
+                                                        "type" : "string",
+                                                        "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataElement", "Entity", "EventElement", "File", "FragmentReference", "GlobalReference", "Identifiable", "MultiLanguageProperty", "Operation", "Property", "Range", "Referable", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElement", "SubmodelElementCollection", "SubmodelElementList" ]
+                                                      },
+                                                      "value" : {
+                                                        "type" : "string",
+                                                        "minLength" : 1
+                                                      }
+                                                    },
+                                                    "required" : [ "type", "value" ]
+                                                  },
+                                                  "minItems" : 1
+                                                }
+                                              },
+                                              "required" : [ "type", "keys" ]
+                                            }
+                                          }
+                                        } ]
+                                      },
+                                      "minItems" : 1
+                                    }
+                                  }
+                                }, {
+                                  "properties" : {
+                                    "name" : {
+                                      "type" : "string",
+                                      "minLength" : 1
+                                    },
+                                    "valueType" : {
+                                      "type" : "string",
+                                      "enum" : [ "xs:NonNegativeInteger", "xs:anyURI", "xs:base64Binary", "xs:boolean", "xs:byte", "xs:date", "xs:dateTime", "xs:dateTimeStamp", "xs:dayTimeDuration", "xs:decimal", "xs:double", "xs:duration", "xs:float", "xs:gDay", "xs:gMonth", "xs:gMonthDay", "xs:gYear", "xs:gYearMonth", "xs:hexBinary", "xs:int", "xs:integer", "xs:long", "xs:negativeInteger", "xs:nonPositiveInteger", "xs:positiveInteger", "xs:short", "xs:string", "xs:time", "xs:unsignedByte", "xs:unsignedInt", "xs:unsignedLong", "xs:unsignedShort", "xs:yearMonthDuration" ]
+                                    },
+                                    "value" : {
+                                      "type" : "string"
+                                    },
+                                    "refersTo" : {
+                                      "allOf" : [ {
+                                        "properties" : {
+                                          "type" : {
+                                            "type" : "string",
+                                            "enum" : [ "GlobalReference", "ModelReference" ]
+                                          },
+                                          "keys" : {
+                                            "type" : "array",
+                                            "items" : {
+                                              "type" : "object",
+                                              "properties" : {
+                                                "type" : {
+                                                  "type" : "string",
+                                                  "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataElement", "Entity", "EventElement", "File", "FragmentReference", "GlobalReference", "Identifiable", "MultiLanguageProperty", "Operation", "Property", "Range", "Referable", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElement", "SubmodelElementCollection", "SubmodelElementList" ]
+                                                },
+                                                "value" : {
+                                                  "type" : "string",
+                                                  "minLength" : 1
+                                                }
+                                              },
+                                              "required" : [ "type", "value" ]
+                                            },
+                                            "minItems" : 1
+                                          }
+                                        },
+                                        "required" : [ "type", "keys" ]
+                                      }, {
+                                        "properties" : {
+                                          "referredSemanticId" : {
+                                            "properties" : {
+                                              "type" : {
+                                                "type" : "string",
+                                                "enum" : [ "GlobalReference", "ModelReference" ]
+                                              },
+                                              "keys" : {
+                                                "type" : "array",
+                                                "items" : {
+                                                  "type" : "object",
+                                                  "properties" : {
+                                                    "type" : {
+                                                      "type" : "string",
+                                                      "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataElement", "Entity", "EventElement", "File", "FragmentReference", "GlobalReference", "Identifiable", "MultiLanguageProperty", "Operation", "Property", "Range", "Referable", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElement", "SubmodelElementCollection", "SubmodelElementList" ]
+                                                    },
+                                                    "value" : {
+                                                      "type" : "string",
+                                                      "minLength" : 1
+                                                    }
+                                                  },
+                                                  "required" : [ "type", "value" ]
+                                                },
+                                                "minItems" : 1
+                                              }
+                                            },
+                                            "required" : [ "type", "keys" ]
+                                          }
+                                        }
+                                      } ]
+                                    }
+                                  },
+                                  "required" : [ "name" ]
+                                } ]
+                              },
+                              "minItems" : 1
+                            }
+                          }
+                        }, {
+                          "properties" : {
+                            "category" : {
+                              "type" : "string",
+                              "minLength" : 1
+                            },
+                            "idShort" : {
+                              "type" : "string",
+                              "maxLength" : 128,
+                              "pattern" : "^[a-zA-Z][a-zA-Z0-9_]+$"
+                            },
+                            "displayName" : {
+                              "type" : "array",
+                              "items" : {
+                                "type" : "object",
+                                "properties" : {
+                                  "language" : {
+                                    "type" : "string",
+                                    "pattern" : "^(([a-zA-Z]{2,3}(-[a-zA-Z]{3}(-[a-zA-Z]{3}){2})?|[a-zA-Z]{4}|[a-zA-Z]{5,8})(-[a-zA-Z]{4})?(-([a-zA-Z]{2}|[0-9]{3}))?(-(([a-zA-Z0-9]){5,8}|[0-9]([a-zA-Z0-9]){3}))*(-[0-9A-WY-Za-wy-z](-([a-zA-Z0-9]){2,8})+)*(-[xX](-([a-zA-Z0-9]){1,8})+)?|[xX](-([a-zA-Z0-9]){1,8})+|((en-GB-oed|i-ami|i-bnn|i-default|i-enochian|i-hak|i-klingon|i-lux|i-mingo|i-navajo|i-pwn|i-tao|i-tay|i-tsu|sgn-BE-FR|sgn-BE-NL|sgn-CH-DE)|(art-lojban|cel-gaulish|no-bok|no-nyn|zh-guoyu|zh-hakka|zh-min|zh-min-nan|zh-xiang)))$"
+                                  },
+                                  "text" : {
+                                    "type" : "string"
+                                  }
+                                },
+                                "required" : [ "language", "text" ]
+                              },
+                              "minItems" : 1
+                            },
+                            "description" : {
+                              "type" : "array",
+                              "items" : {
+                                "type" : "object",
+                                "properties" : {
+                                  "language" : {
+                                    "type" : "string",
+                                    "pattern" : "^(([a-zA-Z]{2,3}(-[a-zA-Z]{3}(-[a-zA-Z]{3}){2})?|[a-zA-Z]{4}|[a-zA-Z]{5,8})(-[a-zA-Z]{4})?(-([a-zA-Z]{2}|[0-9]{3}))?(-(([a-zA-Z0-9]){5,8}|[0-9]([a-zA-Z0-9]){3}))*(-[0-9A-WY-Za-wy-z](-([a-zA-Z0-9]){2,8})+)*(-[xX](-([a-zA-Z0-9]){1,8})+)?|[xX](-([a-zA-Z0-9]){1,8})+|((en-GB-oed|i-ami|i-bnn|i-default|i-enochian|i-hak|i-klingon|i-lux|i-mingo|i-navajo|i-pwn|i-tao|i-tay|i-tsu|sgn-BE-FR|sgn-BE-NL|sgn-CH-DE)|(art-lojban|cel-gaulish|no-bok|no-nyn|zh-guoyu|zh-hakka|zh-min|zh-min-nan|zh-xiang)))$"
+                                  },
+                                  "text" : {
+                                    "type" : "string"
+                                  }
+                                },
+                                "required" : [ "language", "text" ]
+                              },
+                              "minItems" : 1
+                            },
+                            "checksum" : {
+                              "type" : "string",
+                              "minLength" : 1
+                            },
+                            "modelType" : {
+                              "type" : "string",
+                              "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataSpecificationIEC61360", "DataSpecificationPhysicalUnit", "Entity", "File", "MultiLanguageProperty", "Operation", "Property", "Range", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElementCollection", "SubmodelElementList" ]
+                            }
+                          },
+                          "required" : [ "modelType" ]
+                        } ]
+                      }, {
+                        "properties" : {
+                          "administration" : {
+                            "allOf" : [ {
+                              "type" : "object",
+                              "properties" : {
+                                "embeddedDataSpecifications" : {
+                                  "type" : "array",
+                                  "items" : {
+                                    "type" : "object",
+                                    "properties" : {
+                                      "dataSpecification" : {
+                                        "allOf" : [ {
+                                          "properties" : {
+                                            "type" : {
+                                              "type" : "string",
+                                              "enum" : [ "GlobalReference", "ModelReference" ]
+                                            },
+                                            "keys" : {
+                                              "type" : "array",
+                                              "items" : {
+                                                "type" : "object",
+                                                "properties" : {
+                                                  "type" : {
+                                                    "type" : "string",
+                                                    "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataElement", "Entity", "EventElement", "File", "FragmentReference", "GlobalReference", "Identifiable", "MultiLanguageProperty", "Operation", "Property", "Range", "Referable", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElement", "SubmodelElementCollection", "SubmodelElementList" ]
+                                                  },
+                                                  "value" : {
+                                                    "type" : "string",
+                                                    "minLength" : 1
+                                                  }
+                                                },
+                                                "required" : [ "type", "value" ]
+                                              },
+                                              "minItems" : 1
+                                            }
+                                          },
+                                          "required" : [ "type", "keys" ]
+                                        }, {
+                                          "properties" : {
+                                            "referredSemanticId" : {
+                                              "properties" : {
+                                                "type" : {
+                                                  "type" : "string",
+                                                  "enum" : [ "GlobalReference", "ModelReference" ]
+                                                },
+                                                "keys" : {
+                                                  "type" : "array",
+                                                  "items" : {
+                                                    "type" : "object",
+                                                    "properties" : {
+                                                      "type" : {
+                                                        "type" : "string",
+                                                        "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataElement", "Entity", "EventElement", "File", "FragmentReference", "GlobalReference", "Identifiable", "MultiLanguageProperty", "Operation", "Property", "Range", "Referable", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElement", "SubmodelElementCollection", "SubmodelElementList" ]
+                                                      },
+                                                      "value" : {
+                                                        "type" : "string",
+                                                        "minLength" : 1
+                                                      }
+                                                    },
+                                                    "required" : [ "type", "value" ]
+                                                  },
+                                                  "minItems" : 1
+                                                }
+                                              },
+                                              "required" : [ "type", "keys" ]
+                                            }
+                                          }
+                                        } ]
+                                      },
+                                      "dataSpecificationContent" : {
+                                        "type" : "object",
+                                        "properties" : {
+                                          "modelType" : {
+                                            "type" : "string",
+                                            "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataSpecificationIEC61360", "DataSpecificationPhysicalUnit", "Entity", "File", "MultiLanguageProperty", "Operation", "Property", "Range", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElementCollection", "SubmodelElementList" ]
+                                          }
+                                        },
+                                        "required" : [ "modelType" ]
+                                      }
+                                    },
+                                    "required" : [ "dataSpecification", "dataSpecificationContent" ]
+                                  },
+                                  "minItems" : 1
+                                }
+                              }
+                            }, {
+                              "properties" : {
+                                "version" : {
+                                  "type" : "string",
+                                  "minLength" : 1
+                                },
+                                "revision" : {
+                                  "type" : "string",
+                                  "minLength" : 1
+                                }
+                              }
+                            } ]
+                          },
+                          "id" : {
+                            "type" : "string",
+                            "minLength" : 1
+                          }
+                        },
+                        "required" : [ "id" ]
+                      } ]
+                    }, {
+                      "type" : "object",
+                      "properties" : {
+                        "embeddedDataSpecifications" : {
+                          "type" : "array",
+                          "items" : {
+                            "type" : "object",
+                            "properties" : {
+                              "dataSpecification" : {
+                                "allOf" : [ {
+                                  "properties" : {
+                                    "type" : {
+                                      "type" : "string",
+                                      "enum" : [ "GlobalReference", "ModelReference" ]
+                                    },
+                                    "keys" : {
+                                      "type" : "array",
+                                      "items" : {
+                                        "type" : "object",
+                                        "properties" : {
+                                          "type" : {
+                                            "type" : "string",
+                                            "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataElement", "Entity", "EventElement", "File", "FragmentReference", "GlobalReference", "Identifiable", "MultiLanguageProperty", "Operation", "Property", "Range", "Referable", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElement", "SubmodelElementCollection", "SubmodelElementList" ]
+                                          },
+                                          "value" : {
+                                            "type" : "string",
+                                            "minLength" : 1
+                                          }
+                                        },
+                                        "required" : [ "type", "value" ]
+                                      },
+                                      "minItems" : 1
+                                    }
+                                  },
+                                  "required" : [ "type", "keys" ]
+                                }, {
+                                  "properties" : {
+                                    "referredSemanticId" : {
+                                      "properties" : {
+                                        "type" : {
+                                          "type" : "string",
+                                          "enum" : [ "GlobalReference", "ModelReference" ]
+                                        },
+                                        "keys" : {
+                                          "type" : "array",
+                                          "items" : {
+                                            "type" : "object",
+                                            "properties" : {
+                                              "type" : {
+                                                "type" : "string",
+                                                "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataElement", "Entity", "EventElement", "File", "FragmentReference", "GlobalReference", "Identifiable", "MultiLanguageProperty", "Operation", "Property", "Range", "Referable", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElement", "SubmodelElementCollection", "SubmodelElementList" ]
+                                              },
+                                              "value" : {
+                                                "type" : "string",
+                                                "minLength" : 1
+                                              }
+                                            },
+                                            "required" : [ "type", "value" ]
+                                          },
+                                          "minItems" : 1
+                                        }
+                                      },
+                                      "required" : [ "type", "keys" ]
+                                    }
+                                  }
+                                } ]
+                              },
+                              "dataSpecificationContent" : {
+                                "type" : "object",
+                                "properties" : {
+                                  "modelType" : {
+                                    "type" : "string",
+                                    "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataSpecificationIEC61360", "DataSpecificationPhysicalUnit", "Entity", "File", "MultiLanguageProperty", "Operation", "Property", "Range", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElementCollection", "SubmodelElementList" ]
+                                  }
+                                },
+                                "required" : [ "modelType" ]
+                              }
+                            },
+                            "required" : [ "dataSpecification", "dataSpecificationContent" ]
+                          },
+                          "minItems" : 1
+                        }
+                      }
+                    }, {
+                      "properties" : {
+                        "derivedFrom" : {
+                          "allOf" : [ {
+                            "properties" : {
+                              "type" : {
+                                "type" : "string",
+                                "enum" : [ "GlobalReference", "ModelReference" ]
+                              },
+                              "keys" : {
+                                "type" : "array",
+                                "items" : {
+                                  "type" : "object",
+                                  "properties" : {
+                                    "type" : {
+                                      "type" : "string",
+                                      "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataElement", "Entity", "EventElement", "File", "FragmentReference", "GlobalReference", "Identifiable", "MultiLanguageProperty", "Operation", "Property", "Range", "Referable", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElement", "SubmodelElementCollection", "SubmodelElementList" ]
+                                    },
+                                    "value" : {
+                                      "type" : "string",
+                                      "minLength" : 1
+                                    }
+                                  },
+                                  "required" : [ "type", "value" ]
+                                },
+                                "minItems" : 1
+                              }
+                            },
+                            "required" : [ "type", "keys" ]
+                          }, {
+                            "properties" : {
+                              "referredSemanticId" : {
+                                "properties" : {
+                                  "type" : {
+                                    "type" : "string",
+                                    "enum" : [ "GlobalReference", "ModelReference" ]
+                                  },
+                                  "keys" : {
+                                    "type" : "array",
+                                    "items" : {
+                                      "type" : "object",
+                                      "properties" : {
+                                        "type" : {
+                                          "type" : "string",
+                                          "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataElement", "Entity", "EventElement", "File", "FragmentReference", "GlobalReference", "Identifiable", "MultiLanguageProperty", "Operation", "Property", "Range", "Referable", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElement", "SubmodelElementCollection", "SubmodelElementList" ]
+                                        },
+                                        "value" : {
+                                          "type" : "string",
+                                          "minLength" : 1
+                                        }
+                                      },
+                                      "required" : [ "type", "value" ]
+                                    },
+                                    "minItems" : 1
+                                  }
+                                },
+                                "required" : [ "type", "keys" ]
+                              }
+                            }
+                          } ]
+                        },
+                        "assetInformation" : {
+                          "type" : "object",
+                          "properties" : {
+                            "assetKind" : {
+                              "type" : "string",
+                              "enum" : [ "Instance", "Type" ]
+                            },
+                            "globalAssetId" : {
+                              "type" : "string"
+                            },
+                            "specificAssetIds" : {
+                              "type" : "array",
+                              "items" : {
+                                "allOf" : [ {
+                                  "type" : "object",
+                                  "properties" : {
+                                    "semanticId" : {
+                                      "allOf" : [ {
+                                        "properties" : {
+                                          "type" : {
+                                            "type" : "string",
+                                            "enum" : [ "GlobalReference", "ModelReference" ]
+                                          },
+                                          "keys" : {
+                                            "type" : "array",
+                                            "items" : {
+                                              "type" : "object",
+                                              "properties" : {
+                                                "type" : {
+                                                  "type" : "string",
+                                                  "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataElement", "Entity", "EventElement", "File", "FragmentReference", "GlobalReference", "Identifiable", "MultiLanguageProperty", "Operation", "Property", "Range", "Referable", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElement", "SubmodelElementCollection", "SubmodelElementList" ]
+                                                },
+                                                "value" : {
+                                                  "type" : "string",
+                                                  "minLength" : 1
+                                                }
+                                              },
+                                              "required" : [ "type", "value" ]
+                                            },
+                                            "minItems" : 1
+                                          }
+                                        },
+                                        "required" : [ "type", "keys" ]
+                                      }, {
+                                        "properties" : {
+                                          "referredSemanticId" : {
+                                            "properties" : {
+                                              "type" : {
+                                                "type" : "string",
+                                                "enum" : [ "GlobalReference", "ModelReference" ]
+                                              },
+                                              "keys" : {
+                                                "type" : "array",
+                                                "items" : {
+                                                  "type" : "object",
+                                                  "properties" : {
+                                                    "type" : {
+                                                      "type" : "string",
+                                                      "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataElement", "Entity", "EventElement", "File", "FragmentReference", "GlobalReference", "Identifiable", "MultiLanguageProperty", "Operation", "Property", "Range", "Referable", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElement", "SubmodelElementCollection", "SubmodelElementList" ]
+                                                    },
+                                                    "value" : {
+                                                      "type" : "string",
+                                                      "minLength" : 1
+                                                    }
+                                                  },
+                                                  "required" : [ "type", "value" ]
+                                                },
+                                                "minItems" : 1
+                                              }
+                                            },
+                                            "required" : [ "type", "keys" ]
+                                          }
+                                        }
+                                      } ]
+                                    },
+                                    "supplementalSemanticIds" : {
+                                      "type" : "array",
+                                      "items" : {
+                                        "allOf" : [ {
+                                          "properties" : {
+                                            "type" : {
+                                              "type" : "string",
+                                              "enum" : [ "GlobalReference", "ModelReference" ]
+                                            },
+                                            "keys" : {
+                                              "type" : "array",
+                                              "items" : {
+                                                "type" : "object",
+                                                "properties" : {
+                                                  "type" : {
+                                                    "type" : "string",
+                                                    "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataElement", "Entity", "EventElement", "File", "FragmentReference", "GlobalReference", "Identifiable", "MultiLanguageProperty", "Operation", "Property", "Range", "Referable", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElement", "SubmodelElementCollection", "SubmodelElementList" ]
+                                                  },
+                                                  "value" : {
+                                                    "type" : "string",
+                                                    "minLength" : 1
+                                                  }
+                                                },
+                                                "required" : [ "type", "value" ]
+                                              },
+                                              "minItems" : 1
+                                            }
+                                          },
+                                          "required" : [ "type", "keys" ]
+                                        }, {
+                                          "properties" : {
+                                            "referredSemanticId" : {
+                                              "properties" : {
+                                                "type" : {
+                                                  "type" : "string",
+                                                  "enum" : [ "GlobalReference", "ModelReference" ]
+                                                },
+                                                "keys" : {
+                                                  "type" : "array",
+                                                  "items" : {
+                                                    "type" : "object",
+                                                    "properties" : {
+                                                      "type" : {
+                                                        "type" : "string",
+                                                        "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataElement", "Entity", "EventElement", "File", "FragmentReference", "GlobalReference", "Identifiable", "MultiLanguageProperty", "Operation", "Property", "Range", "Referable", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElement", "SubmodelElementCollection", "SubmodelElementList" ]
+                                                      },
+                                                      "value" : {
+                                                        "type" : "string",
+                                                        "minLength" : 1
+                                                      }
+                                                    },
+                                                    "required" : [ "type", "value" ]
+                                                  },
+                                                  "minItems" : 1
+                                                }
+                                              },
+                                              "required" : [ "type", "keys" ]
+                                            }
+                                          }
+                                        } ]
+                                      },
+                                      "minItems" : 1
+                                    }
+                                  }
+                                }, {
+                                  "properties" : {
+                                    "name" : {
+                                      "type" : "string",
+                                      "minLength" : 1
+                                    },
+                                    "value" : {
+                                      "type" : "string",
+                                      "minLength" : 1
+                                    },
+                                    "externalSubjectId" : {
+                                      "allOf" : [ {
+                                        "properties" : {
+                                          "type" : {
+                                            "type" : "string",
+                                            "enum" : [ "GlobalReference", "ModelReference" ]
+                                          },
+                                          "keys" : {
+                                            "type" : "array",
+                                            "items" : {
+                                              "type" : "object",
+                                              "properties" : {
+                                                "type" : {
+                                                  "type" : "string",
+                                                  "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataElement", "Entity", "EventElement", "File", "FragmentReference", "GlobalReference", "Identifiable", "MultiLanguageProperty", "Operation", "Property", "Range", "Referable", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElement", "SubmodelElementCollection", "SubmodelElementList" ]
+                                                },
+                                                "value" : {
+                                                  "type" : "string",
+                                                  "minLength" : 1
+                                                }
+                                              },
+                                              "required" : [ "type", "value" ]
+                                            },
+                                            "minItems" : 1
+                                          }
+                                        },
+                                        "required" : [ "type", "keys" ]
+                                      }, {
+                                        "properties" : {
+                                          "referredSemanticId" : {
+                                            "properties" : {
+                                              "type" : {
+                                                "type" : "string",
+                                                "enum" : [ "GlobalReference", "ModelReference" ]
+                                              },
+                                              "keys" : {
+                                                "type" : "array",
+                                                "items" : {
+                                                  "type" : "object",
+                                                  "properties" : {
+                                                    "type" : {
+                                                      "type" : "string",
+                                                      "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataElement", "Entity", "EventElement", "File", "FragmentReference", "GlobalReference", "Identifiable", "MultiLanguageProperty", "Operation", "Property", "Range", "Referable", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElement", "SubmodelElementCollection", "SubmodelElementList" ]
+                                                    },
+                                                    "value" : {
+                                                      "type" : "string",
+                                                      "minLength" : 1
+                                                    }
+                                                  },
+                                                  "required" : [ "type", "value" ]
+                                                },
+                                                "minItems" : 1
+                                              }
+                                            },
+                                            "required" : [ "type", "keys" ]
+                                          }
+                                        }
+                                      } ]
+                                    }
+                                  },
+                                  "required" : [ "name", "value", "externalSubjectId" ]
+                                } ]
+                              },
+                              "minItems" : 1
+                            },
+                            "defaultThumbnail" : {
+                              "type" : "object",
+                              "properties" : {
+                                "path" : {
+                                  "type" : "string",
+                                  "minLength" : 1,
+                                  "pattern" : "^file:(//((localhost|(\\[((([0-9A-Fa-f]{1,4}:){6}([0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|::([0-9A-Fa-f]{1,4}:){5}([0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|([0-9A-Fa-f]{1,4})?::([0-9A-Fa-f]{1,4}:){4}([0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|(([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})?::([0-9A-Fa-f]{1,4}:){3}([0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|(([0-9A-Fa-f]{1,4}:){2}[0-9A-Fa-f]{1,4})?::([0-9A-Fa-f]{1,4}:){2}([0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|(([0-9A-Fa-f]{1,4}:){3}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}:([0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|(([0-9A-Fa-f]{1,4}:){4}[0-9A-Fa-f]{1,4})?::([0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|(([0-9A-Fa-f]{1,4}:){5}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}|(([0-9A-Fa-f]{1,4}:){6}[0-9A-Fa-f]{1,4})?::)|[vV][0-9A-Fa-f]+\\.([a-zA-Z0-9\\-._~]|[!$&'()*+,;=]|:)+)\\]|([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])|([a-zA-Z0-9\\-._~]|%[0-9A-Fa-f][0-9A-Fa-f]|[!$&'()*+,;=])*)))?/((([a-zA-Z0-9\\-._~]|%[0-9A-Fa-f][0-9A-Fa-f]|[!$&'()*+,;=]|[:@]))+(/(([a-zA-Z0-9\\-._~]|%[0-9A-Fa-f][0-9A-Fa-f]|[!$&'()*+,;=]|[:@]))*)*)?|/((([a-zA-Z0-9\\-._~]|%[0-9A-Fa-f][0-9A-Fa-f]|[!$&'()*+,;=]|[:@]))+(/(([a-zA-Z0-9\\-._~]|%[0-9A-Fa-f][0-9A-Fa-f]|[!$&'()*+,;=]|[:@]))*)*)?)$"
+                                },
+                                "contentType" : {
+                                  "type" : "string",
+                                  "minLength" : 1,
+                                  "pattern" : "^([!#$%&'*+\\-.^_`|~0-9a-zA-Z])+/([!#$%&'*+\\-.^_`|~0-9a-zA-Z])+([ \t]*;[ \t]*([!#$%&'*+\\-.^_`|~0-9a-zA-Z])+=(([!#$%&'*+\\-.^_`|~0-9a-zA-Z])+|\"(([\t !#-\\[\\]-~]|[\\x80-\\xff])|\\\\([\t !-~]|[\\x80-\\xff]))*\"))*$"
+                                }
+                              },
+                              "required" : [ "path" ]
+                            }
+                          },
+                          "required" : [ "assetKind" ]
+                        },
+                        "submodels" : {
+                          "type" : "array",
+                          "items" : {
+                            "allOf" : [ {
+                              "properties" : {
+                                "type" : {
+                                  "type" : "string",
+                                  "enum" : [ "GlobalReference", "ModelReference" ]
+                                },
+                                "keys" : {
+                                  "type" : "array",
+                                  "items" : {
+                                    "type" : "object",
+                                    "properties" : {
+                                      "type" : {
+                                        "type" : "string",
+                                        "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataElement", "Entity", "EventElement", "File", "FragmentReference", "GlobalReference", "Identifiable", "MultiLanguageProperty", "Operation", "Property", "Range", "Referable", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElement", "SubmodelElementCollection", "SubmodelElementList" ]
+                                      },
+                                      "value" : {
+                                        "type" : "string",
+                                        "minLength" : 1
+                                      }
+                                    },
+                                    "required" : [ "type", "value" ]
+                                  },
+                                  "minItems" : 1
+                                }
+                              },
+                              "required" : [ "type", "keys" ]
+                            }, {
+                              "properties" : {
+                                "referredSemanticId" : {
+                                  "properties" : {
+                                    "type" : {
+                                      "type" : "string",
+                                      "enum" : [ "GlobalReference", "ModelReference" ]
+                                    },
+                                    "keys" : {
+                                      "type" : "array",
+                                      "items" : {
+                                        "type" : "object",
+                                        "properties" : {
+                                          "type" : {
+                                            "type" : "string",
+                                            "enum" : [ "AnnotatedRelationshipElement", "AssetAdministrationShell", "BasicEventElement", "Blob", "Capability", "ConceptDescription", "DataElement", "Entity", "EventElement", "File", "FragmentReference", "GlobalReference", "Identifiable", "MultiLanguageProperty", "Operation", "Property", "Range", "Referable", "ReferenceElement", "RelationshipElement", "Submodel", "SubmodelElement", "SubmodelElementCollection", "SubmodelElementList" ]
+                                          },
+                                          "value" : {
+                                            "type" : "string",
+                                            "minLength" : 1
+                                          }
+                                        },
+                                        "required" : [ "type", "value" ]
+                                      },
+                                      "minItems" : 1
+                                    }
+                                  },
+                                  "required" : [ "type", "keys" ]
+                                }
+                              }
+                            } ]
+                          },
+                          "minItems" : 1
+                        }
+                      },
+                      "required" : [ "assetInformation" ]
+                    } ]
+                  }
+                }
+              }
+            }
+          },
+          "default" : {
+            "description" : "Default error handling for unmentioned status codes",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "properties" : {
+                    "messages" : {
+                      "items" : {
+                        "type" : "object",
+                        "properties" : {
+                          "code" : {
+                            "type" : "string",
+                            "maxLength" : 8
+                          },
+                          "messageType" : {
+                            "enum" : [ "Undefined", "Info", "Warning", "Error", "Exception" ],
+                            "type" : "string"
+                          },
+                          "text" : {
+                            "type" : "string"
+                          },
+                          "timestamp" : {
+                            "type" : "string"
+                          }
+                        }
+                      },
+                      "type" : "array"
+                    },
+                    "success" : {
+                      "type" : "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

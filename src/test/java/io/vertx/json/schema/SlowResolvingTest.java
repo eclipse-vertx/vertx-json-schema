@@ -9,14 +9,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 @ExtendWith(VertxExtension.class)
 class SlowResolvingTest {
-  String apiSmallPath = "Plattform_i40-Entire-API-Collection-V3.0-swagger-small.yaml";
-
-  String apiResolvedPath = "Plattform_i40-Entire-API-Collection-V3.0-resolved.yaml";
-
-  String aas = "digital-twin-server-openapi.yaml";
-
   @Test
   public void testSlowResolving(Vertx vertx) {
     SchemaRepository repository = SchemaRepository.create(new JsonSchemaOptions().setDraft(Draft.DRAFT4).setBaseUri("app://"));
@@ -38,8 +34,16 @@ class SlowResolvingTest {
     JsonObject apiJson = new JsonObject(vertx.fileSystem().readFileBlocking(apiJsonPath));
     repository.dereference(JsonSchema.of(apiJson));
 
+    String resolvedApiPath = resourceFolder + "/api_resolved.json";
+    JsonObject apiResolvedJson = new JsonObject(vertx.fileSystem().readFileBlocking(resolvedApiPath));
+
     Instant start = Instant.now();
     JsonObject resolved = repository.resolve(JsonSchema.of(apiJson));
-    System.out.println(ChronoUnit.SECONDS.between(start, Instant.now()));
+    long requiredTime = ChronoUnit.SECONDS.between(start, Instant.now());
+
+    // It is bad to use number of seconds here, because on slower machines it maybe takes longer. But for this test
+    // it doesn't matter if its 5 or 10 seconds, it should just ensure that resolving doesn't take several minutes, as before.
+    assertThat(requiredTime).isLessThan(10L);
+    assertThat(resolved).isEqualTo(apiResolvedJson);
   }
 }

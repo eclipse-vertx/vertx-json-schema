@@ -54,6 +54,18 @@
           },
           {
             "$ref": "https://api.swaggerhub.com/domains/Plattform_i40/Part2-API-Schemas/V3.0#/components/parameters/Content"
+          },
+          {
+            "$ref": "https://api.swaggerhub.com/domains/Plattform_i40/Part2-API-Schemas/V3.0#/components/parameters/Extent"
+          },
+          {
+            "$ref": "https://api.swaggerhub.com/domains/Plattform_i40/Part2-API-Schemas/V3.0#/components/parameters/From"
+          },
+          {
+            "$ref": "https://api.swaggerhub.com/domains/Plattform_i40/Part2-API-Schemas/V3.0#/components/parameters/Size"
+          },
+          {
+            "$ref": "https://api.swaggerhub.com/domains/Plattform_i40/Part2-API-Schemas/V3.0#/components/parameters/SortShells"
           }
         ],
         "responses": {
