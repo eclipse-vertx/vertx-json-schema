@@ -277,9 +277,6 @@ public final class Ref {
 
   private static JsonObject reduce(JsonSchema schema, String path, JsonObject value) {
     final String[] paths = path.split("/");
-//    // work with a copy to avoid mutations
-//    value = value.copy();
-
     // perform a reduce operation
     for (int i = 1; i < paths.length; i++) {
       value = value
@@ -289,6 +286,7 @@ public final class Ref {
         throw new SchemaException(schema, "Can't reduce [" + i + "] '" + path + "', value is null.");
       }
     }
+    // work with a copy to avoid mutations
     return value.copy();
   }
 }
