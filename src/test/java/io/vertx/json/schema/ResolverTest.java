@@ -2,7 +2,6 @@ package io.vertx.json.schema;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import org.junit.jupiter.api.Test;
@@ -21,7 +20,7 @@ import static org.assertj.core.api.Assertions.fail;
 public class ResolverTest {
 
   @Test
-  public void testResolves() {
+  public void testResolveCircularRefs() {
 
     SchemaRepository repo = SchemaRepository.create(new JsonSchemaOptions().setBaseUri("http://vertx.io"));
 
@@ -39,9 +38,8 @@ public class ResolverTest {
       .isEqualTo("string");
 
     // circular check
-    JsonObject circular = ptr.getJsonObject("subAddress").getJsonObject("properties");
-    assertThat(circular.getJsonObject("city").getString("type"))
-      .isEqualTo("string");
+    JsonObject circular = ptr.getJsonObject("subAddress");
+    assertThat(circular.getString("$ref")).isEqualTo("http://www.example.com/#/definitions/address");
 
     // array checks
     assertThat(res.getJsonArray("required").getString(0))
@@ -151,5 +149,37 @@ public class ResolverTest {
 
     JsonObject expectedJson = new JsonObject(vertx.fileSystem().readFileBlocking("resolve/guestbook_bundle.json"));
     assertThat(repository.resolve(JsonSchema.of(apiJson))).isEqualTo(expectedJson);
+  }
+
+  @Test
+  public void testResolveCircularRefsDoWork(Vertx vertx) {
+
+    SchemaRepository repo = SchemaRepository.create(new JsonSchemaOptions().setBaseUri("http://vertx.io"));
+
+    JsonSchema schema = JsonSchema
+      .of(new JsonObject("{\"$id\":\"http://www.example.com/\",\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"definitions\":{\"address\":{\"type\":\"object\",\"properties\":{\"street_address\":{\"type\":\"string\"},\"city\":{\"type\":\"string\"},\"state\":{\"type\":\"string\"},\"subAddress\":{\"$ref\":\"http://www.example.com/#/definitions/address\"}}},\"req\":{\"required\":[\"billing_address\"]}},\"type\":\"object\",\"properties\":{\"billing_address\":{\"$ref\":\"#/definitions/address\"},\"shipping_address\":{\"$ref\":\"#/definitions/address\"}},\"$ref\":\"#/definitions/req\"}"));
+
+    repo.dereference(schema);
+
+    JsonObject res = schema.resolve();
+
+    // check if the resolved schema is ok!
+
+    SchemaRepository repo2 = SchemaRepository.create(new JsonSchemaOptions().setBaseUri("http://vertx.io"));
+
+    JsonSchema schema2 = JsonSchema.of(res);
+
+    repo2.dereference(schema2);
+
+    // simple check
+    JsonObject fixture = new JsonObject(vertx.fileSystem().readFileBlocking("resolve/circular.json"));
+
+    // Canary
+    OutputUnit result = repo.validator(schema).validate(fixture);
+    assertThat(result.getValid()).isTrue();
+
+    // Real test
+    OutputUnit result2 = repo2.validator(schema2).validate(fixture);
+    assertThat(result2.getValid()).isTrue();
   }
 }

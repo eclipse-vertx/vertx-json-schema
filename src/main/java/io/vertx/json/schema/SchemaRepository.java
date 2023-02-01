@@ -116,23 +116,23 @@ public interface SchemaRepository {
   /**
    * Tries to resolve all internal and repository local references. External references are not resolved.
    * <p>
-   * The result is an object where all references have been resolved. Resolution of references is shallow. This
+   * The result is an object where all references have been resolved. Resolution of circular references is shallow. This
    * should normally not be a problem for this use case.
    *
    * @return a new {@link JsonObject} representing the schema with {@code $ref}s replaced by their value.
-   * @throws SchemaException when the resolution is impossible. One of such cases is circular referencing.
+   * @throws SchemaException when the resolution is impossible.
    */
   JsonObject resolve(JsonSchema schema);
 
   /**
    * Tries to resolve all internal and repository local references. External references are not resolved.
    * <p>
-   * The result is an object where all references have been resolved. Resolution of references is shallow. This
+   * The result is an object where all references have been resolved. Resolution of circular references is shallow. This
    * should normally not be a problem for this use case.
    *
    * @param ref the start resolution reference in JSON pointer format
    * @return a new {@link JsonObject} representing the schema with {@code $ref}s replaced by their value.
-   * @throws SchemaException when the resolution is impossible. One of such cases is circular referencing.
+   * @throws SchemaException when the resolution is impossible.
    */
   JsonObject resolve(String ref);
 

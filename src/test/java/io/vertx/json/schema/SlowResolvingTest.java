@@ -39,7 +39,7 @@ class SlowResolvingTest {
     repository.dereference(JsonSchema.of(apiJson));
 
     Instant start = Instant.now();
-    repository.resolve(JsonSchema.of(apiJson));
+    JsonObject resolved = repository.resolve(JsonSchema.of(apiJson));
     System.out.println(ChronoUnit.SECONDS.between(start, Instant.now()));
   }
 }
