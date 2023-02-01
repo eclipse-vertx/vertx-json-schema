@@ -1,5 +1,7 @@
 package io.vertx.json.schema.impl;
 
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.JsonSchema;
@@ -12,6 +14,8 @@ import static io.vertx.core.net.impl.URIDecoder.decodeURIComponent;
 import static io.vertx.json.schema.impl.Utils.Objects.isObject;
 
 public final class Ref {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Ref.class);
 
   private static final int RESOLVE_LIMIT = Integer.getInteger("io.vertx.json.schema.resolve.limit", 50);
 
@@ -224,7 +228,12 @@ public final class Ref {
           // json-schema allows circular pointers, this is problematic
           // as we cannot resolve those (stack overflow) so we need to
           // accept that these won't be resolved and remain purely as references
-          return !json.getString(prop).equals(self);
+          if (json.getString(prop).equals(self)) {
+            LOG.debug("Circular pointer detected: '" + self + "' in schema: " + schema);
+            return false;
+          } else {
+            return true;
+          }
         } else {
           if (hasPointers(schema, json.getValue(prop), self, limit - 1)) {
             return true;
