@@ -1,0 +1,12 @@
+{
+  "billing_address": {
+    "street_address": "street1",
+    "city": "city1",
+    "state": "state1",
+    "subAddress": {
+      "street_address": "street2",
+      "city": "city2",
+      "state": "state2"
+    }
+  }
+}
