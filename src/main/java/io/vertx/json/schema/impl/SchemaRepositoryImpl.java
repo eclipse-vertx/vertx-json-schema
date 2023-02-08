@@ -304,11 +304,25 @@ public class SchemaRepositoryImpl implements SchemaRepository {
       schema.annotate("__absolute_recursive_ref__", url.href());
     }
 
+    // if an $dynamicAnchor is found, compute it's URI and add it to the mapping.
+    if (schema.containsKey("$dynamicAnchor") && !schema.containsKey("__absolute_dynamic_anchor__")) {
+      final URL url = new URL("#" + schema.<String>get("$dynamicAnchor"), baseURI.href());
+      if (lookup.containsKey(url.href())) {
+        assert !lookup.get(url.href()).equals(schema);
+      } else {
+        lookup.put(url.href(), schema);
+      }
+      schema.annotate("__absolute_dynamic_anchor__", url.href());
+    }
+
     // if an $anchor is found, compute it's URI and add it to the mapping.
     if (schema.containsKey("$anchor")) {
       final URL url = new URL("#" + schema.<String>get("$anchor"), baseURI);
-      assert !lookup.containsKey(url.href());
-      lookup.put(url.href(), schema);
+      if (lookup.containsKey(url.href())) {
+        assert !lookup.get(url.href()).equals(schema);
+      } else {
+        lookup.put(url.href(), schema);
+      }
     }
 
     // process subschemas.

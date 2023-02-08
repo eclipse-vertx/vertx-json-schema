@@ -187,6 +187,7 @@ public final class Ref {
       json.remove("__absolute_uri__");
       json.remove("__absolute_ref__");
       json.remove("__absolute_recursive_ref__");
+      json.remove("__absolute_dynamic_anchor__");
 
       if (json.containsKey("$id")) {
         id = json.getString("$id");

@@ -69,10 +69,11 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       null,
       "#",
       "#",
-      new HashSet<>());
+      new HashSet<>(),
+      new HashMap<>());
   }
 
-  private OutputUnit validate(Object _instance, JsonSchema schema, JsonSchema _recursiveAnchor, String instanceLocation, String schemaLocation, Set<Object> evaluated) throws SchemaException {
+  private OutputUnit validate(Object _instance, JsonSchema schema, JsonSchema _recursiveAnchor, String instanceLocation, String schemaLocation, Set<Object> evaluated, Map<String, Deque<String>> dynamicContext) throws SchemaException {
     if (schema instanceof BooleanSchema) {
       if (schema == BooleanSchema.TRUE) {
         return new OutputUnit(true).setErrors(Collections.emptyList());
@@ -93,6 +94,18 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       _recursiveAnchor = schema;
     }
 
+    final String dynamicAnchor;
+
+    // push $dynamicAnchor with current "__absolute_uri__"
+    if (schema.containsKey("$dynamicAnchor")) {
+      dynamicAnchor = "#" + schema.get("$dynamicAnchor");
+      dynamicContext
+        .computeIfAbsent(dynamicAnchor, k -> new LinkedList<>())
+        .add(schema.get("__absolute_uri__"));
+    } else {
+      dynamicAnchor = null;
+    }
+
     // Lock
     final JsonSchema recursiveAnchor = _recursiveAnchor;
 
@@ -109,12 +122,55 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         refSchema,
         instanceLocation,
         keywordLocation,
-        evaluated
+        evaluated,
+        dynamicContext
       );
       if (!result.getValid()) {
         errors.add(new OutputUnit(instanceLocation, "$recursiveRef", keywordLocation, "A sub-schema had errors"));
         errors.addAll(result.getErrors());
       }
+    }
+
+    if (schema.containsKey("$dynamicRef")) {
+      Deque<String> deque = dynamicContext.get(schema.<String>get("$dynamicRef"));
+      if (deque != null) {
+        String head = deque.peekFirst();
+        if (head != null) {
+          // compute the dynamic reference uri
+          String uri = new URL(schema.get("$dynamicRef"), head).href();
+
+          if (!lookup.containsKey(uri)) {
+            String message = "Unresolved $dynamicRef " + schema.<String>get("$dynamicRef");
+            message += "\nKnown schemas:\n- " + String.join("\n- ", lookup.keySet());
+            throw new SchemaException(schema, message);
+          }
+
+          final JsonSchema refSchema = lookup.get(uri);
+          final String keywordLocation = schemaLocation + "/" + schema.<String>get("$dynamicRef");
+          final OutputUnit result = validate(
+            instance,
+            refSchema,
+            recursiveAnchor,
+            instanceLocation,
+            keywordLocation,
+            evaluated,
+            dynamicContext
+          );
+          if (!result.getValid()) {
+            errors.add(new OutputUnit(instanceLocation, "$dynamicRef", keywordLocation, "A subschema had errors"));
+            errors.addAll(result.getErrors());
+          }
+          if (draft == Draft.DRAFT4 || draft == Draft.DRAFT7) {
+            if (dynamicAnchor != null) {
+              dynamicContext
+                .get(dynamicAnchor)
+                .removeLast();
+            }
+            return new OutputUnit(errors.isEmpty()).setErrors(errors);
+          }
+        }
+      }
+//      throw new UnsupportedOperationException("$dynamicRef is not yet implemented");
     }
 
     if (schema.containsKey("$ref")) {
@@ -136,13 +192,19 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         recursiveAnchor,
         instanceLocation,
         keywordLocation,
-        evaluated
+        evaluated,
+        dynamicContext
       );
       if (!result.getValid()) {
         errors.add(new OutputUnit(instanceLocation, "$ref", keywordLocation, "A subschema had errors"));
         errors.addAll(result.getErrors());
       }
       if (draft == Draft.DRAFT4 || draft == Draft.DRAFT7) {
+        if (dynamicAnchor != null) {
+          dynamicContext
+            .get(dynamicAnchor)
+            .removeLast();
+        }
         return new OutputUnit(errors.isEmpty()).setErrors(errors);
       }
     }
@@ -198,7 +260,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         recursiveAnchor,
         instanceLocation,
         keywordLocation,
-        new HashSet<>()
+        new HashSet<>(),
+        dynamicContext
       );
       if (result.getValid()) {
         errors.add(new OutputUnit(instanceLocation, "not", keywordLocation, "Instance matched \"not\" schema"));
@@ -219,7 +282,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
           schema.<Boolean>get("$recursiveAnchor", false) ? recursiveAnchor : null,
           instanceLocation,
           keywordLocation + "/" + i,
-          subEvaluated
+          subEvaluated,
+          dynamicContext
         );
         if (result.getErrors() != null) {
           errors.addAll(result.getErrors());
@@ -248,7 +312,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
           schema.<Boolean>get("$recursiveAnchor", false) ? recursiveAnchor : null,
           instanceLocation,
           keywordLocation + "/" + i,
-          subEvaluated
+          subEvaluated,
+          dynamicContext
         );
         if (result.getErrors() != null) {
           errors.addAll(result.getErrors());
@@ -277,7 +342,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
           schema.<Boolean>get("$recursiveAnchor", false) ? recursiveAnchor : null,
           instanceLocation,
           keywordLocation + "/" + i,
-          subEvaluated
+          subEvaluated,
+          dynamicContext
         );
         if (result.getErrors() != null) {
           errors.addAll(result.getErrors());
@@ -308,7 +374,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         recursiveAnchor,
         instanceLocation,
         keywordLocation,
-        evaluated
+        evaluated,
+        dynamicContext
       );
       if (conditionResult.getValid()) {
         if (schema.containsKey("then")) {
@@ -318,7 +385,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
             recursiveAnchor,
             instanceLocation,
             schemaLocation + "/then",
-            evaluated
+            evaluated,
+            dynamicContext
           );
           if (!thenResult.getValid()) {
             errors.add(new OutputUnit(instanceLocation, "if", keywordLocation, "Instance does not match \"then\" schema"));
@@ -334,7 +402,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
           recursiveAnchor,
           instanceLocation,
           schemaLocation + "/else",
-          evaluated
+          evaluated,
+          dynamicContext
         );
         if (!elseResult.getValid()) {
           errors.add(new OutputUnit(instanceLocation, "if", keywordLocation, "Instance does not match \"else\" schema"));
@@ -375,7 +444,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               recursiveAnchor,
               subInstancePointer,
               keywordLocation,
-              new HashSet<>()
+              new HashSet<>(),
+              dynamicContext
             );
             if (!result.getValid()) {
               errors.add(new OutputUnit(instanceLocation, "propertyNames", keywordLocation, "Property name \"" + key + "\" does not match schema"));
@@ -410,7 +480,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                 recursiveAnchor,
                 instanceLocation,
                 keywordLocation + "/" + Pointers.encode(key),
-                evaluated
+                evaluated,
+                dynamicContext
               );
               if (!result.getValid()) {
                 errors.add(new OutputUnit(instanceLocation, "dependentSchemas", keywordLocation, "Instance has \"" + key + "\" but does not match dependant schema"));
@@ -440,7 +511,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                   recursiveAnchor,
                   instanceLocation,
                   keywordLocation + "/" + Pointers.encode(key),
-                  new HashSet<>()
+                  new HashSet<>(),
+                  dynamicContext
                 );
                 if (!result.getValid()) {
                   errors.add(new OutputUnit(instanceLocation, "dependencies", keywordLocation, "Instance has \"" + key + "\" but does not match dependant schema"));
@@ -470,7 +542,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               recursiveAnchor,
               subInstancePointer,
               keywordLocation + "/" + Pointers.encode(key),
-              new HashSet<>()
+              new HashSet<>(),
+              dynamicContext
             );
             if (result.getValid()) {
               evaluated.add(key);
@@ -503,7 +576,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                 recursiveAnchor,
                 subInstancePointer,
                 keywordLocation + "/" + Pointers.encode(pattern),
-                new HashSet<>()
+                new HashSet<>(),
+                dynamicContext
               );
               if (result.getValid()) {
                 evaluated.add(key);
@@ -532,7 +606,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               recursiveAnchor,
               subInstancePointer,
               keywordLocation,
-              new HashSet<>()
+              new HashSet<>(),
+              dynamicContext
             );
             if (result.getValid()) {
               evaluated.add(key);
@@ -555,7 +630,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                 recursiveAnchor,
                 subInstancePointer,
                 keywordLocation,
-                new HashSet<>()
+                new HashSet<>(),
+                dynamicContext
               );
               if (result.getValid()) {
                 evaluated.add(key);
@@ -593,7 +669,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               recursiveAnchor,
               instanceLocation + "/" + i,
               keywordLocation + "/" + i,
-              new HashSet<>()
+              new HashSet<>(),
+              dynamicContext
             );
             evaluated.add(i);
             if (!result.getValid()) {
@@ -620,7 +697,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                 recursiveAnchor,
                 instanceLocation + "/" + i,
                 keywordLocation + "/" + i,
-                new HashSet<>()
+                new HashSet<>(),
+                dynamicContext
               );
               evaluated.add(i);
               if (!result.getValid()) {
@@ -642,7 +720,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                 recursiveAnchor,
                 instanceLocation + "/" + i,
                 keywordLocation,
-                new HashSet<>()
+                new HashSet<>(),
+                dynamicContext
               );
               evaluated.add(i);
               if (!result.getValid()) {
@@ -667,7 +746,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                 recursiveAnchor,
                 instanceLocation + "/" + i,
                 keywordLocation2,
-                new HashSet<>()
+                new HashSet<>(),
+                dynamicContext
               );
               evaluated.add(i);
               if (!result.getValid()) {
@@ -697,7 +777,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                 recursiveAnchor,
                 instanceLocation + "/" + i,
                 keywordLocation,
-                new HashSet<>()
+                new HashSet<>(),
+                dynamicContext
               );
               if (result.getValid()) {
                 evaluated.add(j);
@@ -739,7 +820,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               recursiveAnchor,
               instanceLocation + "/" + i,
               keywordLocation,
-              new HashSet<>()
+              new HashSet<>(),
+              dynamicContext
             );
             evaluated.add(i);
             if (!result.getValid()) {
@@ -840,6 +922,12 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         }
         break;
       }
+    }
+
+    if (dynamicAnchor != null) {
+      dynamicContext
+        .get(dynamicAnchor)
+        .removeLast();
     }
 
     return new OutputUnit(errors.isEmpty())
