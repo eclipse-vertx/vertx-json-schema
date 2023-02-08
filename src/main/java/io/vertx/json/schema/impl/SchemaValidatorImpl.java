@@ -82,6 +82,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       }
     }
 
+    System.out.println(schema.<String>get("__absolute_uri__"));
+
     // adapt JSON types
     final Object instance = JSON.jsonify(_instance);
 
@@ -132,46 +134,54 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
     }
 
     if (schema.containsKey("$dynamicRef")) {
-      Deque<String> deque = dynamicContext.get(schema.<String>get("$dynamicRef"));
+      final Deque<String> deque = dynamicContext.get(schema.<String>get("$dynamicRef"));
+      final String uri;
+
       if (deque != null) {
         String head = deque.peekFirst();
         if (head != null) {
           // compute the dynamic reference uri
-          String uri = new URL(schema.get("$dynamicRef"), head).href();
-
-          if (!lookup.containsKey(uri)) {
-            String message = "Unresolved $dynamicRef " + schema.<String>get("$dynamicRef");
-            message += "\nKnown schemas:\n- " + String.join("\n- ", lookup.keySet());
-            throw new SchemaException(schema, message);
-          }
-
-          final JsonSchema refSchema = lookup.get(uri);
-          final String keywordLocation = schemaLocation + "/" + schema.<String>get("$dynamicRef");
-          final OutputUnit result = validate(
-            instance,
-            refSchema,
-            recursiveAnchor,
-            instanceLocation,
-            keywordLocation,
-            evaluated,
-            dynamicContext
-          );
-          if (!result.getValid()) {
-            errors.add(new OutputUnit(instanceLocation, "$dynamicRef", keywordLocation, "A subschema had errors"));
-            errors.addAll(result.getErrors());
-          }
-          if (draft == Draft.DRAFT4 || draft == Draft.DRAFT7) {
-            if (dynamicAnchor != null) {
-              dynamicContext
-                .get(dynamicAnchor)
-                .removeLast();
-            }
-            return new OutputUnit(errors.isEmpty()).setErrors(errors);
-          }
+          uri = new URL(schema.get("$dynamicRef"), head).href();
+        } else {
+          uri = new URL(schema.<String>get("$dynamicRef"), schema.<String>get("__absolute_uri__")).href();
         }
+      } else {
+        uri = new URL(schema.<String>get("$dynamicRef"), schema.<String>get("__absolute_uri__")).href();
       }
-//      throw new UnsupportedOperationException("$dynamicRef is not yet implemented");
+
+      System.out.println("Found $dynamicRef " + schema.<String>get("$dynamicRef") + " -> " + uri);
+
+      if (!lookup.containsKey(uri)) {
+        String message = "Unresolved $dynamicRef " + schema.<String>get("$dynamicRef");
+        message += "\nKnown schemas:\n- " + String.join("\n- ", lookup.keySet());
+        throw new SchemaException(schema, message);
+      }
+
+      final JsonSchema refSchema = lookup.get(uri);
+      final String keywordLocation = schemaLocation + "/" + schema.<String>get("$dynamicRef");
+      final OutputUnit result = validate(
+        instance,
+        refSchema,
+        recursiveAnchor,
+        instanceLocation,
+        keywordLocation,
+        evaluated,
+        dynamicContext
+      );
+      if (!result.getValid()) {
+        errors.add(new OutputUnit(instanceLocation, "$dynamicRef", keywordLocation, "A subschema had errors"));
+        errors.addAll(result.getErrors());
+      }
+      if (draft == Draft.DRAFT4 || draft == Draft.DRAFT7) {
+        if (dynamicAnchor != null) {
+          dynamicContext
+            .get(dynamicAnchor)
+            .removeLast();
+        }
+        return new OutputUnit(errors.isEmpty()).setErrors(errors);
+      }
     }
+//      throw new UnsupportedOperationException("$dynamicRef is not yet implemented");
 
     if (schema.containsKey("$ref")) {
       final String uri = schema.get("__absolute_ref__", schema.get("$ref"));

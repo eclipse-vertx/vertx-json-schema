@@ -154,6 +154,14 @@ public class OutputUnit {
    */
   @GenIgnore
   public ValidationException toException(Object input) {
+
+//    StackTraceElement[] stackTrace = new StackTraceElement[errors.size()];
+//    int len = errors.size() - 1;
+//    for (int i = 0; i < errors.size(); i++) {
+//      OutputUnit error = errors.get(len - i);
+//      stackTrace[i] = new StackTraceElement(error.getError(), error.getKeywordLocation(), error.getInstanceLocation(), -1);
+//    }
+
     return new ValidationException(error + ": { errors: " + formatExceptions(errors) + ", annotations: " + formatExceptions(annotations) + "}", keyword, input, true) {
     };
   }
