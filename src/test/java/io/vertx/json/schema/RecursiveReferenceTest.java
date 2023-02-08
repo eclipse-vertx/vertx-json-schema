@@ -132,7 +132,5 @@ public class RecursiveReferenceTest {
       .validate(instance);
 
     assertThat(ou.getValid()).isFalse();
-
-    ou.toException(instance).printStackTrace();
   }
 }

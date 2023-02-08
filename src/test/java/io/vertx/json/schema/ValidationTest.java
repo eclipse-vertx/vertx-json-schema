@@ -14,7 +14,7 @@ class ValidationTest {
   private final static JsonSchemaOptions SCHEMA_OPTIONS = new JsonSchemaOptions().setDraft(Draft.DRAFT202012).setBaseUri("app://");
 
   @Test
-  public void testValidateWithRefAtRightPlaceBase(Vertx vertx) {
+  public void testValidate202012RelyingOnDynamicAnchorDynamicRefShouldFail(Vertx vertx) {
     SchemaRepository repository = SchemaRepository.create(SCHEMA_OPTIONS);
 
     OutputUnit ou = repository
@@ -34,5 +34,25 @@ class ValidationTest {
         "}"));
 
     assertThat(ou.getValid()).isFalse();
+  }
+
+  @Test
+  public void testValidate202012RelyingOnDynamicAnchorDynamicRefShouldPass(Vertx vertx) {
+    SchemaRepository repository = SchemaRepository.create(SCHEMA_OPTIONS);
+
+    OutputUnit ou = repository
+      .preloadMetaSchema(vertx.fileSystem())
+      .validator("https://json-schema.org/draft/2020-12/schema")
+      .validate(new JsonObject("{\n" +
+        "  \"type\" : \"object\",\n" +
+        "  \"required\" : [ \"guest\" ],\n" +
+        "  \"properties\" : {\n" +
+        "    \"guest\" : {\n" +
+        "      \"type\" : \"string\"\n" +
+        "    }\n" +
+        "  }\n" +
+        "}"));
+
+    assertThat(ou.getValid()).isTrue();
   }
 }
