@@ -305,14 +305,13 @@ public class SchemaRepositoryImpl implements SchemaRepository {
     }
 
     // if an $dynamicAnchor is found, compute it's URI and add it to the mapping.
-    if (schema.containsKey("$dynamicAnchor") && !schema.containsKey("__absolute_dynamic_anchor__")) {
+    if (schema.containsKey("$dynamicAnchor")) {
       final URL url = new URL("#" + schema.<String>get("$dynamicAnchor"), baseURI.href());
       if (lookup.containsKey(url.href())) {
         assert !lookup.get(url.href()).equals(schema);
       } else {
         lookup.put(url.href(), schema);
       }
-      schema.annotate("__absolute_dynamic_anchor__", url.href());
     }
 
     // if an $anchor is found, compute it's URI and add it to the mapping.

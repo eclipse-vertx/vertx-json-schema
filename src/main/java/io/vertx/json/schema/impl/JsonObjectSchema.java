@@ -15,8 +15,7 @@ public final class JsonObjectSchema extends JsonObject implements JsonSchema {
     this.annotated =
       json.containsKey("__absolute_uri__") ||
       json.containsKey("__absolute_ref__") ||
-      json.containsKey("__absolute_recursive_ref__") ||
-      json.containsKey("__absolute_dynamic_anchor__");
+      json.containsKey("__absolute_recursive_ref__");
   }
 
   @Override
@@ -33,10 +32,6 @@ public final class JsonObjectSchema extends JsonObject implements JsonSchema {
       case "__absolute_recursive_ref__":
         annotated = true;
         put("__absolute_recursive_ref__", value);
-        break;
-      case "__absolute_dynamic_anchor__":
-        annotated = true;
-        put("__absolute_dynamic_anchor__", value);
         break;
       default:
         throw new IllegalArgumentException("Unsupported annotation: " + key);
@@ -64,7 +59,6 @@ public final class JsonObjectSchema extends JsonObject implements JsonSchema {
       filteredFieldNames.remove("__absolute_uri__");
       filteredFieldNames.remove("__absolute_ref__");
       filteredFieldNames.remove("__absolute_recursive_ref__");
-      filteredFieldNames.remove("__absolute_dynamic_anchor__");
       return filteredFieldNames;
     } else {
       return super.fieldNames();
