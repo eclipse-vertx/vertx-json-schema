@@ -73,12 +73,12 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       new HashMap<>());
   }
 
-  private OutputUnit validate(Object _instance, JsonSchema schema, JsonSchema _recursiveAnchor, String instanceLocation, String schemaLocation, Set<Object> evaluated, Map<String, Deque<String>> dynamicContext) throws SchemaException {
+  private OutputUnit validate(final Object _instance, final JsonSchema schema, JsonSchema _recursiveAnchor, final String instanceLocation, final String schemaLocation, final Set<Object> evaluated, final Map<String, Deque<JsonSchema>> dynamicContext) throws SchemaException {
     if (schema instanceof BooleanSchema) {
       if (schema == BooleanSchema.TRUE) {
         return new OutputUnit(true).setErrors(Collections.emptyList());
       } else {
-        return new OutputUnit(false).setErrors(Collections.singletonList(new OutputUnit(instanceLocation, "false", instanceLocation, "False boolean schema")));
+        return new OutputUnit(false).setErrors(Collections.singletonList(new OutputUnit(instanceLocation, "false", schemaLocation, "False boolean schema")));
       }
     }
 
@@ -101,7 +101,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       dynamicAnchor = "#" + schema.get("$dynamicAnchor");
       dynamicContext
         .computeIfAbsent(dynamicAnchor, k -> new LinkedList<>())
-        .add(schema.get("__absolute_uri__"));
+        .add(schema);
     } else {
       dynamicAnchor = null;
     }
@@ -132,12 +132,12 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
     }
 
     if (schema.containsKey("$dynamicRef")) {
-      Deque<String> deque = dynamicContext.get(schema.<String>get("$dynamicRef"));
+      Deque<JsonSchema> deque = dynamicContext.get(schema.<String>get("$dynamicRef"));
       if (deque != null) {
-        String head = deque.peekFirst();
+        JsonSchema head = deque.peekFirst();
         if (head != null) {
           // compute the dynamic reference uri
-          String uri = new URL(schema.get("$dynamicRef"), head).href();
+          String uri = new URL(schema.<String>get("$dynamicRef"), head.<String>get("__absolute_uri__")).href();
 
           if (!lookup.containsKey(uri)) {
             String message = "Unresolved $dynamicRef " + schema.<String>get("$dynamicRef");
@@ -911,14 +911,14 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
           schema.containsKey("format") &&
             !Format.fastFormat(schema.get("format"), (String) instance)
         ) {
-//          switch (draft) {
-//            case DRAFT201909:
-//            case DRAFT202012:
+          switch (draft) {
+            case DRAFT201909:
+            case DRAFT202012:
 //              annotations.add(new OutputUnit(instanceLocation, "format", schemaLocation + "/format", "String does not match format \"" + schema.get("format") + "\""));
 //              break;
-//            default:
+            default:
               errors.add(new OutputUnit(instanceLocation, "format", schemaLocation + "/format", "String does not match format \"" + schema.get("format") + "\""));
-//          }
+          }
         }
         break;
       }
