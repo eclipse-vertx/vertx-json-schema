@@ -32,7 +32,6 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
     this.draft = options.getDraft() == null ?
       Draft.fromIdentifier(schema.get("$schema")) :
       options.getDraft();
-    Objects.requireNonNull(schema, "'draft' cannot be null either #schema.$draft or options.draft");
     this.outputFormat = options.getOutputFormat();
     URL baseUri = new URL(options.getBaseUri());
     this.lookup = new HashMap<>(lookup);
