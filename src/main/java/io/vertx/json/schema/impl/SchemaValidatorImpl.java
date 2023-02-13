@@ -63,7 +63,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
 
   @Override
   public OutputUnit validate(Object instance) throws SchemaException {
-    return validate(
+    OutputUnit result = validate(
       instance,
       schema,
       null,
@@ -71,6 +71,11 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       "#",
       new HashSet<>(),
       new HashMap<>());
+
+    if (schema instanceof JsonObjectSchema) {
+      result.setSchemaLocation(schema.get("__absolute_uri__"));
+    }
+    return result;
   }
 
   private OutputUnit validate(final Object _instance, final JsonSchema schema, JsonSchema _recursiveAnchor, final String instanceLocation, final String schemaLocation, final Set<Object> evaluated, final Map<String, Deque<JsonSchema>> dynamicContext) throws SchemaException {
