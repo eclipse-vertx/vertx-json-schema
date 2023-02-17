@@ -1,0 +1,45 @@
+{
+  "$id": "http://www.example.com/circular/",
+  "definitions": {
+    "addressWithCity": {
+      "type": "object",
+      "properties": {
+        "street_address": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "subAddress": {
+          "anyOf": [
+            {
+              "$ref": "http://www.example.com/circular/#/definitions/addressWithCity"
+            }, {
+              "$ref": "http://www.example.com/circular/#/definitions/addressWithState"
+            }
+          ]
+        }
+      }
+    },
+    "addressWithState" : {
+      "type": "object",
+      "properties": {
+        "street_address": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "subAddress": {
+          "anyOf": [
+            {
+              "$ref": "http://www.example.com/circular/#/definitions/addressWithCity"
+            }, {
+              "$ref": "http://www.example.com/circular/#/definitions/addressWithState"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

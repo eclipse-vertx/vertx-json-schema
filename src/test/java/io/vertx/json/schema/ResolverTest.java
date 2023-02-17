@@ -182,4 +182,17 @@ public class ResolverTest {
     OutputUnit result2 = repo2.validator(schema2).validate(fixture);
     assertThat(result2.getValid()).isTrue();
   }
+
+  @Test
+  void testResolveCircularRefsWithCombinatorKeywords(Vertx vertx) {
+    String path = "resolve/circular_address_anyOf.json";
+    SchemaRepository repo = SchemaRepository.create(new JsonSchemaOptions().setBaseUri("http://vertx.io").setDraft(Draft.DRAFT202012));
+    JsonObject schemaJson = new JsonObject(vertx.fileSystem().readFileBlocking(path));
+    JsonSchema schema = JsonSchema.of(schemaJson.copy());
+    repo.dereference(schema);
+    JsonObject resolved = repo.resolve("http://www.example.com/circular/");
+
+    // There are only circular refs, so it should resolve nothing
+    assertThat(resolved).isEqualTo(schemaJson);
+  }
 }
