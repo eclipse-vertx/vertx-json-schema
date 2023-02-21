@@ -12,7 +12,6 @@ package io.vertx.json.schema;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.GenIgnore;
-import io.vertx.core.VertxException;
 import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.impl.URL;
 
@@ -160,10 +159,8 @@ public class OutputUnit {
     return this;
   }
 
-  public void checkValidity() throws VertxException {
+  public void checkValidity() throws JsonSchemaValidationException {
     final URL baseUri = schemaLocation != null ? new URL(schemaLocation) : null;
-    final VertxException exception;
-    String msg = getError();
 
     final Function<String, String> urlFormatter = fragment -> {
       if (baseUri == null) {
@@ -172,55 +169,56 @@ public class OutputUnit {
       return new URL(fragment, baseUri).href();
     };
 
+    final String msg = getError();
 
     // if valid is null, it means that we are a caused by error
     if (valid == null) {
-      exception = new VertxException(msg == null ? "JsonSchema Validation error" : msg, false);
-      // add some information to the stack trace
-      exception.setStackTrace(
-        new StackTraceElement[]{
-          new StackTraceElement("[" + urlFormatter.apply(getInstanceLocation()) + "]", "<" + getKeyword() + ">", getKeywordLocation(), -1)
-        }
-      );
+      throw new JsonSchemaValidationException(
+        msg == null ? "JsonSchema Validation error" : msg,
+        urlFormatter.apply(getInstanceLocation()),
+        // add some information to the stack trace
+        new StackTraceElement("[" + urlFormatter.apply(getInstanceLocation()) + "]", "<" + getKeyword() + ">", getKeywordLocation(), -1));
     } else {
       if (!valid) {
         // valid is "false" we need to throw an exception
-
         if (errors.isEmpty()) {
           // there are no sub errors, but the validation failed
-          exception = new VertxException(msg == null ? "JsonSchema Validation error" : msg, false);
-          // add some information to the stack trace
-          exception.setStackTrace(
-            new StackTraceElement[]{
-              new StackTraceElement("[" + urlFormatter.apply(getInstanceLocation()) + "]", "<" + getKeyword() + ">", getKeywordLocation(), -1)
-            }
-          );
-        } else {
-          // there are sub errors, we need to cycle them and create a chain of exceptions
-          VertxException lastException = null;
-          for (int i = errors.size() - 1; i >= 0; i--) {
-            final OutputUnit error = errors.get(i);
-            VertxException cause;
-            if (lastException == null) {
-              cause = new VertxException(error.getError(), false);
-            } else {
-              cause = new VertxException(error.getError(), lastException, false);
-            }
+          throw new JsonSchemaValidationException(
+            msg == null ? "JsonSchema Validation error" : msg,
+            urlFormatter.apply(getInstanceLocation()),
             // add some information to the stack trace
-            cause.setStackTrace(
-              new StackTraceElement[]{
-                new StackTraceElement("[" + urlFormatter.apply(error.getInstanceLocation()) + "]", "<" + error.getKeyword() + ">", error.getKeywordLocation(), -1)
-              }
-            );
+              new StackTraceElement("[" + urlFormatter.apply(getInstanceLocation()) + "]", "<" + getKeyword() + ">", getKeywordLocation(), -1));
+        } else {
+          final JsonSchemaValidationException exception;
+          // there are sub errors, we need to cycle them and create a chain of exceptions
+          JsonSchemaValidationException lastException = null;
+          for (final OutputUnit error : errors) {
+            JsonSchemaValidationException cause;
+            if (lastException == null) {
+              cause = new JsonSchemaValidationException(
+                error.getError(),
+                urlFormatter.apply(error.getInstanceLocation()),
+                // add some information to the stack trace
+                new StackTraceElement("[" + urlFormatter.apply(error.getInstanceLocation()) + "]", "<" + error.getKeyword() + ">", error.getKeywordLocation(), -1));
+            } else {
+              cause = new JsonSchemaValidationException(
+                error.getError(),
+                lastException,
+                urlFormatter.apply(error.getInstanceLocation()),
+                // add some information to the stack trace
+                new StackTraceElement("[" + urlFormatter.apply(error.getInstanceLocation()) + "]", "<" + error.getKeyword() + ">", error.getKeywordLocation(), -1));
+            }
             lastException = cause;
           }
-          exception = new VertxException(msg == null ? "JsonSchema Validation error" : msg, lastException, false);
+          if (msg == null) {
+            throw lastException;
+          } else {
+            // one final wrap as there is extra error message in the unit
+            throw new JsonSchemaValidationException(msg, lastException, urlFormatter.apply(getInstanceLocation()));
+          }
         }
-
-        throw exception;
       }
     }
-
   }
 
   /**

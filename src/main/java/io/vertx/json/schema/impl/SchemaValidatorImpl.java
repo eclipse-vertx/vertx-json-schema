@@ -61,13 +61,19 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
 
   @Override
   public OutputUnit validate(Object instance) throws SchemaException {
-    return validate(
+    OutputUnit result = validate(
       instance,
       schema,
       null,
       "#",
       "#",
       new HashSet<>());
+
+    // attach the absolute uri to the unit in order to produce proper error messages
+    if (schema instanceof JsonObjectSchema) {
+      result.setSchemaLocation(schema.get("__absolute_uri__"));
+    }
+    return result;
   }
 
   private OutputUnit validate(Object _instance, JsonSchema schema, JsonSchema _recursiveAnchor, String instanceLocation, String schemaLocation, Set<Object> evaluated) throws SchemaException {
