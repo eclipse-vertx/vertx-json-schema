@@ -11,12 +11,11 @@
 package io.vertx.json.schema;
 
 import io.vertx.codegen.annotations.Nullable;
-import io.vertx.core.VertxException;
 
 /**
  * This is the main class for every JsonSchemaValidation flow related errors
  */
-public final class JsonSchemaValidationException extends VertxException {
+public final class JsonSchemaValidationException extends Exception {
 
   final private String location;
 
@@ -30,7 +29,7 @@ public final class JsonSchemaValidationException extends VertxException {
   }
 
   public JsonSchemaValidationException(String message, Throwable cause, String location, StackTraceElement stackTraceElement) {
-    super(message, cause, false);
+    super(message, cause, true, true);
     this.location = location;
     setStackTrace(new StackTraceElement[]{stackTraceElement});
   }
