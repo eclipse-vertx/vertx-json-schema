@@ -20,6 +20,11 @@ public class OutputUnitConverter {
   public static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, OutputUnit obj) {
     for (java.util.Map.Entry<String, Object> member : json) {
       switch (member.getKey()) {
+        case "absoluteKeywordLocation":
+          if (member.getValue() instanceof String) {
+            obj.setAbsoluteKeywordLocation((String)member.getValue());
+          }
+          break;
         case "annotations":
           if (member.getValue() instanceof JsonArray) {
             java.util.ArrayList<io.vertx.json.schema.OutputUnit> list =  new java.util.ArrayList<>();
@@ -50,11 +55,6 @@ public class OutputUnitConverter {
             obj.setInstanceLocation((String)member.getValue());
           }
           break;
-        case "keyword":
-          if (member.getValue() instanceof String) {
-            obj.setKeyword((String)member.getValue());
-          }
-          break;
         case "keywordLocation":
           if (member.getValue() instanceof String) {
             obj.setKeywordLocation((String)member.getValue());
@@ -74,6 +74,9 @@ public class OutputUnitConverter {
   }
 
   public static void toJson(OutputUnit obj, java.util.Map<String, Object> json) {
+    if (obj.getAbsoluteKeywordLocation() != null) {
+      json.put("absoluteKeywordLocation", obj.getAbsoluteKeywordLocation());
+    }
     if (obj.getAnnotations() != null) {
       JsonArray array = new JsonArray();
       obj.getAnnotations().forEach(item -> array.add(item.toJson()));
@@ -89,9 +92,6 @@ public class OutputUnitConverter {
     }
     if (obj.getInstanceLocation() != null) {
       json.put("instanceLocation", obj.getInstanceLocation());
-    }
-    if (obj.getKeyword() != null) {
-      json.put("keyword", obj.getKeyword());
     }
     if (obj.getKeywordLocation() != null) {
       json.put("keywordLocation", obj.getKeywordLocation());

@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public class OutputUnit {
 
   private Boolean valid;
-  private String keyword;
+  private String absoluteKeywordLocation;
   private String keywordLocation;
   private String instanceLocation;
   private String error;
@@ -32,7 +32,6 @@ public class OutputUnit {
   private List<OutputUnit> annotations;
 
   public OutputUnit() {
-    valid = true;
   }
 
   public OutputUnit(JsonObject json) {
@@ -43,9 +42,9 @@ public class OutputUnit {
     this.valid = valid;
   }
 
-  public OutputUnit(String instanceLocation, String keyword, String keywordLocation, String error) {
+  public OutputUnit(String instanceLocation, String absoluteKeywordLocation, String keywordLocation, String error) {
     this.instanceLocation = instanceLocation;
-    this.keyword = keyword;
+    this.absoluteKeywordLocation = absoluteKeywordLocation;
     this.keywordLocation = keywordLocation;
     this.error = error;
   }
@@ -59,12 +58,12 @@ public class OutputUnit {
     return this;
   }
 
-  public String getKeyword() {
-    return keyword;
+  public String getAbsoluteKeywordLocation() {
+    return absoluteKeywordLocation;
   }
 
-  public OutputUnit setKeyword(String keyword) {
-    this.keyword = keyword;
+  public OutputUnit setAbsoluteKeywordLocation(String absoluteKeywordLocation) {
+    this.absoluteKeywordLocation = absoluteKeywordLocation;
     return this;
   }
 
@@ -119,7 +118,6 @@ public class OutputUnit {
       this.errors = new ArrayList<>();
       this.valid = false;
     }
-    this.errors.addAll(errors);
     return this;
   }
 
@@ -149,12 +147,71 @@ public class OutputUnit {
     return this;
   }
 
+
+  public void checkValidity() throws JsonSchemaValidationException {
+
+    final String msg = getError();
+
+    // if valid is null, it means that we are a caused by error
+    if (valid == null) {
+      final String location = getAbsoluteKeywordLocation();
+
+      throw new JsonSchemaValidationException(
+        msg == null ? "JsonSchema Validation error" : msg,
+        location,
+        // add some information to the stack trace
+        createStackTraceElement());
+    } else {
+      if (!valid) {
+        // valid is "false" we need to throw an exception
+        if (errors == null || errors.isEmpty()) {
+          final String location = getAbsoluteKeywordLocation();
+
+          // there are no sub errors, but the validation failed
+          throw new JsonSchemaValidationException(
+            msg == null ? "JsonSchema Validation error" : msg,
+            location,
+            // add some information to the stack trace
+            createStackTraceElement());
+        } else {
+          // there are sub errors, we need to cycle them and create a chain of exceptions
+          JsonSchemaValidationException lastException = null;
+          for (final OutputUnit error : errors) {
+            final String location = error.getAbsoluteKeywordLocation();
+
+            JsonSchemaValidationException cause;
+            cause = new JsonSchemaValidationException(
+              error.getError(),
+              lastException,
+              location,
+              // add some information to the stack trace
+              error.createStackTraceElement());
+            lastException = cause;
+          }
+          if (msg == null) {
+            throw lastException;
+          } else {
+            // one final wrap as there is extra error message in the unit
+            throw new JsonSchemaValidationException(msg, lastException, getAbsoluteKeywordLocation());
+          }
+        }
+      }
+    }
+  }
+
+  private StackTraceElement createStackTraceElement() {
+    if (instanceLocation == null && keywordLocation == null) {
+      return null;
+    }
+    return new StackTraceElement("[" + keywordLocation + "]", "<" + instanceLocation + ">", absoluteKeywordLocation, -1);
+  }
+
   /**
    * @TODO: required for validation/openapi. In those modules errors are handled as typed exceptions
    */
   @GenIgnore
   public ValidationException toException(Object input) {
-    return new ValidationException(error + ": { errors: " + formatExceptions(errors) + ", annotations: " + formatExceptions(annotations) + "}", keyword, input, true) {
+    return new ValidationException(error + ": { errors: " + formatExceptions(errors) + ", annotations: " + formatExceptions(annotations) + "}", absoluteKeywordLocation, input, true) {
     };
   }
 
