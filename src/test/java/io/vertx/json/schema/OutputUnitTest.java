@@ -172,12 +172,8 @@ class OutputUnitTest {
     try {
       result.checkValidity();
     } catch (JsonSchemaValidationException e) {
-      // TODO: should we have a location here? I think it's due to the fact that we have 1 extra entry (Boolean Schema)
-      // assertNotNull(e.location());
-      e.printStackTrace();
+      assertNotNull(e.location());
     }
-    // TODO: according to the spec the boolean entry is superfluos, yet it doesn't affect the result
-    // needs fix
-    //assertEquals(5, result.getErrors().size());
+    assertEquals(5, result.getErrors().size());
   }
 }
