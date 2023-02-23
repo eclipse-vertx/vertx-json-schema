@@ -78,53 +78,53 @@ class OutputUnitTest {
 //    }
 //  }
 //
-//  @Test
-//  public void testSpecFlag() {
-//    JsonSchema schema = JsonSchema.of(new JsonObject(
-//      "{\n" +
-//        "  \"$id\": \"https://example.com/polygon\",\n" +
-//        "  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n" +
-//        "  \"$defs\": {\n" +
-//        "    \"point\": {\n" +
-//        "      \"type\": \"object\",\n" +
-//        "      \"properties\": {\n" +
-//        "        \"x\": { \"type\": \"number\" },\n" +
-//        "        \"y\": { \"type\": \"number\" }\n" +
-//        "      },\n" +
-//        "      \"additionalProperties\": false,\n" +
-//        "      \"required\": [ \"x\", \"y\" ]\n" +
-//        "    }\n" +
-//        "  },\n" +
-//        "  \"type\": \"array\",\n" +
-//        "  \"items\": { \"$ref\": \"#/$defs/point\" },\n" +
-//        "  \"minItems\": 3\n" +
-//        "}"));
-//
-//    Validator validator = Validator.create(
-//      schema,
-//      new JsonSchemaOptions()
-//        .setDraft(Draft.DRAFT202012)
-//        .setBaseUri("urn:")
-//        .setOutputFormat(OutputFormat.Flag));
-//
-//    JsonArray input = new JsonArray(
-//      "[\n" +
-//        "  {\n" +
-//        "    \"x\": 2.5,\n" +
-//        "    \"y\": 1.3\n" +
-//        "  },\n" +
-//        "  {\n" +
-//        "    \"x\": 1,\n" +
-//        "    \"z\": 6.7\n" +
-//        "  }\n" +
-//        "]");
-//
-//    OutputUnit result = validator.validate(input);
-//
-//    assertFalse(result.getValid());
-//    assertEquals(0, result.getErrors().size());
-//  }
-//
+  @Test
+  public void testSpecFlag() {
+    JsonSchema schema = JsonSchema.of(new JsonObject(
+      "{\n" +
+        "  \"$id\": \"https://example.com/polygon\",\n" +
+        "  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n" +
+        "  \"$defs\": {\n" +
+        "    \"point\": {\n" +
+        "      \"type\": \"object\",\n" +
+        "      \"properties\": {\n" +
+        "        \"x\": { \"type\": \"number\" },\n" +
+        "        \"y\": { \"type\": \"number\" }\n" +
+        "      },\n" +
+        "      \"additionalProperties\": false,\n" +
+        "      \"required\": [ \"x\", \"y\" ]\n" +
+        "    }\n" +
+        "  },\n" +
+        "  \"type\": \"array\",\n" +
+        "  \"items\": { \"$ref\": \"#/$defs/point\" },\n" +
+        "  \"minItems\": 3\n" +
+        "}"));
+
+    Validator validator = Validator.create(
+      schema,
+      new JsonSchemaOptions()
+        .setDraft(Draft.DRAFT202012)
+        .setBaseUri("urn:")
+        .setOutputFormat(OutputFormat.Flag));
+
+    JsonArray input = new JsonArray(
+      "[\n" +
+        "  {\n" +
+        "    \"x\": 2.5,\n" +
+        "    \"y\": 1.3\n" +
+        "  },\n" +
+        "  {\n" +
+        "    \"x\": 1,\n" +
+        "    \"z\": 6.7\n" +
+        "  }\n" +
+        "]");
+
+    OutputUnit result = validator.validate(input);
+
+    assertFalse(result.getValid());
+    assertNull(result.getErrors());
+  }
+
 //  @Test
 //  public void testSpecBasic() {
 //    JsonSchema schema = JsonSchema.of(new JsonObject(

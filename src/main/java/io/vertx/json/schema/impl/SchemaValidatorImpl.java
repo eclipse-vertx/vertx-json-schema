@@ -76,7 +76,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       if (schema == BooleanSchema.TRUE) {
         return new OutputUnit(true);
       } else {
-        return new OutputUnit(false).setErrors(Collections.singletonList(new OutputUnit(instanceLocation, "false", instanceLocation, "False boolean schema")));
+        return new OutputUnit(false)
+          .setErrors(outputFormat == OutputFormat.Flag ? null : Collections.singletonList(new OutputUnit(instanceLocation, "false", instanceLocation, "False boolean schema")));
       }
     }
 
@@ -113,7 +114,9 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       );
       if (!result.getValid()) {
         errors.add(new OutputUnit(instanceLocation, "$recursiveRef", keywordLocation, "A sub-schema had errors"));
-        errors.addAll(result.getErrors());
+        if (result.getErrors() != null) {
+          errors.addAll(result.getErrors());
+        }
       }
     }
 
@@ -141,10 +144,13 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       );
       if (!result.getValid()) {
         errors.add(new OutputUnit(instanceLocation, "$ref", keywordLocation, "A subschema had errors"));
-        errors.addAll(result.getErrors());
+        if (result.getErrors() != null) {
+          errors.addAll(result.getErrors());
+        }
       }
       if (draft == Draft.DRAFT4 || draft == Draft.DRAFT7) {
-        return new OutputUnit(errors.isEmpty()).setErrors(errors);
+        return new OutputUnit(errors.isEmpty())
+          .setErrors(outputFormat == OutputFormat.Flag ? null : errors.isEmpty() ? null : errors);
       }
     }
 
@@ -864,7 +870,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
     }
 
     return new OutputUnit(errors.isEmpty())
-      .setErrors(errors.isEmpty() ? null : errors)
-      .setAnnotations(annotations.isEmpty() ? null : annotations);
+      .setErrors(outputFormat == OutputFormat.Flag ? null : errors.isEmpty() ? null : errors)
+      .setAnnotations(outputFormat == OutputFormat.Flag ? null : annotations.isEmpty() ? null : annotations);
   }
 }

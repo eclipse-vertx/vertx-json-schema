@@ -13,12 +13,10 @@ package io.vertx.json.schema;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.core.json.JsonObject;
-import io.vertx.json.schema.impl.URL;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @DataObject(generateConverter = true)
@@ -32,8 +30,6 @@ public class OutputUnit {
 
   private List<OutputUnit> errors;
   private List<OutputUnit> annotations;
-
-  private String schemaLocation;
 
   public OutputUnit() {
   }
@@ -122,7 +118,6 @@ public class OutputUnit {
       this.errors = new ArrayList<>();
       this.valid = false;
     }
-    this.errors.addAll(errors);
     return this;
   }
 
@@ -152,27 +147,14 @@ public class OutputUnit {
     return this;
   }
 
-  @GenIgnore
-  public OutputUnit setSchemaLocation(String schemaLocation) {
-    this.schemaLocation = schemaLocation;
-    return this;
-  }
 
   public void checkValidity() throws JsonSchemaValidationException {
-    final URL baseUri = schemaLocation != null ? new URL(schemaLocation) : null;
-
-    final Function<String, String> urlFormatter = fragment -> {
-      if (baseUri == null) {
-        return fragment;
-      }
-      return new URL(fragment, baseUri).href();
-    };
 
     final String msg = getError();
 
     // if valid is null, it means that we are a caused by error
     if (valid == null) {
-      final String location = urlFormatter.apply(getInstanceLocation());
+      final String location = getInstanceLocation();
 
       throw new JsonSchemaValidationException(
         msg == null ? "JsonSchema Validation error" : msg,
@@ -183,7 +165,7 @@ public class OutputUnit {
       if (!valid) {
         // valid is "false" we need to throw an exception
         if (errors == null || errors.isEmpty()) {
-          final String location = urlFormatter.apply(getInstanceLocation());
+          final String location = getInstanceLocation();
 
           // there are no sub errors, but the validation failed
           throw new JsonSchemaValidationException(
@@ -195,7 +177,7 @@ public class OutputUnit {
           // there are sub errors, we need to cycle them and create a chain of exceptions
           JsonSchemaValidationException lastException = null;
           for (final OutputUnit error : errors) {
-            final String location = urlFormatter.apply(error.getInstanceLocation());
+            final String location = error.getInstanceLocation();
 
             JsonSchemaValidationException cause;
             cause = new JsonSchemaValidationException(
@@ -210,7 +192,7 @@ public class OutputUnit {
             throw lastException;
           } else {
             // one final wrap as there is extra error message in the unit
-            throw new JsonSchemaValidationException(msg, lastException, urlFormatter.apply(getInstanceLocation()));
+            throw new JsonSchemaValidationException(msg, lastException, getInstanceLocation());
           }
         }
       }
