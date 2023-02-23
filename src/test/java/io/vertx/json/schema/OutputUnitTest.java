@@ -29,55 +29,55 @@ class OutputUnitTest {
     }
   }
 
-//  @Test
-//  public void testBasicMode() {
-//    OutputUnit outputUnit = new OutputUnit(new JsonObject(
-//      "{\n" +
-//        "  \"valid\": false,\n" +
-//        "  \"errors\": [\n" +
-//        "    {\n" +
-//        "      \"keywordLocation\": \"\",\n" +
-//        "      \"instanceLocation\": \"\",\n" +
-//        "      \"error\": \"A subschema had errors.\"\n" +
-//        "    },\n" +
-//        "    {\n" +
-//        "      \"keywordLocation\": \"/items/$ref\",\n" +
-//        "      \"absoluteKeywordLocation\":\n" +
-//        "        \"https://example.com/polygon#/$defs/point\",\n" +
-//        "      \"instanceLocation\": \"/1\",\n" +
-//        "      \"error\": \"A subschema had errors.\"\n" +
-//        "    },\n" +
-//        "    {\n" +
-//        "      \"keywordLocation\": \"/items/$ref/required\",\n" +
-//        "      \"absoluteKeywordLocation\":\n" +
-//        "        \"https://example.com/polygon#/$defs/point/required\",\n" +
-//        "      \"instanceLocation\": \"/1\",\n" +
-//        "      \"error\": \"Required property 'y' not found.\"\n" +
-//        "    },\n" +
-//        "    {\n" +
-//        "      \"keywordLocation\": \"/items/$ref/additionalProperties\",\n" +
-//        "      \"absoluteKeywordLocation\":\n" +
-//        "        \"https://example.com/polygon#/$defs/point/additionalProperties\",\n" +
-//        "      \"instanceLocation\": \"/1/z\",\n" +
-//        "      \"error\": \"Additional property 'z' found but was invalid.\"\n" +
-//        "    },\n" +
-//        "    {\n" +
-//        "      \"keywordLocation\": \"/minItems\",\n" +
-//        "      \"instanceLocation\": \"\",\n" +
-//        "      \"error\": \"Expected at least 3 items but found 2\"\n" +
-//        "    }\n" +
-//        "  ]\n" +
-//        "}"
-//    ));
-//    try {
-//      outputUnit.checkValidity();
-//      fail("Should not reach here");
-//    } catch (JsonSchemaValidationException e) {
-//      assertEquals("Expected at least 3 items but found 2", e.getMessage());
-//      assertNull(e.location());
-//    }
-//  }
-//
+  @Test
+  public void testBasicMode() {
+    OutputUnit outputUnit = new OutputUnit(new JsonObject(
+      "{\n" +
+        "  \"valid\": false,\n" +
+        "  \"errors\": [\n" +
+        "    {\n" +
+        "      \"keywordLocation\": \"\",\n" +
+        "      \"instanceLocation\": \"\",\n" +
+        "      \"error\": \"A subschema had errors.\"\n" +
+        "    },\n" +
+        "    {\n" +
+        "      \"keywordLocation\": \"/items/$ref\",\n" +
+        "      \"absoluteKeywordLocation\":\n" +
+        "        \"https://example.com/polygon#/$defs/point\",\n" +
+        "      \"instanceLocation\": \"/1\",\n" +
+        "      \"error\": \"A subschema had errors.\"\n" +
+        "    },\n" +
+        "    {\n" +
+        "      \"keywordLocation\": \"/items/$ref/required\",\n" +
+        "      \"absoluteKeywordLocation\":\n" +
+        "        \"https://example.com/polygon#/$defs/point/required\",\n" +
+        "      \"instanceLocation\": \"/1\",\n" +
+        "      \"error\": \"Required property 'y' not found.\"\n" +
+        "    },\n" +
+        "    {\n" +
+        "      \"keywordLocation\": \"/items/$ref/additionalProperties\",\n" +
+        "      \"absoluteKeywordLocation\":\n" +
+        "        \"https://example.com/polygon#/$defs/point/additionalProperties\",\n" +
+        "      \"instanceLocation\": \"/1/z\",\n" +
+        "      \"error\": \"Additional property 'z' found but was invalid.\"\n" +
+        "    },\n" +
+        "    {\n" +
+        "      \"keywordLocation\": \"/minItems\",\n" +
+        "      \"instanceLocation\": \"\",\n" +
+        "      \"error\": \"Expected at least 3 items but found 2\"\n" +
+        "    }\n" +
+        "  ]\n" +
+        "}"
+    ));
+    try {
+      outputUnit.checkValidity();
+      fail("Should not reach here");
+    } catch (JsonSchemaValidationException e) {
+      assertEquals("Expected at least 3 items but found 2", e.getMessage());
+      assertNull(e.location());
+    }
+  }
+
   @Test
   public void testSpecFlag() {
     JsonSchema schema = JsonSchema.of(new JsonObject(
