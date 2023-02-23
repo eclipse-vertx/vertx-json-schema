@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 public class OutputUnit {
 
   private Boolean valid;
-  private String keyword;
+  private String absoluteKeywordLocation;
   private String keywordLocation;
   private String instanceLocation;
   private String error;
@@ -36,7 +36,6 @@ public class OutputUnit {
   private String schemaLocation;
 
   public OutputUnit() {
-    valid = true;
   }
 
   public OutputUnit(JsonObject json) {
@@ -47,9 +46,9 @@ public class OutputUnit {
     this.valid = valid;
   }
 
-  public OutputUnit(String instanceLocation, String keyword, String keywordLocation, String error) {
+  public OutputUnit(String instanceLocation, String absoluteKeywordLocation, String keywordLocation, String error) {
     this.instanceLocation = instanceLocation;
-    this.keyword = keyword;
+    this.absoluteKeywordLocation = absoluteKeywordLocation;
     this.keywordLocation = keywordLocation;
     this.error = error;
   }
@@ -63,12 +62,12 @@ public class OutputUnit {
     return this;
   }
 
-  public String getKeyword() {
-    return keyword;
+  public String getAbsoluteKeywordLocation() {
+    return absoluteKeywordLocation;
   }
 
-  public OutputUnit setKeyword(String keyword) {
-    this.keyword = keyword;
+  public OutputUnit setAbsoluteKeywordLocation(String absoluteKeywordLocation) {
+    this.absoluteKeywordLocation = absoluteKeywordLocation;
     return this;
   }
 
@@ -179,11 +178,11 @@ public class OutputUnit {
         msg == null ? "JsonSchema Validation error" : msg,
         location,
         // add some information to the stack trace
-        createStackTraceElement(location, getKeyword(), getKeywordLocation()));
+        createStackTraceElement(location, getAbsoluteKeywordLocation(), getKeywordLocation()));
     } else {
       if (!valid) {
         // valid is "false" we need to throw an exception
-        if (errors.isEmpty()) {
+        if (errors == null || errors.isEmpty()) {
           final String location = urlFormatter.apply(getInstanceLocation());
 
           // there are no sub errors, but the validation failed
@@ -191,7 +190,7 @@ public class OutputUnit {
             msg == null ? "JsonSchema Validation error" : msg,
             location,
             // add some information to the stack trace
-            createStackTraceElement(location, getKeyword(), getKeywordLocation()));
+            createStackTraceElement(location, getAbsoluteKeywordLocation(), getKeywordLocation()));
         } else {
           // there are sub errors, we need to cycle them and create a chain of exceptions
           JsonSchemaValidationException lastException = null;
@@ -204,7 +203,7 @@ public class OutputUnit {
               lastException,
               location,
               // add some information to the stack trace
-              createStackTraceElement(location, error.getKeyword(), error.getKeywordLocation()));
+              createStackTraceElement(location, error.getAbsoluteKeywordLocation(), error.getKeywordLocation()));
             lastException = cause;
           }
           if (msg == null) {
@@ -227,7 +226,7 @@ public class OutputUnit {
    */
   @GenIgnore
   public ValidationException toException(Object input) {
-    return new ValidationException(error + ": { errors: " + formatExceptions(errors) + ", annotations: " + formatExceptions(annotations) + "}", keyword, input, true) {
+    return new ValidationException(error + ": { errors: " + formatExceptions(errors) + ", annotations: " + formatExceptions(annotations) + "}", absoluteKeywordLocation, input, true) {
     };
   }
 

@@ -3,8 +3,7 @@ package io.vertx.json.schema;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.impl.JsonUtil;
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
+
 import java.util.Base64;
 
 /**
@@ -52,7 +51,7 @@ public class OutputUnitConverter {
           break;
         case "keyword":
           if (member.getValue() instanceof String) {
-            obj.setKeyword((String)member.getValue());
+            obj.setAbsoluteKeywordLocation((String)member.getValue());
           }
           break;
         case "keywordLocation":
@@ -90,8 +89,8 @@ public class OutputUnitConverter {
     if (obj.getInstanceLocation() != null) {
       json.put("instanceLocation", obj.getInstanceLocation());
     }
-    if (obj.getKeyword() != null) {
-      json.put("keyword", obj.getKeyword());
+    if (obj.getAbsoluteKeywordLocation() != null) {
+      json.put("keyword", obj.getAbsoluteKeywordLocation());
     }
     if (obj.getKeywordLocation() != null) {
       json.put("keywordLocation", obj.getKeywordLocation());

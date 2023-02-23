@@ -61,25 +61,20 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
 
   @Override
   public OutputUnit validate(Object instance) throws SchemaException {
-    OutputUnit result = validate(
+    return validate(
       instance,
       schema,
       null,
       "#",
       "#",
+      "#",
       new HashSet<>());
-
-    // attach the absolute uri to the unit in order to produce proper error messages
-    if (schema instanceof JsonObjectSchema) {
-      result.setSchemaLocation(schema.get("__absolute_uri__"));
-    }
-    return result;
   }
 
-  private OutputUnit validate(Object _instance, JsonSchema schema, JsonSchema _recursiveAnchor, String instanceLocation, String schemaLocation, Set<Object> evaluated) throws SchemaException {
+  private OutputUnit validate(Object _instance, JsonSchema schema, JsonSchema _recursiveAnchor, String instanceLocation, String schemaLocation, String baseLocation, Set<Object> evaluated) throws SchemaException {
     if (schema instanceof BooleanSchema) {
       if (schema == BooleanSchema.TRUE) {
-        return new OutputUnit(true).setErrors(Collections.emptyList());
+        return new OutputUnit(true);
       } else {
         return new OutputUnit(false).setErrors(Collections.singletonList(new OutputUnit(instanceLocation, "false", instanceLocation, "False boolean schema")));
       }
@@ -113,6 +108,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         refSchema,
         instanceLocation,
         keywordLocation,
+        baseLocation  + "/$recursiveRef",
         evaluated
       );
       if (!result.getValid()) {
@@ -133,13 +129,14 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       }
 
       final JsonSchema refSchema = lookup.get(uri);
-      final String keywordLocation = schemaLocation + "/" + schema.<String>get("$ref");
+      final String keywordLocation = schema.get("$ref");
       final OutputUnit result = validate(
         instance,
         refSchema,
         recursiveAnchor,
         instanceLocation,
         keywordLocation,
+        baseLocation + "/$ref",
         evaluated
       );
       if (!result.getValid()) {
@@ -202,6 +199,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         recursiveAnchor,
         instanceLocation,
         keywordLocation,
+        baseLocation + "/not",
         new HashSet<>()
       );
       if (result.getValid()) {
@@ -223,6 +221,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
           schema.<Boolean>get("$recursiveAnchor", false) ? recursiveAnchor : null,
           instanceLocation,
           keywordLocation + "/" + i,
+          baseLocation + "/anyOf/" + i,
           subEvaluated
         );
         if (result.getErrors() != null) {
@@ -252,6 +251,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
           schema.<Boolean>get("$recursiveAnchor", false) ? recursiveAnchor : null,
           instanceLocation,
           keywordLocation + "/" + i,
+          baseLocation + "/allOf/" + i,
           subEvaluated
         );
         if (result.getErrors() != null) {
@@ -281,6 +281,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
           schema.<Boolean>get("$recursiveAnchor", false) ? recursiveAnchor : null,
           instanceLocation,
           keywordLocation + "/" + i,
+          baseLocation + "/oneOf/" + i,
           subEvaluated
         );
         if (result.getErrors() != null) {
@@ -312,6 +313,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         recursiveAnchor,
         instanceLocation,
         keywordLocation,
+        baseLocation + "/if",
         evaluated
       );
       if (conditionResult.getValid()) {
@@ -322,6 +324,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
             recursiveAnchor,
             instanceLocation,
             schemaLocation + "/then",
+            baseLocation + "/then",
             evaluated
           );
           if (!thenResult.getValid()) {
@@ -338,6 +341,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
           recursiveAnchor,
           instanceLocation,
           schemaLocation + "/else",
+          baseLocation + "/else",
           evaluated
         );
         if (!elseResult.getValid()) {
@@ -379,6 +383,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               recursiveAnchor,
               subInstancePointer,
               keywordLocation,
+              baseLocation + "/propertyNames",
               new HashSet<>()
             );
             if (!result.getValid()) {
@@ -414,6 +419,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                 recursiveAnchor,
                 instanceLocation,
                 keywordLocation + "/" + Pointers.encode(key),
+                baseLocation + "/dependentSchemas/" + Pointers.encode(key),
                 evaluated
               );
               if (!result.getValid()) {
@@ -444,6 +450,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                   recursiveAnchor,
                   instanceLocation,
                   keywordLocation + "/" + Pointers.encode(key),
+                  baseLocation + "/dependencies/" + Pointers.encode(key),
                   new HashSet<>()
                 );
                 if (!result.getValid()) {
@@ -474,6 +481,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               recursiveAnchor,
               subInstancePointer,
               keywordLocation + "/" + Pointers.encode(key),
+              baseLocation + "/properties/" + Pointers.encode(key),
               new HashSet<>()
             );
             if (result.getValid()) {
@@ -507,6 +515,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                 recursiveAnchor,
                 subInstancePointer,
                 keywordLocation + "/" + Pointers.encode(pattern),
+                baseLocation + "/patternProperties/" + Pointers.encode(pattern),
                 new HashSet<>()
               );
               if (result.getValid()) {
@@ -536,6 +545,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               recursiveAnchor,
               subInstancePointer,
               keywordLocation,
+              baseLocation + "/additionalProperties",
               new HashSet<>()
             );
             if (result.getValid()) {
@@ -559,6 +569,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                 recursiveAnchor,
                 subInstancePointer,
                 keywordLocation,
+                baseLocation + "/unevaluatedProperties",
                 new HashSet<>()
               );
               if (result.getValid()) {
@@ -597,6 +608,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               recursiveAnchor,
               instanceLocation + "/" + i,
               keywordLocation + "/" + i,
+              baseLocation + "/prefixItems/" + i,
               new HashSet<>()
             );
             evaluated.add(i);
@@ -624,6 +636,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                 recursiveAnchor,
                 instanceLocation + "/" + i,
                 keywordLocation + "/" + i,
+                baseLocation + "/items/" + i,
                 new HashSet<>()
               );
               evaluated.add(i);
@@ -646,6 +659,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                 recursiveAnchor,
                 instanceLocation + "/" + i,
                 keywordLocation,
+                baseLocation + "/items",
                 new HashSet<>()
               );
               evaluated.add(i);
@@ -671,6 +685,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                 recursiveAnchor,
                 instanceLocation + "/" + i,
                 keywordLocation2,
+                baseLocation + "/additionalItems",
                 new HashSet<>()
               );
               evaluated.add(i);
@@ -701,6 +716,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                 recursiveAnchor,
                 instanceLocation + "/" + i,
                 keywordLocation,
+                baseLocation + "/contains",
                 new HashSet<>()
               );
               if (result.getValid()) {
@@ -743,6 +759,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               recursiveAnchor,
               instanceLocation + "/" + i,
               keywordLocation,
+              baseLocation + "/unevaluatedItems",
               new HashSet<>()
             );
             evaluated.add(i);
