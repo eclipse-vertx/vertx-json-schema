@@ -154,30 +154,30 @@ public class OutputUnit {
 
     // if valid is null, it means that we are a caused by error
     if (valid == null) {
-      final String location = getInstanceLocation();
+      final String location = getAbsoluteKeywordLocation();
 
       throw new JsonSchemaValidationException(
         msg == null ? "JsonSchema Validation error" : msg,
         location,
         // add some information to the stack trace
-        createStackTraceElement(location, getAbsoluteKeywordLocation(), getKeywordLocation()));
+        createStackTraceElement());
     } else {
       if (!valid) {
         // valid is "false" we need to throw an exception
         if (errors == null || errors.isEmpty()) {
-          final String location = getInstanceLocation();
+          final String location = getAbsoluteKeywordLocation();
 
           // there are no sub errors, but the validation failed
           throw new JsonSchemaValidationException(
             msg == null ? "JsonSchema Validation error" : msg,
             location,
             // add some information to the stack trace
-            createStackTraceElement(location, getAbsoluteKeywordLocation(), getKeywordLocation()));
+            createStackTraceElement());
         } else {
           // there are sub errors, we need to cycle them and create a chain of exceptions
           JsonSchemaValidationException lastException = null;
           for (final OutputUnit error : errors) {
-            final String location = error.getInstanceLocation();
+            final String location = error.getAbsoluteKeywordLocation();
 
             JsonSchemaValidationException cause;
             cause = new JsonSchemaValidationException(
@@ -185,22 +185,25 @@ public class OutputUnit {
               lastException,
               location,
               // add some information to the stack trace
-              createStackTraceElement(location, error.getAbsoluteKeywordLocation(), error.getKeywordLocation()));
+              error.createStackTraceElement());
             lastException = cause;
           }
           if (msg == null) {
             throw lastException;
           } else {
             // one final wrap as there is extra error message in the unit
-            throw new JsonSchemaValidationException(msg, lastException, getInstanceLocation());
+            throw new JsonSchemaValidationException(msg, lastException, getAbsoluteKeywordLocation());
           }
         }
       }
     }
   }
 
-  private static StackTraceElement createStackTraceElement(String location, String keyword, String keywordLocation) {
-    return new StackTraceElement("[" + location + "]", "<" + keyword + ">", keywordLocation, -1);
+  private StackTraceElement createStackTraceElement() {
+    if (instanceLocation == null && keywordLocation == null) {
+      return null;
+    }
+    return new StackTraceElement("[" + keywordLocation + "]", "<" + instanceLocation + ">", absoluteKeywordLocation, -1);
   }
 
   /**

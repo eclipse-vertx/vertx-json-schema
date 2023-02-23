@@ -29,9 +29,13 @@ public final class JsonSchemaValidationException extends Exception {
   }
 
   public JsonSchemaValidationException(String message, Throwable cause, String location, StackTraceElement stackTraceElement) {
-    super(message, cause, true, true);
+    super(message, cause, stackTraceElement != null, stackTraceElement != null);
     this.location = location;
-    setStackTrace(new StackTraceElement[]{stackTraceElement});
+    if (stackTraceElement != null) {
+      setStackTrace(new StackTraceElement[]{
+        stackTraceElement
+      });
+    }
   }
 
   /**
