@@ -55,6 +55,7 @@ public interface SchemaRouter {
   /**
    * Like {@link #resolveRef(JsonPointer, JsonPointer, SchemaParser)} but with a direct callback.
    */
+  @Deprecated
   void resolveRef(JsonPointer pointer, JsonPointer scope, SchemaParser schemaParser, Handler<AsyncResult<Schema>> handler);
 
   /**
