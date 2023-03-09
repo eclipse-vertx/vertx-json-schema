@@ -1,6 +1,7 @@
 package io.vertx.json.schema;
 
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import org.junit.jupiter.api.Test;
@@ -54,5 +55,20 @@ class ValidationTest {
         "}"));
 
     assertThat(ou.getValid()).isTrue();
+  }
+
+  @Test
+  public void testValidHostWithNumbers() {
+    final Validator validator = Validator.create(
+      JsonSchema.of(new JsonObject("{\"type\":\"object\",\"properties\":{\"host\":{\"type\":\"string\",\"format\":\"hostname\"}}}")),
+      new JsonSchemaOptions()
+        .setBaseUri("https://vertx.io")
+        .setDraft(Draft.DRAFT7)
+        .setOutputFormat(OutputFormat.Basic));
+
+    final OutputUnit res = validator.validate(new JsonObject("{\"host\":\"www.3gppnetwork.org\"}"));
+
+    assertThat(res.getValid()).isTrue();
+    assertThat(res.getErrors()).isNull();
   }
 }
