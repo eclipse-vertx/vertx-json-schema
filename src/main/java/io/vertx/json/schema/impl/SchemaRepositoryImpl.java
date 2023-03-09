@@ -65,11 +65,11 @@ public class SchemaRepositoryImpl implements SchemaRepository {
     "else"
   );
 
-  static final List<String> DRAFT_4_META_FILES = Arrays.asList(
+  static final List<String> DRAFT_4_META_FILES = Collections.singletonList(
     "http://json-schema.org/draft-04/schema"
   );
 
-  static final List<String> DRAFT_7_META_FILES = Arrays.asList(
+  static final List<String> DRAFT_7_META_FILES = Collections.singletonList(
     "http://json-schema.org/draft-07/schema"
   );
 
@@ -304,11 +304,24 @@ public class SchemaRepositoryImpl implements SchemaRepository {
       schema.annotate("__absolute_recursive_ref__", url.href());
     }
 
+    // if an $dynamicAnchor is found, compute it's URI and add it to the mapping.
+    if (schema.containsKey("$dynamicAnchor")) {
+      final URL url = new URL("#" + schema.<String>get("$dynamicAnchor"), baseURI.href());
+      if (lookup.containsKey(url.href())) {
+        assert !lookup.get(url.href()).equals(schema);
+      } else {
+        lookup.put(url.href(), schema);
+      }
+    }
+
     // if an $anchor is found, compute it's URI and add it to the mapping.
     if (schema.containsKey("$anchor")) {
       final URL url = new URL("#" + schema.<String>get("$anchor"), baseURI);
-      assert !lookup.containsKey(url.href());
-      lookup.put(url.href(), schema);
+      if (lookup.containsKey(url.href())) {
+        assert !lookup.get(url.href()).equals(schema);
+      } else {
+        lookup.put(url.href(), schema);
+      }
     }
 
     // process subschemas.
