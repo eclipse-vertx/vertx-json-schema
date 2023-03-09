@@ -33,17 +33,8 @@ public class ResolverTest {
 
     JsonObject res = schema.resolve();
 
-    JsonObject ptr = res.getJsonObject("properties").getJsonObject("billing_address").getJsonObject("properties");
-    assertThat(ptr.getJsonObject("city").getString("type"))
-      .isEqualTo("string");
-
-    // circular check
-    JsonObject circular = ptr.getJsonObject("subAddress");
-    assertThat(circular.getString("$ref")).isEqualTo("http://www.example.com/#/definitions/address");
-
-    // array checks
-    assertThat(res.getJsonArray("required").getString(0))
-      .isEqualTo("billing_address");
+    JsonObject ptr = res.getJsonObject("properties").getJsonObject("billing_address");
+    assertThat(ptr.getString("$ref")).isNotNull();
 
     assertThat(res.encodePrettily().contains("__absolute_uri")).isFalse();
     assertThat(res.encodePrettily().contains("__absolute_ref")).isFalse();
@@ -59,10 +50,9 @@ public class ResolverTest {
   @Test
   public void testRefResolverFail() throws IOException {
     try {
-      JsonObject res =
-        JsonSchema
-          .of(new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", "test", "resources", "ref_test", "person_draft201909.json")))))
-          .resolve();
+      JsonSchema
+        .of(new JsonObject(Buffer.buffer(Files.readAllBytes(Paths.get("src", "test", "resources", "ref_test", "person_draft201909.json")))))
+        .resolve();
 
       fail("Should not reach here");
     } catch (SchemaException e) {

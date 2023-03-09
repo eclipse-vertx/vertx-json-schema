@@ -17,8 +17,6 @@ public final class Ref {
 
   private static final Logger LOG = LoggerFactory.getLogger(Ref.class);
 
-  private static final int RESOLVE_LIMIT = Integer.getInteger("io.vertx.json.schema.resolve.limit", 50);
-
   public static final List<String> POINTER_KEYWORD = Arrays.asList(
     "$ref",
     "$id",
@@ -43,132 +41,126 @@ public final class Ref {
   }
 
   public static JsonObject resolve(Map<String, JsonSchema> refs, URL baseUri, JsonSchema schema) {
-    return resolve(refs, baseUri, schema, RESOLVE_LIMIT);
-  }
-
-  private static JsonObject resolve(Map<String, JsonSchema> refs, URL baseUri, JsonSchema schema, int limit) {
-    if (limit == 0) {
-      throw new RuntimeException("Too much recursion resolving schema");
-    }
-
     final JsonObject tree = ((JsonObject) schema).copy();
     final Map<String, List<Ref>> pointers = new HashMap<>();
 
-    // find all refs
-    findRefsAndClean(tree, "#", "", pointers, limit);
+    try {
+      // find all refs
+      findRefsAndClean(tree, "#", "", pointers);
 
-    // resolve them
-    final Map<String, JsonObject> anchors = new HashMap<>();
-    anchors.put("", tree);
+      // resolve them
+      final Map<String, JsonObject> anchors = new HashMap<>();
+      anchors.put("", tree);
 
-    final JsonObject dynamicAnchors = new JsonObject();
+      final JsonObject dynamicAnchors = new JsonObject();
 
-    boolean incomplete = false;
+      boolean incomplete = false;
 
-    pointers
-      .computeIfAbsent("$id", key -> Collections.emptyList())
-      .forEach(item -> {
+      pointers
+        .computeIfAbsent("$id", key -> Collections.emptyList())
+        .forEach(item -> {
+          final String ref = item.ref;
+          final String path = item.path;
+          final JsonObject obj = item.obj;
+          if (anchors.containsKey(ref)) {
+            throw new SchemaException(schema, "$id: '" + ref + "' defined more than once at: " + path);
+          }
+          anchors.put(ref, obj);
+        });
+
+      pointers
+        .computeIfAbsent("$anchor", key -> Collections.emptyList())
+        .forEach(item -> {
+          final String ref = item.ref;
+          final String path = item.path;
+          final JsonObject obj = item.obj;
+          final String id = item.id;
+
+          final String fullRef = id + "#" + ref;
+
+          if (anchors.containsKey(fullRef)) {
+            throw new SchemaException(schema, "$anchor: '" + ref + "' defined more than once at: " + path);
+          }
+          anchors.put(fullRef, obj);
+        });
+
+      pointers
+        .computeIfAbsent("$dynamicAnchor", key -> Collections.emptyList())
+        .forEach(item -> {
+          final String ref = item.ref;
+          final String path = item.path;
+          final JsonObject obj = item.obj;
+
+          if (dynamicAnchors.containsKey("#" + ref)) {
+            throw new SchemaException(schema, "$dynamicAnchor: '" + ref + "' defined more than once at: " + path);
+          }
+          dynamicAnchors.put("#" + ref, obj);
+        });
+
+      final Map<String, JsonObject> dejaVu = new HashMap<>();
+
+      for (Ref item : pointers.computeIfAbsent("$ref", key -> Collections.emptyList())) {
         final String ref = item.ref;
-        final String path = item.path;
-        final JsonObject obj = item.obj;
-        if (anchors.containsKey(ref)) {
-          throw new SchemaException(schema, "$id: '" + ref + "' defined more than once at: " + path);
-        }
-        anchors.put(ref, obj);
-      });
-
-    pointers
-      .computeIfAbsent("$anchor", key -> Collections.emptyList())
-      .forEach(item -> {
-        final String ref = item.ref;
-        final String path = item.path;
+        final String prop = item.prop;
         final JsonObject obj = item.obj;
         final String id = item.id;
 
-        final String fullRef = id + "#" + ref;
+        final String decodedRef = decodeURIComponent(ref);
+        final String fullRef = decodedRef.charAt(0) != '#' ? decodedRef : id + decodedRef;
 
-        if (anchors.containsKey(fullRef)) {
-          throw new SchemaException(schema, "$anchor: '" + ref + "' defined more than once at: " + path);
-        }
-        anchors.put(fullRef, obj);
-      });
+        // resolve is expensive, so we cache the result
+        JsonObject resolved = dejaVu.computeIfAbsent(fullRef, key -> resolveUri(refs, baseUri, schema, key, anchors));
+        // resolved may contain pointers which means we need to resolve them too
+        incomplete |= hasPointers(resolved, "", fullRef);
 
-    pointers
-      .computeIfAbsent("$dynamicAnchor", key -> Collections.emptyList())
-      .forEach(item -> {
-        final String ref = item.ref;
-        final String path = item.path;
-        final JsonObject obj = item.obj;
+        obj.remove(prop);
 
-        if (dynamicAnchors.containsKey("#" + ref)) {
-          throw new SchemaException(schema, "$dynamicAnchor: '" + ref + "' defined more than once at: " + path);
-        }
-        dynamicAnchors.put("#" + ref, obj);
-      });
-
-    final Map<String, JsonObject> dejaVu = new HashMap<>();
-
-    for (Ref item : pointers.computeIfAbsent("$ref", key -> Collections.emptyList())) {
-      final String ref = item.ref;
-      final String prop = item.prop;
-      final JsonObject obj = item.obj;
-      final String id = item.id;
-
-      final String decodedRef = decodeURIComponent(ref);
-      final String fullRef = decodedRef.charAt(0) != '#' ? decodedRef : id + decodedRef;
-
-      // resolve is expensive, so we cache the result
-      JsonObject resolved = dejaVu.computeIfAbsent(fullRef, key -> resolveUri(refs, baseUri, schema, key, anchors, limit));
-      // resolved may contain pointers which means we need to resolve them too
-      incomplete |= hasPointers(schema, resolved, fullRef, limit);
-
-      obj.remove(prop);
-
-      // re-assign the obj
-      obj.mergeIn(
-        new JsonObject(
-          resolved
-            // filter out pointer keywords
-            .stream()
-            .filter(kv -> !POINTER_KEYWORD.contains(kv.getKey()))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))));
-    }
-
-    for (Ref item : pointers.computeIfAbsent("$dynamicRef", key -> Collections.emptyList())) {
-      final String ref = item.ref;
-      final String prop = item.prop;
-      final JsonObject obj = item.obj;
-      if (!dynamicAnchors.containsKey(ref)) {
-        throw new SchemaException(schema, "Can't resolve $dynamicAnchor: '" + ref + "'");
+        // re-assign the obj
+        obj.mergeIn(
+          new JsonObject(
+            resolved
+              // filter out pointer keywords
+              .stream()
+              .filter(kv -> !POINTER_KEYWORD.contains(kv.getKey()))
+              .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))));
       }
 
-      JsonObject resolved = dynamicAnchors.getJsonObject(ref);
-      // resolved may contain pointers which means we need to resolve them too
-      incomplete |= hasPointers(schema, resolved, ref, limit);
+      for (Ref item : pointers.computeIfAbsent("$dynamicRef", key -> Collections.emptyList())) {
+        final String ref = item.ref;
+        final String prop = item.prop;
+        final JsonObject obj = item.obj;
+        if (!dynamicAnchors.containsKey(ref)) {
+          throw new SchemaException(schema, "Can't resolve $dynamicAnchor: '" + ref + "'");
+        }
 
-      obj.remove(prop);
-      // re-assign the obj
-      obj.mergeIn(
-        new JsonObject(
-          resolved
-            // filter out pointer keywords
-            .stream()
-            .filter(kv -> !POINTER_KEYWORD.contains(kv.getKey()))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))));
-    }
+        JsonObject resolved = dynamicAnchors.getJsonObject(ref);
+        // resolved may contain pointers which means we need to resolve them too
+        incomplete |= hasPointers(resolved, "", ref);
 
-    if (incomplete) {
-      // the schema changed we need to re-run
-      return resolve(refs, baseUri, JsonSchema.of(tree), limit - 1);
-    } else {
+        obj.remove(prop);
+        // re-assign the obj
+        obj.mergeIn(
+          new JsonObject(
+            resolved
+              // filter out pointer keywords
+              .stream()
+              .filter(kv -> !POINTER_KEYWORD.contains(kv.getKey()))
+              .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))));
+      }
+
+      if (incomplete) {
+        // the schema changed we need to re-run
+        return resolve(refs, baseUri, JsonSchema.of(tree));
+      } else {
+        return tree;
+      }
+    } catch (CircularReferenceException e) {
+      LOG.debug(e.getMessage());
       return tree;
     }
   }
 
-  private static void findRefsAndClean(Object obj, String path, String id, Map<String, List<Ref>> pointers, int limit) {
-    if (limit == 0) {
-      throw new RuntimeException("Too much recursion resolving schema");
-    }
+  private static void findRefsAndClean(Object obj, String path, String id, Map<String, List<Ref>> pointers) {
     if (!isObject(obj)) {
       return;
     }
@@ -176,7 +168,7 @@ public final class Ref {
       final JsonArray json = (JsonArray) obj;
       // process the array
       for (int i = 0; i < json.size(); i++) {
-        findRefsAndClean(json.getValue(i), path + "/" + i, id, pointers, limit - 1);
+        findRefsAndClean(json.getValue(i), path + "/" + i, id, pointers);
       }
     }
 
@@ -199,15 +191,12 @@ public final class Ref {
             .computeIfAbsent(prop, key -> new ArrayList<>())
             .add(new Ref(json.getString(prop), json, prop, path, id));
         }
-        findRefsAndClean(json.getValue(prop), path + "/" + Utils.Pointers.encode(prop), id, pointers, limit - 1);
+        findRefsAndClean(json.getValue(prop), path + "/" + Utils.Pointers.encode(prop), id, pointers);
       }
     }
   }
 
-  private static boolean hasPointers(JsonSchema schema, Object obj, String self, int limit) {
-    if (limit == 0) {
-      throw new RuntimeException("Too much recursion resolving schema");
-    }
+  private static boolean hasPointers(Object obj, String parent, String self) throws CircularReferenceException {
     if (!isObject(obj)) {
       return false;
     }
@@ -215,7 +204,7 @@ public final class Ref {
       final JsonArray json = (JsonArray) obj;
       // process the array
       for (int i = 0; i < json.size(); i++) {
-        if (hasPointers(schema, json.getValue(i), self, limit - 1)) {
+        if (hasPointers(json.getValue(i), parent + "/" + i, self)) {
           return true;
         }
       }
@@ -229,13 +218,12 @@ public final class Ref {
           // as we cannot resolve those (stack overflow) so we need to
           // accept that these won't be resolved and remain purely as references
           if (json.getString(prop).equals(self)) {
-            LOG.debug("Circular pointer detected: '" + self + "' in schema: " + schema);
-            return false;
+            throw new CircularReferenceException("Circular pointer detected: '" + self + "' in schema [" + self + parent + "/" + prop + "].");
           } else {
             return true;
           }
         } else {
-          if (hasPointers(schema, json.getValue(prop), self, limit - 1)) {
+          if (hasPointers(json.getValue(prop), parent + "/" + prop, self)) {
             return true;
           }
         }
@@ -244,7 +232,7 @@ public final class Ref {
     return false;
   }
 
-  private static JsonObject resolveUri(Map<String, JsonSchema> refs, URL baseUri, JsonSchema schema, String uri, Map<String, JsonObject> anchors, int limit) {
+  private static JsonObject resolveUri(Map<String, JsonSchema> refs, URL baseUri, JsonSchema schema, String uri, Map<String, JsonObject> anchors) {
     //  [prefix, path]
     final String[] parts = uri.split("#", 2);
 
@@ -266,10 +254,10 @@ public final class Ref {
         if (refs.containsKey(resolved)) {
           // if there is no hash we can safely return the full object
           if (!hashPresent) {
-            return resolve(refs, baseUri, refs.get(resolved), limit - 1);
+            return resolve(refs, baseUri, refs.get(resolved));
           }
           // in case of hash we need to reduce...
-          return reduce(schema, path, resolve(refs, baseUri, refs.get(resolved), limit - 1));
+          return reduce(schema, path, resolve(refs, baseUri, refs.get(resolved)));
         }
       }
       throw new SchemaException(schema, "Can't resolve '" + uri + "', only internal refs are supported.");
