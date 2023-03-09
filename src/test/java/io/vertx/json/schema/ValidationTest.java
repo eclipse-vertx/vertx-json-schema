@@ -105,4 +105,123 @@ class ValidationTest {
     // Should be fine!
     res.checkValidity();
   }
+
+  @Test
+  public void testIssue49() throws JsonSchemaValidationException {
+
+    SchemaRepository repository = SchemaRepository.create(new JsonSchemaOptions().setDraft(Draft.DRAFT201909).setBaseUri("app://"));
+
+    // child schema
+    repository.dereference("schema-child.json", JsonSchema.of(
+      new JsonObject("{\n" +
+        "  \"$schema\": \"https://json-schema.org/draft/2019-09/schema\",\n" +
+        "  \"description\": \"The child schema.\",\n" +
+        "  \"type\": \"object\",\n" +
+        "  \"additionalProperties\": false,\n" +
+        "  \"required\": [\n" +
+        "    \"prop1\",\n" +
+        "    \"prop2\"\n" +
+        "  ],\n" +
+        "  \"properties\": {\n" +
+        "    \"prop1\": {\n" +
+        "      \"description\": \"prop 1\",\n" +
+        "      \"type\": \"string\"\n" +
+        "    },\n" +
+        "    \"prop2\": {\n" +
+        "      \"description\": \"prop 2\",\n" +
+        "      \"type\": \"integer\"\n" +
+        "    }\n" +
+        "  }\n" +
+        "}")
+    ));
+
+    // parent
+    repository.dereference("schema-parent.json", JsonSchema.of(
+      new JsonObject("{\n" +
+        "  \"$schema\": \"https://json-schema.org/draft/2019-09/schema\",\n" +
+        "  \"description\": \"The parent schema.\",\n" +
+        "  \"type\": \"object\",\n" +
+        "  \"additionalProperties\": false,\n" +
+        "  \"required\": [\n" +
+        "    \"prop1\",\n" +
+        "    \"prop2\"\n" +
+        "  ],\n" +
+        "  \"properties\": {\n" +
+        "    \"prop1\": {\n" +
+        "      \"$ref\": \"schema-child.json#/properties/prop1\"\n" +
+        "    },\n" +
+        "    \"prop2\": {\n" +
+        "      \"$ref\": \"schema-child.json#/properties/prop2\"\n" +
+        "    }\n" +
+        "  }\n" +
+        "}")
+    ));
+
+    JsonObject json = new JsonObject()
+      .put("prop1", "123e4567-e89b-42d3-a456-556642440000")
+      .put("prop2", 42);
+
+
+    repository.validator("schema-parent.json").validate(json).checkValidity();
+  }
+
+  @Test
+  public void testIssue49b() throws JsonSchemaValidationException {
+
+    SchemaRepository repository = SchemaRepository.create(new JsonSchemaOptions().setDraft(Draft.DRAFT201909).setBaseUri("app://"));
+
+    // child schema
+    repository.dereference("schema-child.json", JsonSchema.of(
+      new JsonObject("{\n" +
+        "  \"$schema\": \"https://json-schema.org/draft/2019-09/schema\",\n" +
+        "  \"description\": \"The child schema.\",\n" +
+        "  \"type\": \"object\",\n" +
+        "  \"additionalProperties\": false,\n" +
+        "  \"required\": [\n" +
+        "    \"prop1\",\n" +
+        "    \"prop2\"\n" +
+        "  ],\n" +
+        "  \"properties\": {\n" +
+        "    \"prop1\": {\n" +
+        "      \"description\": \"prop 1\",\n" +
+        "      \"type\": \"string\"\n" +
+        "    },\n" +
+        "    \"prop2\": {\n" +
+        "      \"description\": \"prop 2\",\n" +
+        "      \"type\": \"integer\"\n" +
+        "    }\n" +
+        "  }\n" +
+        "}")
+    ));
+
+    // parent
+    repository.dereference("schema-parent.json", JsonSchema.of(
+      new JsonObject("{\n" +
+        "  \"$schema\": \"https://json-schema.org/draft/2019-09/schema\",\n" +
+        "  \"description\": \"The parent schema.\",\n" +
+        "  \"type\": \"object\",\n" +
+        "  \"additionalProperties\": false,\n" +
+        "  \"required\": [\n" +
+        "    \"prop1\",\n" +
+        "    \"prop2\"\n" +
+        "  ],\n" +
+        "  \"properties\": {\n" +
+        "    \"prop1\": {\n" +
+        "      \"$ref\": \"schema-child.json#/properties/prop1\"\n" +
+        "    },\n" +
+        "    \"prop2\": {\n" +
+        "      \"description\": \"prop 2\",\n" +
+        "      \"type\": \"integer\"\n" +
+        "    }\n" +
+        "  }\n" +
+        "}")
+    ));
+
+    JsonObject json = new JsonObject()
+      .put("prop1", "123e4567-e89b-42d3-a456-556642440000")
+      .put("prop2", 42);
+
+
+    repository.validator("schema-parent.json").validate(json).checkValidity();
+  }
 }
