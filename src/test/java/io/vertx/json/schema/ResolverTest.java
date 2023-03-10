@@ -176,7 +176,8 @@ public class ResolverTest {
   @Test
   void testResolveCircularRefsWithCombinatorKeywords(Vertx vertx) {
     String path = "resolve/circular_address_anyOf.json";
-    SchemaRepository repo = SchemaRepository.create(new JsonSchemaOptions().setBaseUri("http://vertx.io").setDraft(Draft.DRAFT202012));
+    SchemaRepository repo =
+      SchemaRepository.create(new JsonSchemaOptions().setBaseUri("http://vertx.io").setDraft(Draft.DRAFT202012));
     JsonObject schemaJson = new JsonObject(vertx.fileSystem().readFileBlocking(path));
     JsonSchema schema = JsonSchema.of(schemaJson.copy());
     repo.dereference(schema);
@@ -184,5 +185,28 @@ public class ResolverTest {
 
     // There are only circular refs, so it should resolve nothing
     assertThat(resolved).isEqualTo(schemaJson);
+  }
+
+  @Test
+  void testResolveCircularRefsWithCombinatorKeywordsComplex(Vertx vertx) {
+    String complexSpec = "resolve/circular/aas_minimal_reproducer.json";
+    String complexMetaModelSpec = "resolve/circular/meta-model/meta_model_minimal.json";
+
+    SchemaRepository repo =
+      SchemaRepository.create(new JsonSchemaOptions().setBaseUri("http://vertx.io").setDraft(Draft.DRAFT202012));
+
+    JsonObject complexSpecSchemaJson = new JsonObject(vertx.fileSystem().readFileBlocking(complexSpec));
+    JsonObject complexMetaModelSpecSchemaJson =
+      new JsonObject(vertx.fileSystem().readFileBlocking(complexMetaModelSpec));
+
+    JsonSchema complexSpecSchema = JsonSchema.of(complexSpecSchemaJson.copy());
+    JsonSchema complexMetaModelSpecSchema = JsonSchema.of(complexMetaModelSpecSchemaJson.copy());
+
+    String metaModelRef = "https://api.swaggerhub.com/domains/Plattform_i40/Part1-MetaModel-Schemas/V3.0RC02";
+
+    repo.dereference(metaModelRef, complexMetaModelSpecSchema);
+
+    // Should not fail
+    JsonObject resolved = repo.resolve(complexSpecSchema);
   }
 }

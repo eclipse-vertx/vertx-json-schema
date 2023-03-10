@@ -1,0 +1,101 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "version": "V3.0RC02",
+    "title": "DotAAS Part 1 | Metamodel | Schemas",
+    "license": {
+      "identifier": "CC-BY-4.0",
+      "name": "Creative Commons CC-BY-4.0"
+    }
+  },
+  "components": {
+    "schemas": {
+      "ModelType": {
+        "type": "string",
+        "enum": [
+          "Property",
+          "Submodel",
+          "SubmodelElementCollection"
+        ]
+      },
+      "Property": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AbstractSubmodelElement"
+          },
+          {
+            "properties": {
+              "value": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "Referable": {
+        "allOf": [
+          {
+            "properties": {
+              "modelType": {
+                "$ref": "#/components/schemas/ModelType"
+              }
+            },
+            "required": [
+              "modelType"
+            ]
+          }
+        ]
+      },
+      "Submodel": {
+        "allOf": [
+          {
+            "properties": {
+              "submodelElements": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/SubmodelElement"
+                },
+                "minItems": 1
+              }
+            }
+          }
+        ]
+      },
+      "AbstractSubmodelElement": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Referable"
+          }
+        ]
+      },
+      "SubmodelElement": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Property"
+          },
+          {
+            "$ref": "#/components/schemas/SubmodelElementCollection"
+          }
+        ]
+      },
+      "SubmodelElementCollection": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AbstractSubmodelElement"
+          },
+          {
+            "properties": {
+              "value": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/SubmodelElement"
+                },
+                "minItems": 1
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

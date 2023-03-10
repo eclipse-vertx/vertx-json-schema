@@ -1,0 +1,57 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "version": "V3.0RC02",
+    "title": "DotAAS Part 1 | Metamodel | Schemas",
+    "license": {
+      "identifier": "CC-BY-4.0",
+      "name": "Creative Commons CC-BY-4.0"
+    }
+  },
+  "paths": {
+    "/submodels/{submodelIdentifier}/submodel-elements": {
+      "parameters": [
+        {
+          "name": "submodelIdentifier",
+          "in": "path",
+          "description": "The Submodel’s unique id (UTF8-BASE64-URL-encoded)",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "byte"
+          }
+        }
+      ],
+      "post": {
+        "tags": [
+          "Asset Administration Shell Environment API"
+        ],
+        "summary": "Creates a new submodel element",
+        "operationId": "PostSubmodelElement_SubmodelRepo",
+        "requestBody": {
+          "description": "Requested submodel element",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "https://api.swaggerhub.com/domains/Plattform_i40/Part1-MetaModel-Schemas/V3.0RC02#/components/schemas/SubmodelElement"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Submodel element created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "https://api.swaggerhub.com/domains/Plattform_i40/Part1-MetaModel-Schemas/V3.0RC02#/components/schemas/SubmodelElement"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
