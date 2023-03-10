@@ -97,8 +97,6 @@ public final class Ref {
           dynamicAnchors.put("#" + ref, obj);
         });
 
-      final Map<String, JsonObject> dejaVu = new HashMap<>();
-
       for (Ref item : pointers.computeIfAbsent("$ref", key -> Collections.emptyList())) {
         final String ref = item.ref;
         final String prop = item.prop;
@@ -109,20 +107,22 @@ public final class Ref {
         final String fullRef = decodedRef.charAt(0) != '#' ? decodedRef : id + decodedRef;
 
         // resolve is expensive, so we cache the result
-        JsonObject resolved = dejaVu.computeIfAbsent(fullRef, key -> resolveUri(refs, baseUri, schema, key, anchors));
-        // resolved may contain pointers which means we need to resolve them too
-        incomplete |= hasPointers(resolved, "", fullRef);
+        JsonObject resolved = resolveUri(refs, baseUri, schema, fullRef, anchors);
+        if (resolved != null) {
+          // resolved may contain pointers which means we need to resolve them too
+          incomplete |= hasPointers(resolved, "", fullRef);
 
-        obj.remove(prop);
+          obj.remove(prop);
 
-        // re-assign the obj
-        obj.mergeIn(
-          new JsonObject(
-            resolved
-              // filter out pointer keywords
-              .stream()
-              .filter(kv -> !POINTER_KEYWORD.contains(kv.getKey()))
-              .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))));
+          // re-assign the obj
+          obj.mergeIn(
+            new JsonObject(
+              resolved
+                // filter out pointer keywords
+                .stream()
+                .filter(kv -> !POINTER_KEYWORD.contains(kv.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))));
+        }
       }
 
       for (Ref item : pointers.computeIfAbsent("$dynamicRef", key -> Collections.emptyList())) {
@@ -134,18 +134,20 @@ public final class Ref {
         }
 
         JsonObject resolved = dynamicAnchors.getJsonObject(ref);
-        // resolved may contain pointers which means we need to resolve them too
-        incomplete |= hasPointers(resolved, "", ref);
+        if (resolved != null) {
+          // resolved may contain pointers which means we need to resolve them too
+          incomplete |= hasPointers(resolved, "", ref);
 
-        obj.remove(prop);
-        // re-assign the obj
-        obj.mergeIn(
-          new JsonObject(
-            resolved
-              // filter out pointer keywords
-              .stream()
-              .filter(kv -> !POINTER_KEYWORD.contains(kv.getKey()))
-              .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))));
+          obj.remove(prop);
+          // re-assign the obj
+          obj.mergeIn(
+            new JsonObject(
+              resolved
+                // filter out pointer keywords
+                .stream()
+                .filter(kv -> !POINTER_KEYWORD.contains(kv.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))));
+        }
       }
 
       if (incomplete) {
@@ -257,7 +259,7 @@ public final class Ref {
             return resolve(refs, baseUri, refs.get(resolved));
           }
           // in case of hash we need to reduce...
-          return reduce(schema, path, resolve(refs, baseUri, refs.get(resolved)));
+          return reduce(path, resolve(refs, baseUri, refs.get(resolved)));
         }
       }
       throw new SchemaException(schema, "Can't resolve '" + uri + "', only internal refs are supported.");
@@ -269,21 +271,21 @@ public final class Ref {
     }
 
     // in case of hash we need to reduce...
-    return reduce(schema, path, anchors.get(prefix));
+    return reduce(path, anchors.get(prefix));
   }
 
-  private static JsonObject reduce(JsonSchema schema, String path, JsonObject value) {
+  private static JsonObject reduce(String path, JsonObject value) {
     final String[] paths = path.split("/");
     // perform a reduce operation
     for (int i = 1; i < paths.length; i++) {
       value = value
         .getJsonObject(Utils.Pointers.unescape(paths[i]));
 
+      // quick exit if we have a null value
       if (value == null) {
-        throw new SchemaException(schema, "Can't reduce [" + i + "] '" + path + "', value is null.");
+        return null;
       }
     }
-    // work with a copy to avoid mutations
-    return value.copy();
+    return value;
   }
 }
