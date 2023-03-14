@@ -284,15 +284,7 @@ public class SchemaRouterImpl implements SchemaRouter {
   }
 
   private Future<String> solveLocalRef(final URI ref) {
-    Promise<String> promise = Promise.promise();
-    fs.readFile(ref.getPath(), res -> {
-      if (res.succeeded()) {
-        promise.complete(res.result().toString());
-      } else {
-        promise.fail(res.cause());
-      }
-    });
-    return promise.future();
+    return fs.readFile(ref.getPath()).map(Buffer::toString);
   }
 
   private Future<Schema> resolveExternalRef(final JsonPointer pointer, final JsonPointer scope, final SchemaParser schemaParser) {

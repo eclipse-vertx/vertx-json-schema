@@ -108,7 +108,7 @@ public class SchemaRouterRemoteRefTest {
   private void stopSchemaServer(Handler<AsyncResult<Void>> completion) {
     if (schemaServer != null) {
       try {
-        schemaServer.close((asyncResult) -> {
+        schemaServer.close().onComplete((asyncResult) -> {
           completion.handle(Future.succeededFuture());
         });
       } catch (IllegalStateException e) { // Server is already open

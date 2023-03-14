@@ -58,7 +58,7 @@ public class AsyncEnumValidatorFactory implements ValidatorFactory {
     @Override
     public Future<Void> validateAsync(ValidatorContext context, Object in) {
       Promise<Void> fut = Promise.promise();
-      vertx.eventBus().request(address, new JsonObject(), ar -> {
+      vertx.eventBus().request(address, new JsonObject()).onComplete(ar -> {
         JsonArray enumValues = (JsonArray) ar.result().body();
         if (!enumValues.contains(in))
           fut.fail(ValidationException.create("Not matching async enum", "asyncEnum", in));

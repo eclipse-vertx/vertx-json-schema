@@ -69,13 +69,13 @@ public abstract class BaseIntegrationTest {
         req.response()
           .putHeader("Content-type", "application/json")
           .sendFile(Paths.get(getRemotesPath().toString(), path).toString());
-      })
-      .listen(l -> completion.handle(Future.succeededFuture()));
+      });
+    schemaServer.listen().onComplete(l -> completion.handle(Future.succeededFuture()));
   }
 
   private void stopSchemaServer(Handler<AsyncResult<Void>> completion) {
     try {
-      schemaServer.close((asyncResult) -> {
+      schemaServer.close().onComplete((asyncResult) -> {
         completion.handle(Future.succeededFuture());
       });
     } catch (IllegalStateException e) { // Server is already open
