@@ -77,7 +77,7 @@ public class CachedAsyncEnumValidatorFactory implements ValidatorFactory {
     public Future<Void> validateAsync(ValidatorContext context, Object in) {
       if (isSync()) return validateSyncAsAsync(context, in);
       Promise<Void> promise = Promise.promise();
-      vertx.eventBus().request(address, new JsonObject(), ar -> {
+      vertx.eventBus().request(address, new JsonObject()).onComplete(ar -> {
         JsonArray enumValues = (JsonArray) ar.result().body();
 
         // Write cache
