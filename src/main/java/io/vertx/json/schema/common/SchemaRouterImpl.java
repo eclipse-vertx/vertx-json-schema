@@ -97,14 +97,6 @@ public class SchemaRouterImpl implements SchemaRouter {
   }
 
   @Override
-  public void resolveRef(JsonPointer pointer, JsonPointer scope, SchemaParser schemaParser, Handler<AsyncResult<Schema>> handler) {
-    Future<Schema> fut = resolveRef(pointer, scope, schemaParser);
-    if (handler != null) {
-      fut.onComplete(handler);
-    }
-  }
-
-  @Override
   public Future<Schema> resolveRef(final JsonPointer pointer, final JsonPointer scope, final SchemaParser schemaParser) {
     try {
       Schema cachedSchema = this.resolveCachedSchema(pointer, scope, schemaParser);
