@@ -116,8 +116,6 @@ public final class JsonRef {
   }
 
   private static void parse(Object obj, String path, String id, Map<String, List<JsonRef>> pointers) {
-    System.out.println("parse: " + path + " " + id);
-
     if (!isObject(obj)) {
       return;
     }
@@ -161,8 +159,6 @@ public final class JsonRef {
   }
 
   private static JsonObject applyRef(JsonObject tree, String path, JsonObject target) {
-    System.out.println("applyRef: " + path);
-
     // root can be JsonObject or JsonArray
     Object root = tree;
     final String[] paths = path.split("/");
