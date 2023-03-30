@@ -11,12 +11,15 @@
 package io.vertx.json.schema;
 
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.impl.BooleanSchema;
 import io.vertx.json.schema.impl.JsonObjectSchema;
 
 import java.util.Set;
+import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * A Json-Schema holder.
@@ -65,6 +68,40 @@ public interface JsonSchema {
     return bool ?
       BooleanSchema.TRUE :
       BooleanSchema.FALSE;
+  }
+
+  /**
+   * Predicate to filter out annotation keys.
+   */
+  @GenIgnore
+  static Predicate<String> annotations() {
+    return key -> {
+      switch (key) {
+        case "__absolute_uri__":
+        case "__absolute_ref__":
+        case "__absolute_recursive_ref__":
+          return false;
+        default:
+          return true;
+      }
+    };
+  }
+
+  /**
+   * Predicate to filter out annotation keys.
+   */
+  @GenIgnore
+  static Predicate<Map.Entry<String, Object>> annotationKeys() {
+    return entry -> {
+      switch (entry.getKey()) {
+        case "__absolute_uri__":
+        case "__absolute_ref__":
+        case "__absolute_recursive_ref__":
+          return false;
+        default:
+          return true;
+      }
+    };
   }
 
   /**
