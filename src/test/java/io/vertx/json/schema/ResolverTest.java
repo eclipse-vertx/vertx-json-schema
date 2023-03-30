@@ -109,4 +109,14 @@ public class ResolverTest {
     OutputUnit result2 = repo.validator(schema2).validate(fixture);
     assertThat(result2.getValid()).isTrue();
   }
+
+  @Test
+  public void testOpenAPI31(Vertx vertx) {
+
+    Buffer source = vertx.fileSystem().readFileBlocking("resolve/petstore_31.json");
+
+    JsonObject json = Ref.resolve(new JsonObject(source));
+    System.out.println(json.encodePrettily());
+  }
+
 }

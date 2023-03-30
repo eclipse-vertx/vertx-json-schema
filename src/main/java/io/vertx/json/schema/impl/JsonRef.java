@@ -116,6 +116,8 @@ public final class JsonRef {
   }
 
   private static void parse(Object obj, String path, String id, Map<String, List<JsonRef>> pointers) {
+    // System.out.println("parse: " + path + " " + id);
+
     if (!isObject(obj)) {
       return;
     }
@@ -153,12 +155,14 @@ public final class JsonRef {
           // remove the prop so we don't process it again
           iterator.remove();
         }
-        parse(json.getValue(prop), path + "/" + Utils.Pointers.encode(prop), id, pointers);
+        parse(json.getValue(prop), path + "/" + Utils.Pointers.escape(prop), id, pointers);
       }
     }
   }
 
   private static JsonObject applyRef(JsonObject tree, String path, JsonObject target) {
+    // System.out.println("applyRef: " + path);
+
     // root can be JsonObject or JsonArray
     Object root = tree;
     final String[] paths = path.split("/");
@@ -167,6 +171,8 @@ public final class JsonRef {
       prop = paths[paths.length - 1];
       for (int i = 1; i < paths.length - 1; i++) {
         final String p = paths[i];
+        // System.out.println("applyRef: walk[" + p + "] tree");
+
         if (root instanceof JsonArray) {
           root = ((JsonArray) root).getValue(Integer.parseInt(p));
         } else if (root instanceof JsonObject) {
@@ -175,6 +181,8 @@ public final class JsonRef {
       }
 
       // replace
+      // System.out.println("applyRef: update root[" + prop + "] " + target.fieldNames());
+
       if (root instanceof JsonArray) {
         ((JsonArray) root).set(Integer.parseInt(prop), target);
       } else if (root instanceof JsonObject) {
@@ -184,6 +192,7 @@ public final class JsonRef {
       return tree;
     } else {
       // undefined
+      // System.out.println("applyRef: replace tree");
       return target;
     }
   }
