@@ -157,11 +157,25 @@ public class SchemaRepositoryImpl implements SchemaRepository {
 
   @Override
   public Validator validator(JsonSchema schema) {
+    Objects.requireNonNull(schema, "'schema' cannot be null");
+    // this schema has been dereferenced, no need to redo it
+    if (schema.containsKey("__absolute_uri__")) {
+      // resolve the pointer to an absolute path
+      final URL url = new URL(schema.get("__absolute_uri__"), baseUri);
+      if ("".equals(url.fragment())) {
+        url.anchor(""); // normalize hash https://url.spec.whatwg.org/#dom-url-hash
+      }
+      final String uri = url.href();
+      if (lookup.containsKey(uri)) {
+        return new SchemaValidatorImpl(uri, options, Collections.unmodifiableMap(lookup));
+      }
+    }
     return new SchemaValidatorImpl(schema, options, Collections.unmodifiableMap(lookup));
   }
 
   @Override
   public Validator validator(String ref) {
+    Objects.requireNonNull(ref, "'ref' cannot be null");
     // resolve the pointer to an absolute path
     final URL url = new URL(ref, baseUri);
     if ("".equals(url.fragment())) {
@@ -211,27 +225,10 @@ public class SchemaRepositoryImpl implements SchemaRepository {
   }
 
   @Override
-  public JsonObject resolve(JsonSchema schema) {
+  public JsonObject resolve(JsonObject schema) {
     // this will perform a dereference of the given schema
     final Map<String, JsonSchema> lookup = new HashMap<>(Collections.unmodifiableMap(this.lookup));
-    // the deference will ensure that there are no cyclic references
-    // and the given schema is valid to resolved if needed
-    dereference(lookup, schema, baseUri, "", true);
-    return Ref.resolve(lookup, baseUri, schema);
-  }
-
-  @Override
-  public JsonObject resolve(String ref) {
-    // resolve the pointer to an absolute path
-    final URL url = new URL(ref, baseUri);
-    if ("".equals(url.fragment())) {
-      url.anchor(""); // normalize hash https://url.spec.whatwg.org/#dom-url-hash
-    }
-    final String uri = url.href();
-    if (lookup.containsKey(uri)) {
-      return Ref.resolve(Collections.unmodifiableMap(lookup), baseUri, lookup.get(uri));
-    }
-    throw new IllegalArgumentException("Unknown $ref: " + ref);
+    return JsonRef.resolve(schema, lookup);
   }
 
   @Override

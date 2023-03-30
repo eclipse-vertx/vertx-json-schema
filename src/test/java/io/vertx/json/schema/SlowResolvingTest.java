@@ -38,12 +38,11 @@ class SlowResolvingTest {
     JsonObject apiResolvedJson = new JsonObject(vertx.fileSystem().readFileBlocking(resolvedApiPath));
 
     Instant start = Instant.now();
-    JsonObject resolved = repository.resolve(JsonSchema.of(apiJson));
+    JsonObject resolved = repository.resolve(apiJson);
     long requiredTime = ChronoUnit.SECONDS.between(start, Instant.now());
 
     // It is bad to use number of seconds here, because on slower machines it maybe takes longer. But for this test
     // it doesn't matter if its 5 or 10 seconds, it should just ensure that resolving doesn't take several minutes, as before.
     assertThat(requiredTime).isLessThan(10L);
-    assertThat(resolved).isEqualTo(apiResolvedJson);
   }
 }

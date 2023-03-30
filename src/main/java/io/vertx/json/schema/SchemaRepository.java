@@ -114,27 +114,19 @@ public interface SchemaRepository {
   Validator validator(String ref, JsonSchemaOptions options);
 
   /**
-   * Tries to resolve all internal and repository local references. External references are not resolved.
-   * <p>
-   * The result is an object where all references have been resolved. Resolution of circular references is shallow. This
-   * should normally not be a problem for this use case.
+   * Resolve all {@code $ref} in the given {@link JsonObject}. The resolution algrithm is not aware of other
+   * specifications. When resolving OpenAPI documents (which only allow {@code $ref} at specific locations) you
+   * should validate if the document is valid before performing a resolution.
    *
-   * @return a new {@link JsonObject} representing the schema with {@code $ref}s replaced by their value.
-   * @throws SchemaException when the resolution is impossible.
-   */
-  JsonObject resolve(JsonSchema schema);
-
-  /**
-   * Tries to resolve all internal and repository local references. External references are not resolved.
-   * <p>
-   * The result is an object where all references have been resolved. Resolution of circular references is shallow. This
-   * should normally not be a problem for this use case.
+   * It is important to note that any sibling elements of a {@code $ref} is ignored. This is because {@code $ref}
+   * works by replacing itself and everything on its level with the definition it is pointing at.
    *
-   * @param ref the start resolution reference in JSON pointer format
-   * @return a new {@link JsonObject} representing the schema with {@code $ref}s replaced by their value.
-   * @throws SchemaException when the resolution is impossible.
+   * @param schema the JSON object to resolve.
+   * @return a new JSON object with all the {@code $ref} replaced by actual object references.
+   * @throws IllegalArgumentException when the input JSON is not valid.
+   * @throws UnsupportedOperationException reducing the JSON pointer to a value is undefined.
    */
-  JsonObject resolve(String ref);
+  JsonObject resolve(JsonObject schema);
 
   /**
    * Look up a schema using a JSON pointer notation
