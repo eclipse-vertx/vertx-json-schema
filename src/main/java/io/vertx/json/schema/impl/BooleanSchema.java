@@ -1,6 +1,5 @@
 package io.vertx.json.schema.impl;
 
-import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.JsonSchema;
 
 import java.util.Set;
@@ -39,11 +38,6 @@ public final class BooleanSchema implements JsonSchema {
   @Override
   public Set<String> fieldNames() {
     throw new UnsupportedOperationException("This schema doesn't support keys()");
-  }
-
-  @Override
-  public JsonObject resolve() {
-    throw new UnsupportedOperationException("This schema doesn't support resolve()");
   }
 
   @Override

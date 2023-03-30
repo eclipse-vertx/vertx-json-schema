@@ -64,9 +64,4 @@ public final class JsonObjectSchema extends JsonObject implements JsonSchema {
       return super.fieldNames();
     }
   }
-
-  @Override
-  public JsonObject resolve() {
-    return Ref.resolve(Collections.emptyMap(), new URL("urn:"), this);
-  }
 }
