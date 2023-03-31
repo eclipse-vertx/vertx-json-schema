@@ -146,8 +146,8 @@ public class SchemaImpl extends BaseMutableStateValidator implements SchemaInter
   void registerReferredSchema(RefSchema ref) {
     referringSchemas.add(ref);
     if (log.isTraceEnabled()) {
-      log.trace(String.format("JsonRef schema %s reefers to schema %s", ref, this));
-      log.trace(String.format("JsonRef schemas that refeers to %s: %s", this, this.referringSchemas.size()));
+      log.trace(String.format("Ref schema %s reefers to schema %s", ref, this));
+      log.trace(String.format("Ref schemas that refeers to %s: %s", this, this.referringSchemas.size()));
     }
     // This is a trick to solve the circular references.
     // 1. for each ref that reefers to this schema we propagate isSync = true to the upper levels.

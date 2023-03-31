@@ -88,7 +88,9 @@ public interface SchemaRepository {
   Validator validator(JsonSchema schema);
 
   /**
-   * A new validator instance using this repository options.
+   * A new validator instance using this repository options. This is the preferred way
+   * to create a validator as it avoids reparsing schemas and reuses the cache in the
+   * repository.
    *
    * @param ref the start validation reference in JSON pointer format
    * @return the validator
@@ -96,22 +98,37 @@ public interface SchemaRepository {
   Validator validator(String ref);
 
   /**
-   * A new validator instance overriding this repository options.
-   *
-   * @param schema  the start validation schema
-   * @param options the options to be using on the validator instance
-   * @return the validator
-   */
-  Validator validator(JsonSchema schema, JsonSchemaOptions options);
-
-  /**
-   * A new validator instance overriding this repository options.
+   * A new validator instance overriding this repository options. This is the preferred way
+   * to create a validator as it avoids reparsing schemas and reuses the cache in the
+   * repository.
    *
    * @param ref     the start validation reference in JSON pointer format
    * @param options the options to be using on the validator instance
    * @return the validator
    */
   Validator validator(String ref, JsonSchemaOptions options);
+
+  /**
+   * A new validator instance overriding this repository options.
+   * The given schema will not be referenced to the repository.
+   *
+   * @param schema  the start validation schema
+   * @param options the options to be using on the validator instance
+   * @return the validator
+   */
+  default Validator validator(JsonSchema schema, JsonSchemaOptions options) {
+    return validator(schema, options, false);
+  }
+
+  /**
+   * A new validator instance overriding this repository options.
+   *
+   * @param schema  the start validation schema
+   * @param options the options to be using on the validator instance
+   * @param dereference if true the schema will be dereferenced before validation
+   * @return the validator
+   */
+  Validator validator(JsonSchema schema, JsonSchemaOptions options, boolean dereference);
 
   /**
    * Resolve all {@code $ref} in the given {@link JsonObject}. The resolution algrithm is not aware of other

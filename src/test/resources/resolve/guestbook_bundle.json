@@ -5,8 +5,10 @@
     "title": "Guestbook Service",
     "license": {
       "identifier": "MIT",
-      "name": "MIT License"
-    }
+      "name": "MIT License",
+      "__absolute_uri__": "app:///#/info/license"
+    },
+    "__absolute_uri__": "app:///#/info"
   },
   "servers": [
     {
@@ -41,21 +43,29 @@
                 "properties": {
                   "id": {
                     "type": "integer",
-                    "format": "int64"
+                    "format": "int64",
+                    "__absolute_uri__": "https://example.com/guestbook/components#/components/schemas/Entry/properties/id"
                   },
                   "name": {
-                    "type": "string"
+                    "type": "string",
+                    "__absolute_uri__": "https://example.com/guestbook/components#/components/schemas/Entry/properties/name"
                   },
                   "message": {
-                    "type": "string"
+                    "type": "string",
+                    "__absolute_uri__": "https://example.com/guestbook/components#/components/schemas/Entry/properties/message"
                   },
                   "tag": {
-                    "type": "string"
+                    "type": "string",
+                    "__absolute_uri__": "https://example.com/guestbook/components#/components/schemas/Entry/properties/tag"
                   }
-                }
-              }
-            }
-          }
+                },
+                "__absolute_uri__": "https://example.com/guestbook/components#/components/schemas/Entry"
+              },
+              "__absolute_uri__": "app:///#/paths/~1bookentry/post/requestBody/content/application~1json"
+            },
+            "__absolute_uri__": "app:///#/paths/~1bookentry/post/requestBody/content"
+          },
+          "__absolute_uri__": "app:///#/paths/~1bookentry/post/requestBody"
         },
         "responses": {
           "default": {
@@ -71,18 +81,26 @@
                   "properties": {
                     "code": {
                       "type": "integer",
-                      "format": "int32"
+                      "format": "int32",
+                      "__absolute_uri__": "https://example.com/guestbook/components#/components/schemas/Error/properties/code"
                     },
                     "message": {
-                      "type": "string"
+                      "type": "string",
+                      "__absolute_uri__": "https://example.com/guestbook/components#/components/schemas/Error/properties/message"
                     }
-                  }
+                  },
+                  "__absolute_uri__": "https://example.com/guestbook/components#/components/schemas/Error"
                 }
               }
             }
-          }
-        }
-      }
-    }
-  }
+          },
+          "__absolute_uri__": "app:///#/paths/~1bookentry/post/responses"
+        },
+        "__absolute_uri__": "app:///#/paths/~1bookentry/post"
+      },
+      "__absolute_uri__": "app:///#/paths/~1bookentry"
+    },
+    "__absolute_uri__": "app:///#/paths"
+  },
+  "__absolute_uri__": "app:///"
 }
