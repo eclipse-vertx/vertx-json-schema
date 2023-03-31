@@ -20,22 +20,31 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
   private final Draft draft;
   private final OutputFormat outputFormat;
 
+  public SchemaValidatorImpl(JsonSchema schema, JsonSchemaOptions options) {
+    this(schema, options, Collections.emptyMap(), true);
+  }
+
   public SchemaValidatorImpl(JsonSchema schema, JsonSchemaOptions options, Map<String, JsonSchema> lookup) {
+    this(schema, options, lookup, false);
+  }
+
+  public SchemaValidatorImpl(JsonSchema schema, JsonSchemaOptions options, Map<String, JsonSchema> lookup, boolean dereference) {
     Objects.requireNonNull(schema, "'schema' cannot be null");
     Objects.requireNonNull(options, "'options' cannot be null");
     Objects.requireNonNull(options.getOutputFormat(), "'options.outputFormat' cannot be null");
-    Objects.requireNonNull(options.getBaseUri(), "'options.baseUri' cannot be null");
-    Objects.requireNonNull(options, "'lookup' cannot be null");
+    Objects.requireNonNull(lookup, "'lookup' cannot be null");
     this.schema = schema;
     // extract the draft from schema when no specific draft is configured in the options
     this.draft = options.getDraft() == null ?
       Draft.fromIdentifier(schema.get("$schema")) :
       options.getDraft();
     this.outputFormat = options.getOutputFormat();
-    URL baseUri = new URL(options.getBaseUri());
     this.lookup = new HashMap<>(lookup);
-    // add the root schema
-    dereference(this.lookup, schema, baseUri, "", true);
+    if (dereference) {
+      URL baseUri = new URL(options.getBaseUri());
+      // add the root schema
+      dereference(this.lookup, schema, baseUri, "", true);
+    }
   }
 
   public SchemaValidatorImpl(String ref, JsonSchemaOptions options, Map<String, JsonSchema> lookup) {

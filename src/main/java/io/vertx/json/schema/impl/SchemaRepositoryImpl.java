@@ -189,7 +189,7 @@ public class SchemaRepositoryImpl implements SchemaRepository {
   }
 
   @Override
-  public Validator validator(JsonSchema schema, JsonSchemaOptions options) {
+  public Validator validator(JsonSchema schema, JsonSchemaOptions options, boolean derefenrence) {
     final JsonSchemaOptions config;
     if (options.getBaseUri() == null) {
       // add the default base if missing
@@ -198,7 +198,7 @@ public class SchemaRepositoryImpl implements SchemaRepository {
     } else {
       config = options;
     }
-    return new SchemaValidatorImpl(schema, config, Collections.unmodifiableMap(lookup));
+    return new SchemaValidatorImpl(schema, config, Collections.unmodifiableMap(lookup), derefenrence);
   }
 
   @Override

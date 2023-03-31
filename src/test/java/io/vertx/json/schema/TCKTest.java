@@ -153,7 +153,8 @@ public class TCKTest {
         testSchema,
         new JsonSchemaOptions()
           .setDraft(draft)
-          .setBaseUri("https://github.com/eclipse-vertx"));
+          .setBaseUri("https://github.com/eclipse-vertx"),
+        true);
 
       OutputUnit result =
         validator

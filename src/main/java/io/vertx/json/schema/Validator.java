@@ -13,8 +13,6 @@ package io.vertx.json.schema;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.json.schema.impl.SchemaValidatorImpl;
 
-import java.util.Collections;
-
 /**
  * A validator, validates some input object using a well known schema.
  *
@@ -25,12 +23,17 @@ public interface Validator {
 
   /**
    * Creates a new validator with some initial schema and options.
+   *
+   * When validation is to be reused, it is recommended to create a {@link SchemaRepository} instance and use the
+   * {@link SchemaRepository#validator(String)}} method. The use of a {@link String} key allows avoiding re-parsing
+   * and fast lookups.
+   *
    * @param schema the initial schema
    * @param options the validator options
    * @return a validator instance
    */
   static Validator create(JsonSchema schema, JsonSchemaOptions options) {
-    return new SchemaValidatorImpl(schema, options, Collections.emptyMap());
+    return new SchemaValidatorImpl(schema, options);
   }
 
   /**

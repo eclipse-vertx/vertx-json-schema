@@ -5,12 +5,14 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.junit5.VertxExtension;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -60,6 +62,51 @@ public class ResolverTest {
   }
 
   @Test
+  @Disabled("This test is disabled because it's not possible to resolve non relative refs or exact refs")
+  public void testResolveRefsFromRepository(Vertx vertx) {
+
+    SchemaRepository repository = SchemaRepository.create(new JsonSchemaOptions().setDraft(Draft.DRAFT4).setBaseUri("https://vertx.io"));
+
+    try {
+      repository.resolve(new JsonObject(vertx.fileSystem().readFileBlocking("resolve/api.json")));
+      // fail
+      fail("Should fail as no other references are loaded");
+    } catch (SchemaException e) {
+      // OK
+    }
+  }
+
+  @Test
+  @Disabled("This test is disabled because it's not possible to resolve non relative refs or exact refs")
+  public void testResolveRefsFromRepositoryWithRefs(Vertx vertx) {
+
+    SchemaRepository repository = SchemaRepository.create(new JsonSchemaOptions().setDraft(Draft.DRAFT4).setBaseUri("https://vertx.io"));
+
+    for (String uri : Arrays.asList("pet.api.json", "pet.model.json", "store.api.json", "store.model.json", "user.api.json", "user.model.json")) {
+      repository
+        .dereference(uri, JsonSchema.of(new JsonObject(vertx.fileSystem().readFileBlocking("resolve/" + uri))));
+    }
+
+    assertThat(repository.resolve(new JsonObject(vertx.fileSystem().readFileBlocking("resolve/api.json"))).encode().length())
+      .isEqualTo(24612);
+  }
+
+  @Test
+  @Disabled("This test is disabled because it's not possible to resolve non relative refs or exact refs")
+  public void testResolveRefsFromRepositoryWithRefsByRef(Vertx vertx) {
+
+    SchemaRepository repository = SchemaRepository.create(new JsonSchemaOptions().setDraft(Draft.DRAFT4).setBaseUri("https://vertx.io"));
+
+    for (String uri : Arrays.asList("api.json", "pet.api.json", "pet.model.json", "store.api.json", "store.model.json", "user.api.json", "user.model.json")) {
+      repository
+        .dereference(uri, JsonSchema.of(new JsonObject(vertx.fileSystem().readFileBlocking("resolve/" + uri))));
+    }
+
+    assertThat(repository.resolve(new JsonObject(vertx.fileSystem().readFileBlocking("resolve/api.json"))).encode().length())
+      .isEqualTo(24612);
+  }
+
+  @Test
   public void testResolveRefsWithinArray(Vertx vertx) {
 
     JsonObject schema = new JsonObject(vertx.fileSystem().readFileBlocking("resolve/array.json"));
@@ -67,6 +114,22 @@ public class ResolverTest {
 
     assertThat(json.getJsonArray("parameters").getValue(0))
       .isInstanceOf(JsonObject.class);
+  }
+
+  @Test
+  public void testResolveRefsFromOpenAPISource(Vertx vertx) {
+    SchemaRepository repository = SchemaRepository.create(new JsonSchemaOptions().setDraft(Draft.DRAFT202012).setBaseUri("app://"));
+    repository.preloadMetaSchema(vertx.fileSystem());
+
+    JsonObject apiJson = new JsonObject(vertx.fileSystem().readFileBlocking("resolve/guestbook_api.json"));
+    repository.dereference(JsonSchema.of(apiJson));
+
+    JsonObject componentsJson = new JsonObject(vertx.fileSystem().readFileBlocking("resolve/guestbook_components.json"));
+    String componentsRef = "https://example.com/guestbook/components";
+    repository.dereference(componentsRef, JsonSchema.of(componentsJson));
+
+    JsonObject expectedJson = new JsonObject(vertx.fileSystem().readFileBlocking("resolve/guestbook_bundle.json"));
+    assertThat(repository.resolve(apiJson)).isEqualTo(expectedJson);
   }
 
   @Test

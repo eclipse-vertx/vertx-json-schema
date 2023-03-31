@@ -40,13 +40,13 @@ public class ValidatorTest {
       .dereference(JsonSchema.of(
         new JsonObject()
           .put("$id", "https://foo.bar/beep")
-          .put("type", "boolean")));
-
-    final Validator validator = repository.validator(
-      JsonSchema.of(
+          .put("type", "boolean")))
+      .dereference(JsonSchema.of(
         new JsonObject()
           .put("$id", "https://foo.bar/baz")
           .put("$ref", "/beep")));
+
+    final Validator validator = repository.validator("https://foo.bar/baz");
 
     assertThat(validator.validate(true).getValid())
       .isEqualTo(true);
@@ -68,14 +68,15 @@ public class ValidatorTest {
         JsonSchema.of(
           new JsonObject()
             .put("$id", "https://foo.bar/beep")
-            .put("type", "boolean")));
-
-    final Validator validator = repository
-      .validator(
+            .put("type", "boolean")))
+      .dereference(
         JsonSchema.of(
           new JsonObject()
             .put("$id", "https://foo.bar/baz")
             .put("$ref", "/beep")));
+
+    final Validator validator = repository
+      .validator("https://foo.bar/baz");
 
 
     assertThat(validator.validate(true).getValid())
@@ -300,9 +301,7 @@ public class ValidatorTest {
         "    \"default\": {}\n" +
         "}\n")));
 
-    final Validator validator = repository.validator(
-      JsonSchema.of(
-        new JsonObject("{\"$ref\":\"http://json-schema.org/draft-04/schema#\"}")));
+    final Validator validator = repository.validator("http://json-schema.org/draft-04/schema#");
 
     final OutputUnit res = validator.validate(
       new JsonObject("{\"definitions\":{\"foo\":{\"type\":\"integer\"}}}"));
