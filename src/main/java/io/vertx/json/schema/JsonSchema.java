@@ -17,20 +17,20 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.impl.BooleanSchema;
 import io.vertx.json.schema.impl.JsonObjectSchema;
 
-import java.util.Set;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 
 /**
  * A Json-Schema holder.
- *
+ * <p>
  * There are 2 kinds of Json-Schema's:
  *
  * <ul>
  *   <li>JSON Object based</li>
  *   <li>Boolean based</li>
  * </ul>
- *
+ * <p>
  * This is a common interface to handle all kinds of schemas.
  *
  * @author Paulo Lopes
@@ -40,6 +40,7 @@ public interface JsonSchema {
 
   /**
    * Factory method to create a {@link JsonSchema} from a {@link JsonObject}.
+   *
    * @param json a JSON Object.
    * @return a wrapper for the input object.
    */
@@ -49,7 +50,8 @@ public interface JsonSchema {
 
   /**
    * Factory method to create a {@link JsonSchema} from a {@link JsonObject}.
-   * @param id will force the given id as the schema $id.
+   *
+   * @param id   will force the given id as the schema $id.
    * @param json a JSON Object.
    * @return a wrapper for the input object.
    */
@@ -61,6 +63,7 @@ public interface JsonSchema {
 
   /**
    * Factory method to create a {@link JsonSchema} from a {@link Boolean}.
+   *
    * @param bool a boolean.
    * @return a wrapper for the input object.
    */
@@ -73,42 +76,38 @@ public interface JsonSchema {
   /**
    * Predicate to filter out annotation keys.
    */
-  @GenIgnore
-  static Predicate<String> annotations() {
-    return key -> {
-      switch (key) {
-        case "__absolute_uri__":
-        case "__absolute_ref__":
-        case "__absolute_recursive_ref__":
-          return false;
-        default:
-          return true;
-      }
-    };
-  }
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  Predicate<String> EXCLUDE_ANNOTATIONS = key -> {
+    switch (key) {
+      case "__absolute_uri__":
+      case "__absolute_ref__":
+      case "__absolute_recursive_ref__":
+        return false;
+      default:
+        return true;
+    }
+  };
 
   /**
    * Predicate to filter out annotation keys.
    */
-  @GenIgnore
-  static Predicate<Map.Entry<String, Object>> annotationKeys() {
-    return entry -> {
-      switch (entry.getKey()) {
-        case "__absolute_uri__":
-        case "__absolute_ref__":
-        case "__absolute_recursive_ref__":
-          return false;
-        default:
-          return true;
-      }
-    };
-  }
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  Predicate<Map.Entry<String, Object>> EXCLUDE_ANNOTATION_ENTRIES = entry -> {
+    switch (entry.getKey()) {
+      case "__absolute_uri__":
+      case "__absolute_ref__":
+      case "__absolute_recursive_ref__":
+        return false;
+      default:
+        return true;
+    }
+  };
 
   /**
    * Annotates the schema. An annotation is a extra key-value added to the schema that are not relevant for
    * validation but can be used to store pre-computed state.
    *
-   * @param key a key
+   * @param key   a key
    * @param value a value
    */
   @Fluent
@@ -125,7 +124,7 @@ public interface JsonSchema {
   /**
    * Get a type casted value by key. If the key is missing, then the fallback value is returned.
    *
-   * @param key a key
+   * @param key      a key
    * @param fallback fallback when key is not present
    * @return the value or {@code null}
    */
