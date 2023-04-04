@@ -9,8 +9,49 @@ import java.util.*;
 import static io.vertx.core.net.impl.URIDecoder.decodeURIComponent;
 import static io.vertx.json.schema.impl.Utils.Objects.isObject;
 
+/**
+ * This class is used to resolve JSON references. Resolving means replacing all the references with the actual object.
+ * While in many cases this is a safe operation, in some cases it's not. For example, if you have a schema like this:
+ *
+ * <pre>
+ *   {
+ *   "type": "object",
+ *   "properties": {
+ *     "hello": {
+ *       "$ref": "#/definitions/hello"
+ *     }
+ *   },
+ *   "default": {
+ *     "hello": {
+ *       "name": "francesco"
+ *     }
+ *   },
+ *   "definitions": {
+ *     "hello": {
+ *       "type": "object",
+ *       "properties": {
+ *         "name": {
+ *           "type": "string",
+ *           "default": "world"
+ *         },
+ *         "and": {
+ *           "$ref": "#"
+ *         }
+ *       }
+ *     }
+ *   }
+ * }
+ * </pre>
+ *
+ * In this case while attempting to resolve the reference to the definition of "hello" we will find a reference to the
+ * root schema, which is allowed. The fact that it is allowed it means we can enter an infinite cycle, so we need to
+ * actually replace the reference with the actual object.
+ */
 public final class JsonRef {
 
+  /**
+   * This is a list of keys that are allowed to be used as a pointer, they usually point to a json pointer.
+   */
   public static final List<String> POINTER_KEYWORD = Arrays.asList(
     "$ref",
     "$id",
@@ -26,7 +67,10 @@ public final class JsonRef {
   final String path;
   final String id;
 
-  JsonRef(String ref, JsonObject obj, String prop, String path, String id) {
+  /**
+   * A JsonRef internal instance is a helper to track the path of the reference.
+   */
+  private JsonRef(String ref, JsonObject obj, String prop, String path, String id) {
     this.ref = ref;
     this.obj = obj;
     this.prop = prop;
@@ -34,28 +78,54 @@ public final class JsonRef {
     this.id = id;
   }
 
+  /**
+   * Public API to resolve a schema. This method will return a new schema with all the references resolved. The
+   * resolution is not done in-place, so the original schema will be copied and a modified schema JSON object is
+   * returned.
+   */
   public static JsonObject resolve(JsonObject schema) {
     return resolve(schema, Collections.emptyMap());
   }
 
+  /**
+   * Public API to resolve a schema like {@link #resolve(JsonObject)}. The main difference is that there is context
+   * to lookup external schemas. External schemas are only looked up for absolute references.
+   *
+   * {@see #resolve(JsonObject)}
+   */
   public static JsonObject resolve(JsonObject schema, Map<String, JsonSchema> lookup) {
+    // the algorithm to resolve a schema is as follows:
+
+    // 1. If a schema is not a JSON object, return null.
     if (!isObject(schema)) {
       return null;
     }
 
-    // work with a copy as the internals of the object will be modified
+    // 2. work with a copy as the internals of the object will be modified
     JsonObject tree = schema.copy();
+
+    // 3. For each kind of "POINTER_KEYWORD" we will collect them in a map (this is actually a MultiMap)
     final Map<String, List<JsonRef>> pointers = new HashMap<>();
 
-    // find all refs
+    // 4. Parsing is doing a recursive object graph traversal and collecting all pointers into the multimap.
+    //    It is important to notice that the parse method isn't looking for circular references itself, so
+    //    it's possible to have a circular reference and a StackOverflowError will be thrown.
     parse(tree, "#", "", pointers);
 
-    // resolve them
+    // 5. Start the resolve process. For each resolved reference, we will have a "anchor". Initially this
+    //    anchor map contains the root schema as the map holds the resolved references without the "#" prefix.
     final Map<String, JsonObject> anchors = new HashMap<>();
     anchors.put("", tree);
 
+    // 5.1. From JsonSchema draft 2019-09, the $dynamicAnchor keyword is used to define a dynamic anchor. This
+    //      is a special kind of anchor that is not resolved at the time of definition.
     final Map<String, JsonObject> dynamicAnchors = new HashMap<>();
 
+    // 6. The resolve process is done in two steps. First we will resolve all the $id and $anchor keywords.
+
+    // 6.1. Resolve all the $id keywords. This is done by iterating over the collected pointers and for each
+    //      $id keyword we will add the resolved reference to the anchors map. However, if the reference is
+    //      already present in the map, an exception is thrown. Because it means we have a duplicate $id.
     for (final JsonRef item : pointers.computeIfAbsent("$id", key -> Collections.emptyList())) {
       final String ref = item.ref;
       final String path = item.path;
@@ -66,6 +136,10 @@ public final class JsonRef {
       anchors.put(ref, obj);
     }
 
+    // 6.2. Resolve all the $anchor keywords. This is done by iterating over the collected pointers and for each
+    //      $anchor keyword we will add the resolved reference to the anchors map. However, if the reference is
+    //      already present in the map, an exception is thrown. Because it means we have a duplicate $anchor.
+    //      Anchors are relative so the reference is the pair of the current id and the anchor name.
     for (final JsonRef item : pointers.computeIfAbsent("$anchor", key -> Collections.emptyList())) {
       final String ref = item.ref;
       final String path = item.path;
@@ -80,6 +154,10 @@ public final class JsonRef {
       anchors.put(fullRef, obj);
     }
 
+    // 6.3. Resolve all the $dynamicAnchor keywords. This is done by iterating over the collected pointers and for each
+    //      $dynamicAnchor keyword we will add the resolved reference to the dynamicAnchors map. However, if the
+    //      reference is already present in the map, an exception is thrown. Because it means we have a duplicate
+    //      $dynamicAnchor.
     for (final JsonRef item : pointers.computeIfAbsent("$dynamicAnchor", key -> Collections.emptyList())) {
       final String ref = item.ref;
       final String path = item.path;
@@ -91,6 +169,17 @@ public final class JsonRef {
       dynamicAnchors.put("#" + ref, obj);
     }
 
+    // 7. The second step is to resolve all the $ref and $dynamicRef keywords.
+
+    // 7.1. This is done by iterating over the initially collected references during the parse step. For each $ref
+    //      keyword we will resolve the reference.
+    //      Resolve Uri, means that if a reference is a complex object, we will walk the graph to the right location.
+    //      When the lookup isn't null we may try to look up absolute references too. When a resolveUri fails we have
+    //      an incomplete schema and an exception is thrown.
+    //      When the reference is resolved, we will apply the reference to the tree. This is done by walking the schema
+    //      to the location where the reference is and replace that object by the resolved java object instance.
+    //      the tree itself can be modified as the resolve process is done in-place and a reference can refer to "#"
+    //      which is the root of the schema.
     for (final JsonRef item : pointers.computeIfAbsent("$ref", key -> Collections.emptyList())) {
       final String ref = item.ref;
       final String id = item.id;
@@ -102,6 +191,12 @@ public final class JsonRef {
       tree = applyRef(tree, path, resolveUri(fullRef, anchors, lookup));
     }
 
+    // 7.1. This is done by iterating over the initially collected references during the parse step. For each
+    //      $dynamicRef keyword we will resolve the reference. Resolving in this case is a simple map lookup.
+    //      When the reference is resolved, we will apply the reference to the tree. This is done by walking the schema
+    //      to the location where the reference is and replace that object by the resolved java object instance.
+    //      the tree itself can be modified as the resolve process is done in-place and a reference can refer to "#"
+    //      which is the root of the schema.
     for (JsonRef item : pointers.computeIfAbsent("$dynamicRef", key -> Collections.emptyList())) {
       final String ref = item.ref;
       final String path = item.path;
@@ -112,6 +207,8 @@ public final class JsonRef {
       tree = applyRef(tree, path, dynamicAnchors.get(ref));
     }
 
+    // As this moment we will have a fully resolved schema which can include circular references. So it is not advisable
+    // to use tree.encode() to get the json representation of the schema.
     return tree;
   }
 
