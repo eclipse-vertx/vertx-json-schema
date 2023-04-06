@@ -92,16 +92,7 @@ public interface JsonSchema {
    * Predicate to filter out annotation keys.
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  Predicate<Map.Entry<String, Object>> EXCLUDE_ANNOTATION_ENTRIES = entry -> {
-    switch (entry.getKey()) {
-      case "__absolute_uri__":
-      case "__absolute_ref__":
-      case "__absolute_recursive_ref__":
-        return false;
-      default:
-        return true;
-    }
-  };
+Predicate<Map.Entry<String, Object>> EXCLUDE_ANNOTATION_ENTRIES = entry -> EXCLUDE_ANNOTATIONS.test(entry.getKey());
 
   /**
    * Annotates the schema. An annotation is a extra key-value added to the schema that are not relevant for
