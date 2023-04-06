@@ -30,7 +30,7 @@ import io.vertx.json.schema.impl.JsonRef;
 public interface Ref {
 
   /**
-   * Resolve all {@code $ref} in the given {@link JsonObject}. The resolution algrithm is not aware of other
+   * Resolve all {@code $ref} in the given {@link JsonObject}. The resolution algorithm is not aware of other
    * specifications. When resolving OpenAPI documents (which only allow {@code $ref} at specific locations) you
    * should validate if the document is valid before performing a resolution.
    *
