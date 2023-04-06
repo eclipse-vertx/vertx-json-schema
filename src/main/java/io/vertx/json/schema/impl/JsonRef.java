@@ -112,7 +112,7 @@ public final class JsonRef {
     //    it's possible to have a circular reference and a StackOverflowError will be thrown.
     parse(tree, "#", "", pointers);
 
-    // 5. Start the resolve process. For each resolved reference, we will have a "anchor". Initially this
+    // 5. Start the resolve process. For each resolved reference, we will have an "anchor". Initially this
     //    anchor map contains the root schema as the map holds the resolved references without the "#" prefix.
     final Map<String, JsonObject> anchors = new HashMap<>();
     anchors.put("", tree);
