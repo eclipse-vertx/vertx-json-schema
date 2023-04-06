@@ -191,7 +191,7 @@ public final class JsonRef {
       tree = applyRef(tree, path, resolveUri(fullRef, anchors, lookup));
     }
 
-    // 7.1. This is done by iterating over the initially collected references during the parse step. For each
+    // 7.2. This is done by iterating over the initially collected references during the parse step. For each
     //      $dynamicRef keyword we will resolve the reference. Resolving in this case is a simple map lookup.
     //      When the reference is resolved, we will apply the reference to the tree. This is done by walking the schema
     //      to the location where the reference is and replace that object by the resolved java object instance.
