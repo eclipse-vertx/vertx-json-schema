@@ -59,14 +59,12 @@ public final class JsonObjectSchema extends JsonObject implements JsonSchema {
       filteredFieldNames.remove("__absolute_uri__");
       filteredFieldNames.remove("__absolute_ref__");
       filteredFieldNames.remove("__absolute_recursive_ref__");
-      return filteredFieldNames;
+      // return an unmodifiable set because JsonObject.fieldNames() will allow removing
+      // an element from the object graph if the name is removed. Given that we are
+      // filtering the keys, removing would not have the same effect.
+      return Collections.unmodifiableSet(filteredFieldNames);
     } else {
       return super.fieldNames();
     }
-  }
-
-  @Override
-  public JsonObject resolve() {
-    return Ref.resolve(Collections.emptyMap(), new URL("urn:"), this);
   }
 }

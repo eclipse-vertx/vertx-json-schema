@@ -88,7 +88,9 @@ public interface SchemaRepository {
   Validator validator(JsonSchema schema);
 
   /**
-   * A new validator instance using this repository options.
+   * A new validator instance using this repository options. This is the preferred way
+   * to create a validator as it avoids reparsing schemas and reuses the cache in the
+   * repository.
    *
    * @param ref the start validation reference in JSON pointer format
    * @return the validator
@@ -96,16 +98,9 @@ public interface SchemaRepository {
   Validator validator(String ref);
 
   /**
-   * A new validator instance overriding this repository options.
-   *
-   * @param schema  the start validation schema
-   * @param options the options to be using on the validator instance
-   * @return the validator
-   */
-  Validator validator(JsonSchema schema, JsonSchemaOptions options);
-
-  /**
-   * A new validator instance overriding this repository options.
+   * A new validator instance overriding this repository options. This is the preferred way
+   * to create a validator as it avoids reparsing schemas and reuses the cache in the
+   * repository.
    *
    * @param ref     the start validation reference in JSON pointer format
    * @param options the options to be using on the validator instance
@@ -114,27 +109,41 @@ public interface SchemaRepository {
   Validator validator(String ref, JsonSchemaOptions options);
 
   /**
-   * Tries to resolve all internal and repository local references. External references are not resolved.
-   * <p>
-   * The result is an object where all references have been resolved. Resolution of circular references is shallow. This
-   * should normally not be a problem for this use case.
+   * A new validator instance overriding this repository options.
+   * The given schema will not be referenced to the repository.
    *
-   * @return a new {@link JsonObject} representing the schema with {@code $ref}s replaced by their value.
-   * @throws SchemaException when the resolution is impossible.
+   * @param schema  the start validation schema
+   * @param options the options to be using on the validator instance
+   * @return the validator
    */
-  JsonObject resolve(JsonSchema schema);
+  default Validator validator(JsonSchema schema, JsonSchemaOptions options) {
+    return validator(schema, options, false);
+  }
 
   /**
-   * Tries to resolve all internal and repository local references. External references are not resolved.
-   * <p>
-   * The result is an object where all references have been resolved. Resolution of circular references is shallow. This
-   * should normally not be a problem for this use case.
+   * A new validator instance overriding this repository options.
    *
-   * @param ref the start resolution reference in JSON pointer format
-   * @return a new {@link JsonObject} representing the schema with {@code $ref}s replaced by their value.
-   * @throws SchemaException when the resolution is impossible.
+   * @param schema  the start validation schema
+   * @param options the options to be using on the validator instance
+   * @param dereference if true the schema will be dereferenced before validation
+   * @return the validator
    */
-  JsonObject resolve(String ref);
+  Validator validator(JsonSchema schema, JsonSchemaOptions options, boolean dereference);
+
+  /**
+   * Resolve all {@code $ref} in the given {@link JsonObject}. The resolution algrithm is not aware of other
+   * specifications. When resolving OpenAPI documents (which only allow {@code $ref} at specific locations) you
+   * should validate if the document is valid before performing a resolution.
+   *
+   * It is important to note that any sibling elements of a {@code $ref} is ignored. This is because {@code $ref}
+   * works by replacing itself and everything on its level with the definition it is pointing at.
+   *
+   * @param schema the JSON object to resolve.
+   * @return a new JSON object with all the {@code $ref} replaced by actual object references.
+   * @throws IllegalArgumentException when the input JSON is not valid.
+   * @throws UnsupportedOperationException reducing the JSON pointer to a value is undefined.
+   */
+  JsonObject resolve(JsonObject schema);
 
   /**
    * Look up a schema using a JSON pointer notation
