@@ -176,10 +176,14 @@ public class ResolverTest {
   @Test
   public void testOpenAPI31(Vertx vertx) {
 
+    // this looks like a useless test but it is used to catch regressions on references that change after being resolved
+    // given that they are now properly computed the resolved references are always updated, while in the past they were
+    // copied leaving the original reference unchanged and producing the wrong expanded document.
     Buffer source = vertx.fileSystem().readFileBlocking("resolve/petstore_31.json");
+    Buffer expected = vertx.fileSystem().readFileBlocking("resolve/petstore_31_resolved.json");
 
     JsonObject json = Ref.resolve(new JsonObject(source));
-    System.out.println(json.encodePrettily());
+    JsonObject expectedJson = new JsonObject(expected);
+    assertThat(json).isEqualTo(expectedJson);
   }
-
 }
