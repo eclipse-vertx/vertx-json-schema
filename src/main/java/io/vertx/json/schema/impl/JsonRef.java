@@ -102,7 +102,7 @@ public final class JsonRef {
     }
 
     // 2. work with a copy as the internals of the object will be modified
-    JsonObject tree = schema.copy();
+    JsonObject tree = new JsonObjectProxy(schema.copy());
 
     // 3. For each kind of "POINTER_KEYWORD" we will collect them in a map (this is actually a MultiMap)
     final Map<String, List<JsonRef>> pointers = new HashMap<>();
@@ -281,9 +281,9 @@ public final class JsonRef {
       // System.out.println("applyRef: update root[" + prop + "] " + target.fieldNames());
 
       if (root instanceof JsonArray) {
-        ((JsonArray) root).set(Integer.parseInt(prop), target);
+        ((JsonArray) root).set(Integer.parseInt(prop), new JsonObjectRef(target));
       } else if (root instanceof JsonObject) {
-        ((JsonObject) root).put(Utils.Pointers.unescape(prop), target);
+        ((JsonObject) root).put(Utils.Pointers.unescape(prop), new JsonObjectRef(target));
       }
 
       return tree;
