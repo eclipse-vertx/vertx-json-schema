@@ -1,7 +1,13 @@
 package io.vertx.json.schema.impl;
 
+import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
+import io.vertx.json.schema.Draft;
+import io.vertx.json.schema.JsonSchema;
+import io.vertx.json.schema.JsonSchemaOptions;
+import io.vertx.json.schema.JsonSchemaValidationException;
+import io.vertx.json.schema.SchemaRepository;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -182,11 +188,29 @@ class RefTest {
 
   @Test
   public void testCase2() {
-    JsonObject schema = new JsonObject("{\"$id\":\"http://www.example.com/\",\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"definitions\":{\"address\":{\"type\":\"object\",\"properties\":{\"street_address\":{\"type\":\"string\"},\"city\":{\"type\":\"string\"},\"state\":{\"type\":\"string\"},\"subAddress\":{\"$ref\":\"http://www.example.com/#/definitions/address\"}}},\"req\":{\"required\":[\"billing_address\"]}},\"type\":\"object\",\"properties\":{\"billing_address\":{\"$ref\":\"#/definitions/address\"},\"shipping_address\":{\"$ref\":\"#/definitions/address\"}}}");
+    JsonObject schema = new JsonObject("{\"$id\":\"http://www.example.com/\",\"$schema\":\"http://json-schema" +
+      ".org/draft-07/schema#\",\"definitions\":{\"address\":{\"type\":\"object\"," +
+      "\"properties\":{\"street_address\":{\"type\":\"string\"},\"city\":{\"type\":\"string\"}," +
+      "\"state\":{\"type\":\"string\"},\"subAddress\":{\"$ref\":\"http://www.example.com/#/definitions/address\"}}}," +
+      "\"req\":{\"required\":[\"billing_address\"]}},\"type\":\"object\"," +
+      "\"properties\":{\"billing_address\":{\"$ref\":\"#/definitions/address\"}," +
+      "\"shipping_address\":{\"$ref\":\"#/definitions/address\"}}}");
 
     //System.out.println(schema.encodePrettily());
     JsonObject resolved = JsonRef.resolve(schema);
 
-    assertThat(JsonPointer.from("/properties/billing_address/properties/city/type").queryJson(resolved)).isEqualTo("string");
+    assertThat(JsonPointer.from("/properties/billing_address/properties/city/type").queryJson(resolved)).isEqualTo(
+      "string");
+  }
+
+  @Test
+  void testSerialization() {
+    SchemaRepository repo =
+      SchemaRepository.create(new JsonSchemaOptions().setBaseUri("http://vertx.io").setDraft(Draft.DRAFT202012));
+    JsonObject circularSchema = CIRCULAR.copy();
+    JsonSchema schema = JsonSchema.of(circularSchema);
+    repo.dereference(schema);
+    JsonObject resolvedJsonSchema = repo.resolve(circularSchema);
+    resolvedJsonSchema.toString();
   }
 }
