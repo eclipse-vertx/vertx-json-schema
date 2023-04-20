@@ -135,4 +135,16 @@ Predicate<Map.Entry<String, Object>> EXCLUDE_ANNOTATION_ENTRIES = entry -> EXCLU
    * @return field names
    */
   Set<String> fieldNames();
+
+  /**
+   * Tries to resolve all internal references. External references are not resolved.
+   * <p>
+   * The result is an object where all references have been resolved. Resolution of circular references is shallow.
+   * This should normally not be a problem for this use case.
+   *
+   * @return a new {@link JsonObject} representing the schema with {@code $ref}s replaced by their value.
+   * @throws SchemaException when the resolution is impossible.
+   * @deprecated will be removed in Vert.x 5
+   */
+  JsonObject resolve();
 }

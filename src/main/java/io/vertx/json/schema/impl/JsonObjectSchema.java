@@ -67,4 +67,9 @@ public final class JsonObjectSchema extends JsonObject implements JsonSchema {
       return super.fieldNames();
     }
   }
+
+  @Override
+  public JsonObject resolve() {
+    return JsonRef.resolve(copy());
+  }
 }

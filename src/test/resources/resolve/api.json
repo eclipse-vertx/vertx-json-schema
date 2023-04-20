@@ -49,67 +49,67 @@
   ],
   "paths": {
     "/pet": {
-      "$ref": "pet.api.json#/pet"
+      "$ref": "https://vertx.io/pet.api.json#/pet"
     },
     "/pet/findByStatus": {
-      "$ref": "pet.api.json#/pet-findByStatus"
+      "$ref": "https://vertx.io/pet.api.json#/pet-findByStatus"
     },
     "/pet/findByTags": {
-      "$ref": "pet.api.json#/pet-findByTags"
+      "$ref": "https://vertx.io/pet.api.json#/pet-findByTags"
     },
     "/pet/{petId}": {
-      "$ref": "pet.api.json#/pet-petId"
+      "$ref": "https://vertx.io/pet.api.json#/pet-petId"
     },
     "/pet/{petId}/uploadImage": {
-      "$ref": "pet.api.json#/pet-petId-uploadImage"
+      "$ref": "https://vertx.io/pet.api.json#/pet-petId-uploadImage"
     },
     "/store/inventory": {
-      "$ref": "store.api.json#/store-inventory"
+      "$ref": "https://vertx.io/store.api.json#/store-inventory"
     },
     "/store/order": {
-      "$ref": "store.api.json#/store-order"
+      "$ref": "https://vertx.io/store.api.json#/store-order"
     },
     "/store/order/{orderId}": {
-      "$ref": "store.api.json#/store-order-orderId"
+      "$ref": "https://vertx.io/store.api.json#/store-order-orderId"
     },
     "/user": {
-      "$ref": "user.api.json#/user"
+      "$ref": "https://vertx.io/user.api.json#/user"
     },
     "/user/createWithArray": {
-      "$ref": "user.api.json#/user-createWithArray"
+      "$ref": "https://vertx.io/user.api.json#/user-createWithArray"
     },
     "/user/createWithList": {
-      "$ref": "user.api.json#/user-createWithList"
+      "$ref": "https://vertx.io/user.api.json#/user-createWithList"
     },
     "/user/login": {
-      "$ref": "user.api.json#/user-login"
+      "$ref": "https://vertx.io/user.api.json#/user-login"
     },
     "/user/logout": {
-      "$ref": "user.api.json#/user-logout"
+      "$ref": "https://vertx.io/user.api.json#/user-logout"
     },
     "/user/{username}": {
-      "$ref": "user.api.json#/user-username"
+      "$ref": "https://vertx.io/user.api.json#/user-username"
     }
   },
   "components": {
     "schemas": {
       "Order": {
-        "$ref": "store.model.json#/Order"
+        "$ref": "https://vertx.io/store.model.json#/Order"
       },
       "User": {
-        "$ref": "user.model.json#/User"
+        "$ref": "https://vertx.io/user.model.json#/User"
       },
       "Tag": {
-        "$ref": "pet.model.json#/Tag"
+        "$ref": "https://vertx.io/pet.model.json#/Tag"
       },
       "Category": {
-        "$ref": "pet.model.json#/Category"
+        "$ref": "https://vertx.io/pet.model.json#/Category"
       },
       "Pet": {
-        "$ref": "pet.model.json#/Pet"
+        "$ref": "https://vertx.io/pet.model.json#/Pet"
       },
       "ApiResponse": {
-        "$ref": "pet.model.json#/ApiResponse"
+        "$ref": "https://vertx.io/pet.model.json#/ApiResponse"
       }
     },
     "securitySchemes": {

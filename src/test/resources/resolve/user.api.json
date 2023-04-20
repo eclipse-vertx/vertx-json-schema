@@ -12,7 +12,7 @@
         "content": {
           "*/*": {
             "schema": {
-              "$ref": "user.model.json#/User"
+              "$ref": "https://vertx.io/user.model.json#/User"
             }
           }
         },
@@ -41,7 +41,7 @@
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "user.model.json#/User"
+                "$ref": "https://vertx.io/user.model.json#/User"
               }
             }
           }
@@ -71,7 +71,7 @@
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "user.model.json#/User"
+                "$ref": "https://vertx.io/user.model.json#/User"
               }
             }
           }
@@ -192,12 +192,12 @@
           "content": {
             "application/xml": {
               "schema": {
-                "$ref": "user.model.json#/User"
+                "$ref": "https://vertx.io/user.model.json#/User"
               }
             },
             "application/json": {
               "schema": {
-                "$ref": "user.model.json#/User"
+                "$ref": "https://vertx.io/user.model.json#/User"
               }
             }
           }
@@ -235,7 +235,7 @@
         "content": {
           "*/*": {
             "schema": {
-              "$ref": "user.model.json#/User"
+              "$ref": "https://vertx.io/user.model.json#/User"
             }
           }
         },

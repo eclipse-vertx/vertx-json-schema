@@ -11,12 +11,12 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "pet.model.json#/Pet"
+              "$ref": "https://vertx.io/pet.model.json#/Pet"
             }
           },
           "application/xml": {
             "schema": {
-              "$ref": "pet.model.json#/Pet"
+              "$ref": "https://vertx.io/pet.model.json#/Pet"
             }
           }
         },
@@ -57,12 +57,12 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "pet.model.json#/Pet"
+              "$ref": "https://vertx.io/pet.model.json#/Pet"
             }
           },
           "application/xml": {
             "schema": {
-              "$ref": "pet.model.json#/Pet"
+              "$ref": "https://vertx.io/pet.model.json#/Pet"
             }
           }
         },
@@ -111,12 +111,12 @@
           "content": {
             "application/xml": {
               "schema": {
-                "$ref": "pet.model.json#/Pet"
+                "$ref": "https://vertx.io/pet.model.json#/Pet"
               }
             },
             "application/json": {
               "schema": {
-                "$ref": "pet.model.json#/Pet"
+                "$ref": "https://vertx.io/pet.model.json#/Pet"
               }
             }
           }
@@ -270,7 +270,7 @@
               "schema": {
                 "type": "array",
                 "items": {
-                  "$ref": "pet.model.json#/Pet"
+                  "$ref": "https://vertx.io/pet.model.json#/Pet"
                 }
               }
             },
@@ -278,7 +278,7 @@
               "schema": {
                 "type": "array",
                 "items": {
-                  "$ref": "pet.model.json#/Pet"
+                  "$ref": "https://vertx.io/pet.model.json#/Pet"
                 }
               }
             }
@@ -331,7 +331,7 @@
               "schema": {
                 "type": "array",
                 "items": {
-                  "$ref": "pet.model.json#/Pet"
+                  "$ref": "https://vertx.io/pet.model.json#/Pet"
                 }
               }
             },
@@ -339,7 +339,7 @@
               "schema": {
                 "type": "array",
                 "items": {
-                  "$ref": "pet.model.json#/Pet"
+                  "$ref": "https://vertx.io/pet.model.json#/Pet"
                 }
               }
             }
@@ -405,7 +405,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "pet.model.json#/ApiResponse"
+                "$ref": "https://vertx.io/pet.model.json#/ApiResponse"
               }
             }
           }

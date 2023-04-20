@@ -14,6 +14,7 @@ import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.json.JsonObject;
+import io.vertx.json.schema.impl.JsonObjectSchema;
 import io.vertx.json.schema.impl.SchemaRepositoryImpl;
 
 /**
@@ -144,6 +145,38 @@ public interface SchemaRepository {
    * @throws UnsupportedOperationException reducing the JSON pointer to a value is undefined.
    */
   JsonObject resolve(JsonObject schema);
+
+  /**
+   * Tries to resolve all internal and repository local references. External references are not resolved.
+   * <p>
+   * The result is an object where all references have been resolved. Resolution of circular references is shallow. This
+   * should normally not be a problem for this use case.
+   *
+   * @param ref the start resolution reference in JSON pointer format
+   * @return a new {@link JsonObject} representing the schema with {@code $ref}s replaced by their value.
+   * @throws SchemaException when the resolution is impossible.
+   * @deprecated will be removed in Vert.x 5
+   */
+  default JsonObject resolve(String ref) {
+    return resolve(find(ref));
+  }
+
+  /**
+   * Tries to resolve all internal and repository local references. External references are not resolved.
+   * <p>
+   * The result is an object where all references have been resolved. Resolution of circular references is shallow. This
+   * should normally not be a problem for this use case.
+   *
+   * @return a new {@link JsonObject} representing the schema with {@code $ref}s replaced by their value.
+   * @throws SchemaException when the resolution is impossible.
+   * @deprecated will be removed in Vert.x 5
+   */
+  default JsonObject resolve(JsonSchema schema) {
+    if (schema instanceof JsonObjectSchema) {
+      return resolve(((JsonObjectSchema) schema).copy());
+    }
+    throw new UnsupportedOperationException("This schema doesn't support resolve()");
+  }
 
   /**
    * Look up a schema using a JSON pointer notation

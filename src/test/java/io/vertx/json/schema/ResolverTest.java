@@ -77,33 +77,34 @@ public class ResolverTest {
   }
 
   @Test
-  @Disabled("This test is disabled because it's not possible to resolve non relative refs or exact refs")
   public void testResolveRefsFromRepositoryWithRefs(Vertx vertx) {
+    SchemaRepository repository = SchemaRepository.create(new JsonSchemaOptions().setDraft(Draft.DRAFT4).setBaseUri(
+      "https://vertx.io"));
 
-    SchemaRepository repository = SchemaRepository.create(new JsonSchemaOptions().setDraft(Draft.DRAFT4).setBaseUri("https://vertx.io"));
-
-    for (String uri : Arrays.asList("pet.api.json", "pet.model.json", "store.api.json", "store.model.json", "user.api.json", "user.model.json")) {
+    for (String uri : Arrays.asList("pet.api.json", "pet.model.json", "store.api.json", "store.model" +
+      ".json", "user.api.json", "user.model.json")) {
       repository
         .dereference(uri, JsonSchema.of(new JsonObject(vertx.fileSystem().readFileBlocking("resolve/" + uri))));
     }
 
-    assertThat(repository.resolve(new JsonObject(vertx.fileSystem().readFileBlocking("resolve/api.json"))).encode().length())
-      .isEqualTo(24612);
+    JsonObject apiJson = new JsonObject(vertx.fileSystem().readFileBlocking("resolve/api.json"));
+    JsonObject apiResolved = new JsonObject(vertx.fileSystem().readFileBlocking("resolve/api_resolved_by_object.json"));
+    assertThat(repository.resolve(apiJson)).isEqualTo(apiResolved);
   }
 
   @Test
-  @Disabled("This test is disabled because it's not possible to resolve non relative refs or exact refs")
   public void testResolveRefsFromRepositoryWithRefsByRef(Vertx vertx) {
+    SchemaRepository repository = SchemaRepository.create(new JsonSchemaOptions().setDraft(Draft.DRAFT4).setBaseUri(
+      "https://vertx.io"));
 
-    SchemaRepository repository = SchemaRepository.create(new JsonSchemaOptions().setDraft(Draft.DRAFT4).setBaseUri("https://vertx.io"));
-
-    for (String uri : Arrays.asList("api.json", "pet.api.json", "pet.model.json", "store.api.json", "store.model.json", "user.api.json", "user.model.json")) {
+    for (String uri : Arrays.asList("api.json", "pet.api.json", "pet.model.json", "store.api.json", "store.model" +
+      ".json", "user.api.json", "user.model.json")) {
       repository
         .dereference(uri, JsonSchema.of(new JsonObject(vertx.fileSystem().readFileBlocking("resolve/" + uri))));
     }
 
-    assertThat(repository.resolve(new JsonObject(vertx.fileSystem().readFileBlocking("resolve/api.json"))).encode().length())
-      .isEqualTo(24612);
+    JsonObject apiResolved = new JsonObject(vertx.fileSystem().readFileBlocking("resolve/api_resolved_by_ref.json"));
+    assertThat(repository.resolve("api.json")).isEqualTo(apiResolved);
   }
 
   @Test
@@ -118,18 +119,22 @@ public class ResolverTest {
 
   @Test
   public void testResolveRefsFromOpenAPISource(Vertx vertx) {
-    SchemaRepository repository = SchemaRepository.create(new JsonSchemaOptions().setDraft(Draft.DRAFT202012).setBaseUri("app://"));
+    SchemaRepository repository =
+      SchemaRepository.create(new JsonSchemaOptions().setDraft(Draft.DRAFT202012).setBaseUri("app://"));
     repository.preloadMetaSchema(vertx.fileSystem());
 
     JsonObject apiJson = new JsonObject(vertx.fileSystem().readFileBlocking("resolve/guestbook_api.json"));
-    repository.dereference(JsonSchema.of(apiJson));
+    JsonSchema apiSchema = JsonSchema.of(apiJson);
+    repository.dereference(apiSchema);
 
-    JsonObject componentsJson = new JsonObject(vertx.fileSystem().readFileBlocking("resolve/guestbook_components.json"));
+    JsonObject componentsJson = new JsonObject(vertx.fileSystem().readFileBlocking("resolve/guestbook_components" +
+      ".json"));
     String componentsRef = "https://example.com/guestbook/components";
     repository.dereference(componentsRef, JsonSchema.of(componentsJson));
 
     JsonObject expectedJson = new JsonObject(vertx.fileSystem().readFileBlocking("resolve/guestbook_bundle.json"));
     assertThat(repository.resolve(apiJson)).isEqualTo(expectedJson);
+    assertThat(repository.resolve(apiSchema)).isEqualTo(expectedJson);
   }
 
   @Test
@@ -182,8 +187,10 @@ public class ResolverTest {
     Buffer source = vertx.fileSystem().readFileBlocking("resolve/petstore_31.json");
     Buffer expected = vertx.fileSystem().readFileBlocking("resolve/petstore_31_resolved.json");
 
-    JsonObject json = Ref.resolve(new JsonObject(source));
     JsonObject expectedJson = new JsonObject(expected);
+    JsonObject json = Ref.resolve(new JsonObject(source));
+    assertThat(json).isEqualTo(expectedJson);
+    json = JsonSchema.of(new JsonObject(source)).resolve();
     assertThat(json).isEqualTo(expectedJson);
   }
 }

@@ -42,7 +42,7 @@
         "content": {
           "*/*": {
             "schema": {
-              "$ref": "store.model.json#/Order"
+              "$ref": "https://vertx.io/store.model.json#/Order"
             }
           }
         },
@@ -54,12 +54,12 @@
           "content": {
             "application/xml": {
               "schema": {
-                "$ref": "store.model.json#/Order"
+                "$ref": "https://vertx.io/store.model.json#/Order"
               }
             },
             "application/json": {
               "schema": {
-                "$ref": "store.model.json#/Order"
+                "$ref": "https://vertx.io/store.model.json#/Order"
               }
             }
           }
@@ -100,12 +100,12 @@
           "content": {
             "application/xml": {
               "schema": {
-                "$ref": "store.model.json#/Order"
+                "$ref": "https://vertx.io/store.model.json#/Order"
               }
             },
             "application/json": {
               "schema": {
-                "$ref": "store.model.json#/Order"
+                "$ref": "https://vertx.io/store.model.json#/Order"
               }
             }
           }

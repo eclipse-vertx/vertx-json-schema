@@ -1,0 +1,2770 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Swagger Petstore",
+    "description": "This is a sample server Petstore server.  You can find out more about     Swagger\nat [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).      For\nthis sample, you can use the api key `special-key` to test the authorization     filters.",
+    "termsOfService": "http://swagger.io/terms/",
+    "contact": {
+      "email": "apiteam@swagger.io"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "version": "1.0.0"
+  },
+  "externalDocs": {
+    "description": "Find out more about Swagger",
+    "url": "http://swagger.io"
+  },
+  "servers": [
+    {
+      "url": "https://petstore.swagger.io/v2"
+    },
+    {
+      "url": "http://petstore.swagger.io/v2"
+    }
+  ],
+  "tags": [
+    {
+      "name": "pet",
+      "description": "Everything about your Pets",
+      "externalDocs": {
+        "description": "Find out more",
+        "url": "http://swagger.io"
+      }
+    },
+    {
+      "name": "store",
+      "description": "Access to Petstore orders"
+    },
+    {
+      "name": "user",
+      "description": "Operations about user",
+      "externalDocs": {
+        "description": "Find out more about our store",
+        "url": "http://swagger.io"
+      }
+    }
+  ],
+  "paths": {
+    "/pet": {
+      "put": {
+        "tags": [
+          "pet"
+        ],
+        "summary": "Update an existing pet",
+        "operationId": "updatePet",
+        "requestBody": {
+          "description": "Pet object that needs to be added to the store",
+          "content": {
+            "application/json": {
+              "schema": {
+                "required": [
+                  "name",
+                  "photoUrls"
+                ],
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/id"
+                  },
+                  "category": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/properties/id"
+                      },
+                      "name": {
+                        "type": "string",
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/properties/name"
+                      }
+                    },
+                    "xml": {
+                      "name": "Category",
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/xml"
+                    },
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Category"
+                  },
+                  "name": {
+                    "type": "string",
+                    "example": "doggie",
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/name"
+                  },
+                  "photoUrls": {
+                    "type": "array",
+                    "xml": {
+                      "name": "photoUrl",
+                      "wrapped": true,
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls/xml"
+                    },
+                    "items": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls/items"
+                    },
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "xml": {
+                      "name": "tag",
+                      "wrapped": true,
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/tags/xml"
+                    },
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "format": "int64",
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/properties/id"
+                        },
+                        "name": {
+                          "type": "string",
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/properties/name"
+                        }
+                      },
+                      "xml": {
+                        "name": "Tag",
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/xml"
+                      },
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag"
+                    },
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/tags"
+                  },
+                  "status": {
+                    "type": "string",
+                    "description": "pet status in the store",
+                    "enum": [
+                      "available",
+                      "pending",
+                      "sold"
+                    ],
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/status"
+                  }
+                },
+                "xml": {
+                  "name": "Pet",
+                  "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/xml"
+                },
+                "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet"
+              },
+              "__absolute_uri__": "https://vertx.io/pet.api.json#/pet/put/requestBody/content/application~1json"
+            },
+            "application/xml": {
+              "schema": {
+                "required": [
+                  "name",
+                  "photoUrls"
+                ],
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/id"
+                  },
+                  "category": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/properties/id"
+                      },
+                      "name": {
+                        "type": "string",
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/properties/name"
+                      }
+                    },
+                    "xml": {
+                      "name": "Category",
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/xml"
+                    },
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Category"
+                  },
+                  "name": {
+                    "type": "string",
+                    "example": "doggie",
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/name"
+                  },
+                  "photoUrls": {
+                    "type": "array",
+                    "xml": {
+                      "name": "photoUrl",
+                      "wrapped": true,
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls/xml"
+                    },
+                    "items": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls/items"
+                    },
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "xml": {
+                      "name": "tag",
+                      "wrapped": true,
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/tags/xml"
+                    },
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "format": "int64",
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/properties/id"
+                        },
+                        "name": {
+                          "type": "string",
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/properties/name"
+                        }
+                      },
+                      "xml": {
+                        "name": "Tag",
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/xml"
+                      },
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag"
+                    },
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/tags"
+                  },
+                  "status": {
+                    "type": "string",
+                    "description": "pet status in the store",
+                    "enum": [
+                      "available",
+                      "pending",
+                      "sold"
+                    ],
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/status"
+                  }
+                },
+                "xml": {
+                  "name": "Pet",
+                  "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/xml"
+                },
+                "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet"
+              },
+              "__absolute_uri__": "https://vertx.io/pet.api.json#/pet/put/requestBody/content/application~1xml"
+            },
+            "__absolute_uri__": "https://vertx.io/pet.api.json#/pet/put/requestBody/content"
+          },
+          "required": true,
+          "__absolute_uri__": "https://vertx.io/pet.api.json#/pet/put/requestBody"
+        },
+        "responses": {
+          "400": {
+            "description": "Invalid ID supplied",
+            "content": {
+              "__absolute_uri__": "https://vertx.io/pet.api.json#/pet/put/responses/400/content"
+            },
+            "__absolute_uri__": "https://vertx.io/pet.api.json#/pet/put/responses/400"
+          },
+          "404": {
+            "description": "Pet not found",
+            "content": {
+              "__absolute_uri__": "https://vertx.io/pet.api.json#/pet/put/responses/404/content"
+            },
+            "__absolute_uri__": "https://vertx.io/pet.api.json#/pet/put/responses/404"
+          },
+          "405": {
+            "description": "Validation exception",
+            "content": {
+              "__absolute_uri__": "https://vertx.io/pet.api.json#/pet/put/responses/405/content"
+            },
+            "__absolute_uri__": "https://vertx.io/pet.api.json#/pet/put/responses/405"
+          },
+          "__absolute_uri__": "https://vertx.io/pet.api.json#/pet/put/responses"
+        },
+        "security": [
+          {
+            "petstore_auth": [
+              "write:pets",
+              "read:pets"
+            ]
+          }
+        ],
+        "x-codegen-request-body-name": "body",
+        "__absolute_uri__": "https://vertx.io/pet.api.json#/pet/put"
+      },
+      "post": {
+        "tags": [
+          "pet"
+        ],
+        "summary": "Add a new pet to the store",
+        "operationId": "addPet",
+        "requestBody": {
+          "description": "Pet object that needs to be added to the store",
+          "content": {
+            "application/json": {
+              "schema": {
+                "required": [
+                  "name",
+                  "photoUrls"
+                ],
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/id"
+                  },
+                  "category": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/properties/id"
+                      },
+                      "name": {
+                        "type": "string",
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/properties/name"
+                      }
+                    },
+                    "xml": {
+                      "name": "Category",
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/xml"
+                    },
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Category"
+                  },
+                  "name": {
+                    "type": "string",
+                    "example": "doggie",
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/name"
+                  },
+                  "photoUrls": {
+                    "type": "array",
+                    "xml": {
+                      "name": "photoUrl",
+                      "wrapped": true,
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls/xml"
+                    },
+                    "items": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls/items"
+                    },
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "xml": {
+                      "name": "tag",
+                      "wrapped": true,
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/tags/xml"
+                    },
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "format": "int64",
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/properties/id"
+                        },
+                        "name": {
+                          "type": "string",
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/properties/name"
+                        }
+                      },
+                      "xml": {
+                        "name": "Tag",
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/xml"
+                      },
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag"
+                    },
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/tags"
+                  },
+                  "status": {
+                    "type": "string",
+                    "description": "pet status in the store",
+                    "enum": [
+                      "available",
+                      "pending",
+                      "sold"
+                    ],
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/status"
+                  }
+                },
+                "xml": {
+                  "name": "Pet",
+                  "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/xml"
+                },
+                "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet"
+              },
+              "__absolute_uri__": "https://vertx.io/pet.api.json#/pet/post/requestBody/content/application~1json"
+            },
+            "application/xml": {
+              "schema": {
+                "required": [
+                  "name",
+                  "photoUrls"
+                ],
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/id"
+                  },
+                  "category": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/properties/id"
+                      },
+                      "name": {
+                        "type": "string",
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/properties/name"
+                      }
+                    },
+                    "xml": {
+                      "name": "Category",
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/xml"
+                    },
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Category"
+                  },
+                  "name": {
+                    "type": "string",
+                    "example": "doggie",
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/name"
+                  },
+                  "photoUrls": {
+                    "type": "array",
+                    "xml": {
+                      "name": "photoUrl",
+                      "wrapped": true,
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls/xml"
+                    },
+                    "items": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls/items"
+                    },
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "xml": {
+                      "name": "tag",
+                      "wrapped": true,
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/tags/xml"
+                    },
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "format": "int64",
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/properties/id"
+                        },
+                        "name": {
+                          "type": "string",
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/properties/name"
+                        }
+                      },
+                      "xml": {
+                        "name": "Tag",
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/xml"
+                      },
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag"
+                    },
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/tags"
+                  },
+                  "status": {
+                    "type": "string",
+                    "description": "pet status in the store",
+                    "enum": [
+                      "available",
+                      "pending",
+                      "sold"
+                    ],
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/status"
+                  }
+                },
+                "xml": {
+                  "name": "Pet",
+                  "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/xml"
+                },
+                "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet"
+              },
+              "__absolute_uri__": "https://vertx.io/pet.api.json#/pet/post/requestBody/content/application~1xml"
+            },
+            "__absolute_uri__": "https://vertx.io/pet.api.json#/pet/post/requestBody/content"
+          },
+          "required": true,
+          "__absolute_uri__": "https://vertx.io/pet.api.json#/pet/post/requestBody"
+        },
+        "responses": {
+          "405": {
+            "description": "Invalid input",
+            "content": {
+              "__absolute_uri__": "https://vertx.io/pet.api.json#/pet/post/responses/405/content"
+            },
+            "__absolute_uri__": "https://vertx.io/pet.api.json#/pet/post/responses/405"
+          },
+          "__absolute_uri__": "https://vertx.io/pet.api.json#/pet/post/responses"
+        },
+        "security": [
+          {
+            "petstore_auth": [
+              "write:pets",
+              "read:pets"
+            ]
+          }
+        ],
+        "x-codegen-request-body-name": "body",
+        "__absolute_uri__": "https://vertx.io/pet.api.json#/pet/post"
+      },
+      "__absolute_uri__": "https://vertx.io/pet.api.json#/pet"
+    },
+    "/pet/findByStatus": {
+      "get": {
+        "tags": [
+          "pet"
+        ],
+        "summary": "Finds Pets by status",
+        "description": "Multiple status values can be provided with comma separated strings",
+        "operationId": "findPetsByStatus",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Status values that need to be considered for filter",
+            "required": true,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "default": "available",
+                "enum": [
+                  "available",
+                  "pending",
+                  "sold"
+                ]
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/xml": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "required": [
+                      "name",
+                      "photoUrls"
+                    ],
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/id"
+                      },
+                      "category": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "format": "int64",
+                            "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/properties/id"
+                          },
+                          "name": {
+                            "type": "string",
+                            "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/properties/name"
+                          }
+                        },
+                        "xml": {
+                          "name": "Category",
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/xml"
+                        },
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Category"
+                      },
+                      "name": {
+                        "type": "string",
+                        "example": "doggie",
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/name"
+                      },
+                      "photoUrls": {
+                        "type": "array",
+                        "xml": {
+                          "name": "photoUrl",
+                          "wrapped": true,
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls/xml"
+                        },
+                        "items": {
+                          "type": "string",
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls/items"
+                        },
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls"
+                      },
+                      "tags": {
+                        "type": "array",
+                        "xml": {
+                          "name": "tag",
+                          "wrapped": true,
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/tags/xml"
+                        },
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer",
+                              "format": "int64",
+                              "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/properties/id"
+                            },
+                            "name": {
+                              "type": "string",
+                              "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/properties/name"
+                            }
+                          },
+                          "xml": {
+                            "name": "Tag",
+                            "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/xml"
+                          },
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag"
+                        },
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/tags"
+                      },
+                      "status": {
+                        "type": "string",
+                        "description": "pet status in the store",
+                        "enum": [
+                          "available",
+                          "pending",
+                          "sold"
+                        ],
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/status"
+                      }
+                    },
+                    "xml": {
+                      "name": "Pet",
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/xml"
+                    },
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet"
+                  },
+                  "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-findByStatus/get/responses/200/content/application~1xml/schema"
+                },
+                "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-findByStatus/get/responses/200/content/application~1xml"
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "required": [
+                      "name",
+                      "photoUrls"
+                    ],
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/id"
+                      },
+                      "category": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "format": "int64",
+                            "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/properties/id"
+                          },
+                          "name": {
+                            "type": "string",
+                            "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/properties/name"
+                          }
+                        },
+                        "xml": {
+                          "name": "Category",
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/xml"
+                        },
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Category"
+                      },
+                      "name": {
+                        "type": "string",
+                        "example": "doggie",
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/name"
+                      },
+                      "photoUrls": {
+                        "type": "array",
+                        "xml": {
+                          "name": "photoUrl",
+                          "wrapped": true,
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls/xml"
+                        },
+                        "items": {
+                          "type": "string",
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls/items"
+                        },
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls"
+                      },
+                      "tags": {
+                        "type": "array",
+                        "xml": {
+                          "name": "tag",
+                          "wrapped": true,
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/tags/xml"
+                        },
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer",
+                              "format": "int64",
+                              "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/properties/id"
+                            },
+                            "name": {
+                              "type": "string",
+                              "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/properties/name"
+                            }
+                          },
+                          "xml": {
+                            "name": "Tag",
+                            "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/xml"
+                          },
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag"
+                        },
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/tags"
+                      },
+                      "status": {
+                        "type": "string",
+                        "description": "pet status in the store",
+                        "enum": [
+                          "available",
+                          "pending",
+                          "sold"
+                        ],
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/status"
+                      }
+                    },
+                    "xml": {
+                      "name": "Pet",
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/xml"
+                    },
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet"
+                  },
+                  "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-findByStatus/get/responses/200/content/application~1json/schema"
+                },
+                "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-findByStatus/get/responses/200/content/application~1json"
+              },
+              "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-findByStatus/get/responses/200/content"
+            },
+            "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-findByStatus/get/responses/200"
+          },
+          "400": {
+            "description": "Invalid status value",
+            "content": {
+              "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-findByStatus/get/responses/400/content"
+            },
+            "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-findByStatus/get/responses/400"
+          },
+          "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-findByStatus/get/responses"
+        },
+        "security": [
+          {
+            "petstore_auth": [
+              "write:pets",
+              "read:pets"
+            ]
+          }
+        ],
+        "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-findByStatus/get"
+      },
+      "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-findByStatus"
+    },
+    "/pet/findByTags": {
+      "get": {
+        "tags": [
+          "pet"
+        ],
+        "summary": "Finds Pets by tags",
+        "description": "Muliple tags can be provided with comma separated strings. Use         tag1,\ntag2, tag3 for testing.",
+        "operationId": "findPetsByTags",
+        "parameters": [
+          {
+            "name": "tags",
+            "in": "query",
+            "description": "Tags to filter by",
+            "required": true,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/xml": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "required": [
+                      "name",
+                      "photoUrls"
+                    ],
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/id"
+                      },
+                      "category": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "format": "int64",
+                            "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/properties/id"
+                          },
+                          "name": {
+                            "type": "string",
+                            "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/properties/name"
+                          }
+                        },
+                        "xml": {
+                          "name": "Category",
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/xml"
+                        },
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Category"
+                      },
+                      "name": {
+                        "type": "string",
+                        "example": "doggie",
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/name"
+                      },
+                      "photoUrls": {
+                        "type": "array",
+                        "xml": {
+                          "name": "photoUrl",
+                          "wrapped": true,
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls/xml"
+                        },
+                        "items": {
+                          "type": "string",
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls/items"
+                        },
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls"
+                      },
+                      "tags": {
+                        "type": "array",
+                        "xml": {
+                          "name": "tag",
+                          "wrapped": true,
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/tags/xml"
+                        },
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer",
+                              "format": "int64",
+                              "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/properties/id"
+                            },
+                            "name": {
+                              "type": "string",
+                              "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/properties/name"
+                            }
+                          },
+                          "xml": {
+                            "name": "Tag",
+                            "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/xml"
+                          },
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag"
+                        },
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/tags"
+                      },
+                      "status": {
+                        "type": "string",
+                        "description": "pet status in the store",
+                        "enum": [
+                          "available",
+                          "pending",
+                          "sold"
+                        ],
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/status"
+                      }
+                    },
+                    "xml": {
+                      "name": "Pet",
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/xml"
+                    },
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet"
+                  },
+                  "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-findByTags/get/responses/200/content/application~1xml/schema"
+                },
+                "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-findByTags/get/responses/200/content/application~1xml"
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "required": [
+                      "name",
+                      "photoUrls"
+                    ],
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/id"
+                      },
+                      "category": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "format": "int64",
+                            "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/properties/id"
+                          },
+                          "name": {
+                            "type": "string",
+                            "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/properties/name"
+                          }
+                        },
+                        "xml": {
+                          "name": "Category",
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/xml"
+                        },
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Category"
+                      },
+                      "name": {
+                        "type": "string",
+                        "example": "doggie",
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/name"
+                      },
+                      "photoUrls": {
+                        "type": "array",
+                        "xml": {
+                          "name": "photoUrl",
+                          "wrapped": true,
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls/xml"
+                        },
+                        "items": {
+                          "type": "string",
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls/items"
+                        },
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls"
+                      },
+                      "tags": {
+                        "type": "array",
+                        "xml": {
+                          "name": "tag",
+                          "wrapped": true,
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/tags/xml"
+                        },
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer",
+                              "format": "int64",
+                              "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/properties/id"
+                            },
+                            "name": {
+                              "type": "string",
+                              "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/properties/name"
+                            }
+                          },
+                          "xml": {
+                            "name": "Tag",
+                            "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/xml"
+                          },
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag"
+                        },
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/tags"
+                      },
+                      "status": {
+                        "type": "string",
+                        "description": "pet status in the store",
+                        "enum": [
+                          "available",
+                          "pending",
+                          "sold"
+                        ],
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/status"
+                      }
+                    },
+                    "xml": {
+                      "name": "Pet",
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/xml"
+                    },
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet"
+                  },
+                  "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-findByTags/get/responses/200/content/application~1json/schema"
+                },
+                "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-findByTags/get/responses/200/content/application~1json"
+              },
+              "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-findByTags/get/responses/200/content"
+            },
+            "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-findByTags/get/responses/200"
+          },
+          "400": {
+            "description": "Invalid tag value",
+            "content": {
+              "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-findByTags/get/responses/400/content"
+            },
+            "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-findByTags/get/responses/400"
+          },
+          "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-findByTags/get/responses"
+        },
+        "deprecated": true,
+        "security": [
+          {
+            "petstore_auth": [
+              "write:pets",
+              "read:pets"
+            ]
+          }
+        ],
+        "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-findByTags/get"
+      },
+      "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-findByTags"
+    },
+    "/pet/{petId}": {
+      "get": {
+        "tags": [
+          "pet"
+        ],
+        "summary": "Find pet by ID",
+        "description": "Returns a single pet",
+        "operationId": "getPetById",
+        "parameters": [
+          {
+            "name": "petId",
+            "in": "path",
+            "description": "ID of pet to return",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/xml": {
+                "schema": {
+                  "required": [
+                    "name",
+                    "photoUrls"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "format": "int64",
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/id"
+                    },
+                    "category": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "format": "int64",
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/properties/id"
+                        },
+                        "name": {
+                          "type": "string",
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/properties/name"
+                        }
+                      },
+                      "xml": {
+                        "name": "Category",
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/xml"
+                      },
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Category"
+                    },
+                    "name": {
+                      "type": "string",
+                      "example": "doggie",
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/name"
+                    },
+                    "photoUrls": {
+                      "type": "array",
+                      "xml": {
+                        "name": "photoUrl",
+                        "wrapped": true,
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls/xml"
+                      },
+                      "items": {
+                        "type": "string",
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls/items"
+                      },
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "xml": {
+                        "name": "tag",
+                        "wrapped": true,
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/tags/xml"
+                      },
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "format": "int64",
+                            "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/properties/id"
+                          },
+                          "name": {
+                            "type": "string",
+                            "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/properties/name"
+                          }
+                        },
+                        "xml": {
+                          "name": "Tag",
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/xml"
+                        },
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag"
+                      },
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/tags"
+                    },
+                    "status": {
+                      "type": "string",
+                      "description": "pet status in the store",
+                      "enum": [
+                        "available",
+                        "pending",
+                        "sold"
+                      ],
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/status"
+                    }
+                  },
+                  "xml": {
+                    "name": "Pet",
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/xml"
+                  },
+                  "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet"
+                },
+                "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId/get/responses/200/content/application~1xml"
+              },
+              "application/json": {
+                "schema": {
+                  "required": [
+                    "name",
+                    "photoUrls"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "format": "int64",
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/id"
+                    },
+                    "category": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "format": "int64",
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/properties/id"
+                        },
+                        "name": {
+                          "type": "string",
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/properties/name"
+                        }
+                      },
+                      "xml": {
+                        "name": "Category",
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/xml"
+                      },
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Category"
+                    },
+                    "name": {
+                      "type": "string",
+                      "example": "doggie",
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/name"
+                    },
+                    "photoUrls": {
+                      "type": "array",
+                      "xml": {
+                        "name": "photoUrl",
+                        "wrapped": true,
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls/xml"
+                      },
+                      "items": {
+                        "type": "string",
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls/items"
+                      },
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "xml": {
+                        "name": "tag",
+                        "wrapped": true,
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/tags/xml"
+                      },
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "format": "int64",
+                            "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/properties/id"
+                          },
+                          "name": {
+                            "type": "string",
+                            "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/properties/name"
+                          }
+                        },
+                        "xml": {
+                          "name": "Tag",
+                          "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/xml"
+                        },
+                        "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag"
+                      },
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/tags"
+                    },
+                    "status": {
+                      "type": "string",
+                      "description": "pet status in the store",
+                      "enum": [
+                        "available",
+                        "pending",
+                        "sold"
+                      ],
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/status"
+                    }
+                  },
+                  "xml": {
+                    "name": "Pet",
+                    "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/xml"
+                  },
+                  "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet"
+                },
+                "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId/get/responses/200/content/application~1json"
+              },
+              "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId/get/responses/200/content"
+            },
+            "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId/get/responses/200"
+          },
+          "400": {
+            "description": "Invalid ID supplied",
+            "content": {
+              "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId/get/responses/400/content"
+            },
+            "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId/get/responses/400"
+          },
+          "404": {
+            "description": "Pet not found",
+            "content": {
+              "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId/get/responses/404/content"
+            },
+            "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId/get/responses/404"
+          },
+          "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId/get/responses"
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId/get"
+      },
+      "post": {
+        "tags": [
+          "pet"
+        ],
+        "summary": "Updates a pet in the store with form data",
+        "operationId": "updatePetWithForm",
+        "parameters": [
+          {
+            "name": "petId",
+            "in": "path",
+            "description": "ID of pet that needs to be updated",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Updated name of the pet",
+                    "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId/post/requestBody/content/application~1x-www-form-urlencoded/schema/properties/name"
+                  },
+                  "status": {
+                    "type": "string",
+                    "description": "Updated status of the pet",
+                    "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId/post/requestBody/content/application~1x-www-form-urlencoded/schema/properties/status"
+                  }
+                },
+                "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId/post/requestBody/content/application~1x-www-form-urlencoded/schema"
+              },
+              "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId/post/requestBody/content/application~1x-www-form-urlencoded"
+            },
+            "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId/post/requestBody/content"
+          },
+          "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId/post/requestBody"
+        },
+        "responses": {
+          "405": {
+            "description": "Invalid input",
+            "content": {
+              "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId/post/responses/405/content"
+            },
+            "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId/post/responses/405"
+          },
+          "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId/post/responses"
+        },
+        "security": [
+          {
+            "petstore_auth": [
+              "write:pets",
+              "read:pets"
+            ]
+          }
+        ],
+        "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId/post"
+      },
+      "delete": {
+        "tags": [
+          "pet"
+        ],
+        "summary": "Deletes a pet",
+        "operationId": "deletePet",
+        "parameters": [
+          {
+            "name": "api_key",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "petId",
+            "in": "path",
+            "description": "Pet id to delete",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Invalid ID supplied",
+            "content": {
+              "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId/delete/responses/400/content"
+            },
+            "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId/delete/responses/400"
+          },
+          "404": {
+            "description": "Pet not found",
+            "content": {
+              "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId/delete/responses/404/content"
+            },
+            "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId/delete/responses/404"
+          },
+          "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId/delete/responses"
+        },
+        "security": [
+          {
+            "petstore_auth": [
+              "write:pets",
+              "read:pets"
+            ]
+          }
+        ],
+        "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId/delete"
+      },
+      "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId"
+    },
+    "/pet/{petId}/uploadImage": {
+      "post": {
+        "tags": [
+          "pet"
+        ],
+        "summary": "uploads an image",
+        "operationId": "uploadFile",
+        "parameters": [
+          {
+            "name": "petId",
+            "in": "path",
+            "description": "ID of pet to update",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "additionalMetadata": {
+                    "type": "string",
+                    "description": "Additional data to pass to server",
+                    "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId-uploadImage/post/requestBody/content/multipart~1form-data/schema/properties/additionalMetadata"
+                  },
+                  "file": {
+                    "type": "string",
+                    "description": "file to upload",
+                    "format": "binary",
+                    "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId-uploadImage/post/requestBody/content/multipart~1form-data/schema/properties/file"
+                  }
+                },
+                "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId-uploadImage/post/requestBody/content/multipart~1form-data/schema"
+              },
+              "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId-uploadImage/post/requestBody/content/multipart~1form-data"
+            },
+            "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId-uploadImage/post/requestBody/content"
+          },
+          "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId-uploadImage/post/requestBody"
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32",
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/ApiResponse/properties/code"
+                    },
+                    "type": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/ApiResponse/properties/type"
+                    },
+                    "message": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/pet.model.json#/ApiResponse/properties/message"
+                    }
+                  },
+                  "__absolute_uri__": "https://vertx.io/pet.model.json#/ApiResponse"
+                },
+                "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId-uploadImage/post/responses/200/content/application~1json"
+              },
+              "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId-uploadImage/post/responses/200/content"
+            },
+            "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId-uploadImage/post/responses/200"
+          },
+          "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId-uploadImage/post/responses"
+        },
+        "security": [
+          {
+            "petstore_auth": [
+              "write:pets",
+              "read:pets"
+            ]
+          }
+        ],
+        "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId-uploadImage/post"
+      },
+      "__absolute_uri__": "https://vertx.io/pet.api.json#/pet-petId-uploadImage"
+    },
+    "/store/inventory": {
+      "get": {
+        "tags": [
+          "store"
+        ],
+        "summary": "Returns pet inventories by status",
+        "description": "Returns a map of status codes to quantities",
+        "operationId": "getInventory",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "integer",
+                    "format": "int32",
+                    "__absolute_uri__": "https://vertx.io/store.api.json#/store-inventory/get/responses/200/content/application~1json/schema/additionalProperties"
+                  },
+                  "__absolute_uri__": "https://vertx.io/store.api.json#/store-inventory/get/responses/200/content/application~1json/schema"
+                },
+                "__absolute_uri__": "https://vertx.io/store.api.json#/store-inventory/get/responses/200/content/application~1json"
+              },
+              "__absolute_uri__": "https://vertx.io/store.api.json#/store-inventory/get/responses/200/content"
+            },
+            "__absolute_uri__": "https://vertx.io/store.api.json#/store-inventory/get/responses/200"
+          },
+          "__absolute_uri__": "https://vertx.io/store.api.json#/store-inventory/get/responses"
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "__absolute_uri__": "https://vertx.io/store.api.json#/store-inventory/get"
+      },
+      "__absolute_uri__": "https://vertx.io/store.api.json#/store-inventory"
+    },
+    "/store/order": {
+      "post": {
+        "tags": [
+          "store"
+        ],
+        "summary": "Place an order for a pet",
+        "operationId": "placeOrder",
+        "requestBody": {
+          "description": "order placed for purchasing the pet",
+          "content": {
+            "*/*": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/id"
+                  },
+                  "petId": {
+                    "type": "integer",
+                    "format": "int64",
+                    "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/petId"
+                  },
+                  "quantity": {
+                    "type": "integer",
+                    "format": "int32",
+                    "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/quantity"
+                  },
+                  "shipDate": {
+                    "type": "string",
+                    "format": "date-time",
+                    "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/shipDate"
+                  },
+                  "status": {
+                    "type": "string",
+                    "description": "Order Status",
+                    "enum": [
+                      "placed",
+                      "approved",
+                      "delivered"
+                    ],
+                    "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/status"
+                  },
+                  "complete": {
+                    "type": "boolean",
+                    "default": false,
+                    "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/complete"
+                  }
+                },
+                "xml": {
+                  "name": "Order",
+                  "__absolute_uri__": "https://vertx.io/store.model.json#/Order/xml"
+                },
+                "__absolute_uri__": "https://vertx.io/store.model.json#/Order"
+              },
+              "__absolute_uri__": "https://vertx.io/store.api.json#/store-order/post/requestBody/content/*~1*"
+            },
+            "__absolute_uri__": "https://vertx.io/store.api.json#/store-order/post/requestBody/content"
+          },
+          "required": true,
+          "__absolute_uri__": "https://vertx.io/store.api.json#/store-order/post/requestBody"
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/xml": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "format": "int64",
+                      "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/id"
+                    },
+                    "petId": {
+                      "type": "integer",
+                      "format": "int64",
+                      "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/petId"
+                    },
+                    "quantity": {
+                      "type": "integer",
+                      "format": "int32",
+                      "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/quantity"
+                    },
+                    "shipDate": {
+                      "type": "string",
+                      "format": "date-time",
+                      "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/shipDate"
+                    },
+                    "status": {
+                      "type": "string",
+                      "description": "Order Status",
+                      "enum": [
+                        "placed",
+                        "approved",
+                        "delivered"
+                      ],
+                      "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/status"
+                    },
+                    "complete": {
+                      "type": "boolean",
+                      "default": false,
+                      "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/complete"
+                    }
+                  },
+                  "xml": {
+                    "name": "Order",
+                    "__absolute_uri__": "https://vertx.io/store.model.json#/Order/xml"
+                  },
+                  "__absolute_uri__": "https://vertx.io/store.model.json#/Order"
+                },
+                "__absolute_uri__": "https://vertx.io/store.api.json#/store-order/post/responses/200/content/application~1xml"
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "format": "int64",
+                      "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/id"
+                    },
+                    "petId": {
+                      "type": "integer",
+                      "format": "int64",
+                      "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/petId"
+                    },
+                    "quantity": {
+                      "type": "integer",
+                      "format": "int32",
+                      "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/quantity"
+                    },
+                    "shipDate": {
+                      "type": "string",
+                      "format": "date-time",
+                      "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/shipDate"
+                    },
+                    "status": {
+                      "type": "string",
+                      "description": "Order Status",
+                      "enum": [
+                        "placed",
+                        "approved",
+                        "delivered"
+                      ],
+                      "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/status"
+                    },
+                    "complete": {
+                      "type": "boolean",
+                      "default": false,
+                      "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/complete"
+                    }
+                  },
+                  "xml": {
+                    "name": "Order",
+                    "__absolute_uri__": "https://vertx.io/store.model.json#/Order/xml"
+                  },
+                  "__absolute_uri__": "https://vertx.io/store.model.json#/Order"
+                },
+                "__absolute_uri__": "https://vertx.io/store.api.json#/store-order/post/responses/200/content/application~1json"
+              },
+              "__absolute_uri__": "https://vertx.io/store.api.json#/store-order/post/responses/200/content"
+            },
+            "__absolute_uri__": "https://vertx.io/store.api.json#/store-order/post/responses/200"
+          },
+          "400": {
+            "description": "Invalid Order",
+            "content": {
+              "__absolute_uri__": "https://vertx.io/store.api.json#/store-order/post/responses/400/content"
+            },
+            "__absolute_uri__": "https://vertx.io/store.api.json#/store-order/post/responses/400"
+          },
+          "__absolute_uri__": "https://vertx.io/store.api.json#/store-order/post/responses"
+        },
+        "x-codegen-request-body-name": "body",
+        "__absolute_uri__": "https://vertx.io/store.api.json#/store-order/post"
+      },
+      "__absolute_uri__": "https://vertx.io/store.api.json#/store-order"
+    },
+    "/store/order/{orderId}": {
+      "get": {
+        "tags": [
+          "store"
+        ],
+        "summary": "Find purchase order by ID",
+        "description": "For valid response try integer IDs with value >= 1 and <= 10.         Other\nvalues will generated exceptions",
+        "operationId": "getOrderById",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "description": "ID of pet that needs to be fetched",
+            "required": true,
+            "schema": {
+              "maximum": 10,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/xml": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "format": "int64",
+                      "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/id"
+                    },
+                    "petId": {
+                      "type": "integer",
+                      "format": "int64",
+                      "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/petId"
+                    },
+                    "quantity": {
+                      "type": "integer",
+                      "format": "int32",
+                      "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/quantity"
+                    },
+                    "shipDate": {
+                      "type": "string",
+                      "format": "date-time",
+                      "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/shipDate"
+                    },
+                    "status": {
+                      "type": "string",
+                      "description": "Order Status",
+                      "enum": [
+                        "placed",
+                        "approved",
+                        "delivered"
+                      ],
+                      "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/status"
+                    },
+                    "complete": {
+                      "type": "boolean",
+                      "default": false,
+                      "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/complete"
+                    }
+                  },
+                  "xml": {
+                    "name": "Order",
+                    "__absolute_uri__": "https://vertx.io/store.model.json#/Order/xml"
+                  },
+                  "__absolute_uri__": "https://vertx.io/store.model.json#/Order"
+                },
+                "__absolute_uri__": "https://vertx.io/store.api.json#/store-order-orderId/get/responses/200/content/application~1xml"
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "format": "int64",
+                      "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/id"
+                    },
+                    "petId": {
+                      "type": "integer",
+                      "format": "int64",
+                      "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/petId"
+                    },
+                    "quantity": {
+                      "type": "integer",
+                      "format": "int32",
+                      "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/quantity"
+                    },
+                    "shipDate": {
+                      "type": "string",
+                      "format": "date-time",
+                      "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/shipDate"
+                    },
+                    "status": {
+                      "type": "string",
+                      "description": "Order Status",
+                      "enum": [
+                        "placed",
+                        "approved",
+                        "delivered"
+                      ],
+                      "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/status"
+                    },
+                    "complete": {
+                      "type": "boolean",
+                      "default": false,
+                      "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/complete"
+                    }
+                  },
+                  "xml": {
+                    "name": "Order",
+                    "__absolute_uri__": "https://vertx.io/store.model.json#/Order/xml"
+                  },
+                  "__absolute_uri__": "https://vertx.io/store.model.json#/Order"
+                },
+                "__absolute_uri__": "https://vertx.io/store.api.json#/store-order-orderId/get/responses/200/content/application~1json"
+              },
+              "__absolute_uri__": "https://vertx.io/store.api.json#/store-order-orderId/get/responses/200/content"
+            },
+            "__absolute_uri__": "https://vertx.io/store.api.json#/store-order-orderId/get/responses/200"
+          },
+          "400": {
+            "description": "Invalid ID supplied",
+            "content": {
+              "__absolute_uri__": "https://vertx.io/store.api.json#/store-order-orderId/get/responses/400/content"
+            },
+            "__absolute_uri__": "https://vertx.io/store.api.json#/store-order-orderId/get/responses/400"
+          },
+          "404": {
+            "description": "Order not found",
+            "content": {
+              "__absolute_uri__": "https://vertx.io/store.api.json#/store-order-orderId/get/responses/404/content"
+            },
+            "__absolute_uri__": "https://vertx.io/store.api.json#/store-order-orderId/get/responses/404"
+          },
+          "__absolute_uri__": "https://vertx.io/store.api.json#/store-order-orderId/get/responses"
+        },
+        "__absolute_uri__": "https://vertx.io/store.api.json#/store-order-orderId/get"
+      },
+      "delete": {
+        "tags": [
+          "store"
+        ],
+        "summary": "Delete purchase order by ID",
+        "description": "For valid response try integer IDs with positive integer value.         Negative\nor non-integer values will generate API errors",
+        "operationId": "deleteOrder",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "description": "ID of the order that needs to be deleted",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Invalid ID supplied",
+            "content": {
+              "__absolute_uri__": "https://vertx.io/store.api.json#/store-order-orderId/delete/responses/400/content"
+            },
+            "__absolute_uri__": "https://vertx.io/store.api.json#/store-order-orderId/delete/responses/400"
+          },
+          "404": {
+            "description": "Order not found",
+            "content": {
+              "__absolute_uri__": "https://vertx.io/store.api.json#/store-order-orderId/delete/responses/404/content"
+            },
+            "__absolute_uri__": "https://vertx.io/store.api.json#/store-order-orderId/delete/responses/404"
+          },
+          "__absolute_uri__": "https://vertx.io/store.api.json#/store-order-orderId/delete/responses"
+        },
+        "__absolute_uri__": "https://vertx.io/store.api.json#/store-order-orderId/delete"
+      },
+      "__absolute_uri__": "https://vertx.io/store.api.json#/store-order-orderId"
+    },
+    "/user": {
+      "post": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Create user",
+        "description": "This can only be done by the logged in user.",
+        "operationId": "createUser",
+        "requestBody": {
+          "description": "Created user object",
+          "content": {
+            "*/*": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/id"
+                  },
+                  "username": {
+                    "type": "string",
+                    "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/username"
+                  },
+                  "firstName": {
+                    "type": "string",
+                    "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/firstName"
+                  },
+                  "lastName": {
+                    "type": "string",
+                    "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/lastName"
+                  },
+                  "email": {
+                    "type": "string",
+                    "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/password"
+                  },
+                  "phone": {
+                    "type": "string",
+                    "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/phone"
+                  },
+                  "userStatus": {
+                    "type": "integer",
+                    "description": "User Status",
+                    "format": "int32",
+                    "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/userStatus"
+                  }
+                },
+                "xml": {
+                  "name": "User",
+                  "__absolute_uri__": "https://vertx.io/user.model.json#/User/xml"
+                },
+                "__absolute_uri__": "https://vertx.io/user.model.json#/User"
+              },
+              "__absolute_uri__": "https://vertx.io/user.api.json#/user/post/requestBody/content/*~1*"
+            },
+            "__absolute_uri__": "https://vertx.io/user.api.json#/user/post/requestBody/content"
+          },
+          "required": true,
+          "__absolute_uri__": "https://vertx.io/user.api.json#/user/post/requestBody"
+        },
+        "responses": {
+          "default": {
+            "description": "successful operation",
+            "content": {}
+          },
+          "__absolute_uri__": "https://vertx.io/user.api.json#/user/post/responses"
+        },
+        "x-codegen-request-body-name": "body",
+        "__absolute_uri__": "https://vertx.io/user.api.json#/user/post"
+      },
+      "__absolute_uri__": "https://vertx.io/user.api.json#/user"
+    },
+    "/user/createWithArray": {
+      "post": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Creates list of users with given input array",
+        "operationId": "createUsersWithArrayInput",
+        "requestBody": {
+          "description": "List of user object",
+          "content": {
+            "*/*": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "format": "int64",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/id"
+                    },
+                    "username": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/username"
+                    },
+                    "firstName": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/firstName"
+                    },
+                    "lastName": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/lastName"
+                    },
+                    "email": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/email"
+                    },
+                    "password": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/password"
+                    },
+                    "phone": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/phone"
+                    },
+                    "userStatus": {
+                      "type": "integer",
+                      "description": "User Status",
+                      "format": "int32",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/userStatus"
+                    }
+                  },
+                  "xml": {
+                    "name": "User",
+                    "__absolute_uri__": "https://vertx.io/user.model.json#/User/xml"
+                  },
+                  "__absolute_uri__": "https://vertx.io/user.model.json#/User"
+                },
+                "__absolute_uri__": "https://vertx.io/user.api.json#/user-createWithArray/post/requestBody/content/*~1*/schema"
+              },
+              "__absolute_uri__": "https://vertx.io/user.api.json#/user-createWithArray/post/requestBody/content/*~1*"
+            },
+            "__absolute_uri__": "https://vertx.io/user.api.json#/user-createWithArray/post/requestBody/content"
+          },
+          "required": true,
+          "__absolute_uri__": "https://vertx.io/user.api.json#/user-createWithArray/post/requestBody"
+        },
+        "responses": {
+          "default": {
+            "description": "successful operation",
+            "content": {}
+          },
+          "__absolute_uri__": "https://vertx.io/user.api.json#/user-createWithArray/post/responses"
+        },
+        "x-codegen-request-body-name": "body",
+        "__absolute_uri__": "https://vertx.io/user.api.json#/user-createWithArray/post"
+      },
+      "__absolute_uri__": "https://vertx.io/user.api.json#/user-createWithArray"
+    },
+    "/user/createWithList": {
+      "post": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Creates list of users with given input array",
+        "operationId": "createUsersWithListInput",
+        "requestBody": {
+          "description": "List of user object",
+          "content": {
+            "*/*": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "format": "int64",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/id"
+                    },
+                    "username": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/username"
+                    },
+                    "firstName": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/firstName"
+                    },
+                    "lastName": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/lastName"
+                    },
+                    "email": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/email"
+                    },
+                    "password": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/password"
+                    },
+                    "phone": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/phone"
+                    },
+                    "userStatus": {
+                      "type": "integer",
+                      "description": "User Status",
+                      "format": "int32",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/userStatus"
+                    }
+                  },
+                  "xml": {
+                    "name": "User",
+                    "__absolute_uri__": "https://vertx.io/user.model.json#/User/xml"
+                  },
+                  "__absolute_uri__": "https://vertx.io/user.model.json#/User"
+                },
+                "__absolute_uri__": "https://vertx.io/user.api.json#/user-createWithList/post/requestBody/content/*~1*/schema"
+              },
+              "__absolute_uri__": "https://vertx.io/user.api.json#/user-createWithList/post/requestBody/content/*~1*"
+            },
+            "__absolute_uri__": "https://vertx.io/user.api.json#/user-createWithList/post/requestBody/content"
+          },
+          "required": true,
+          "__absolute_uri__": "https://vertx.io/user.api.json#/user-createWithList/post/requestBody"
+        },
+        "responses": {
+          "default": {
+            "description": "successful operation",
+            "content": {}
+          },
+          "__absolute_uri__": "https://vertx.io/user.api.json#/user-createWithList/post/responses"
+        },
+        "x-codegen-request-body-name": "body",
+        "__absolute_uri__": "https://vertx.io/user.api.json#/user-createWithList/post"
+      },
+      "__absolute_uri__": "https://vertx.io/user.api.json#/user-createWithList"
+    },
+    "/user/login": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Logs user into the system",
+        "operationId": "loginUser",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "query",
+            "description": "The user name for login",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "password",
+            "in": "query",
+            "description": "The password for login in clear text",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "headers": {
+              "X-Rate-Limit": {
+                "description": "calls per hour allowed by the user",
+                "schema": {
+                  "type": "integer",
+                  "format": "int32",
+                  "__absolute_uri__": "https://vertx.io/user.api.json#/user-login/get/responses/200/headers/X-Rate-Limit/schema"
+                },
+                "__absolute_uri__": "https://vertx.io/user.api.json#/user-login/get/responses/200/headers/X-Rate-Limit"
+              },
+              "X-Expires-After": {
+                "description": "date in UTC when token expires",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time",
+                  "__absolute_uri__": "https://vertx.io/user.api.json#/user-login/get/responses/200/headers/X-Expires-After/schema"
+                },
+                "__absolute_uri__": "https://vertx.io/user.api.json#/user-login/get/responses/200/headers/X-Expires-After"
+              },
+              "__absolute_uri__": "https://vertx.io/user.api.json#/user-login/get/responses/200/headers"
+            },
+            "content": {
+              "application/xml": {
+                "schema": {
+                  "type": "string",
+                  "__absolute_uri__": "https://vertx.io/user.api.json#/user-login/get/responses/200/content/application~1xml/schema"
+                },
+                "__absolute_uri__": "https://vertx.io/user.api.json#/user-login/get/responses/200/content/application~1xml"
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "__absolute_uri__": "https://vertx.io/user.api.json#/user-login/get/responses/200/content/application~1json/schema"
+                },
+                "__absolute_uri__": "https://vertx.io/user.api.json#/user-login/get/responses/200/content/application~1json"
+              },
+              "__absolute_uri__": "https://vertx.io/user.api.json#/user-login/get/responses/200/content"
+            },
+            "__absolute_uri__": "https://vertx.io/user.api.json#/user-login/get/responses/200"
+          },
+          "400": {
+            "description": "Invalid username/password supplied",
+            "content": {
+              "__absolute_uri__": "https://vertx.io/user.api.json#/user-login/get/responses/400/content"
+            },
+            "__absolute_uri__": "https://vertx.io/user.api.json#/user-login/get/responses/400"
+          },
+          "__absolute_uri__": "https://vertx.io/user.api.json#/user-login/get/responses"
+        },
+        "__absolute_uri__": "https://vertx.io/user.api.json#/user-login/get"
+      },
+      "__absolute_uri__": "https://vertx.io/user.api.json#/user-login"
+    },
+    "/user/logout": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Logs out current logged in user session",
+        "operationId": "logoutUser",
+        "responses": {
+          "default": {
+            "description": "successful operation",
+            "content": {}
+          },
+          "__absolute_uri__": "https://vertx.io/user.api.json#/user-logout/get/responses"
+        },
+        "__absolute_uri__": "https://vertx.io/user.api.json#/user-logout/get"
+      },
+      "__absolute_uri__": "https://vertx.io/user.api.json#/user-logout"
+    },
+    "/user/{username}": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Get user by user name",
+        "operationId": "getUserByName",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "The name that needs to be fetched. Use user1 for testing. ",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/xml": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "format": "int64",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/id"
+                    },
+                    "username": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/username"
+                    },
+                    "firstName": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/firstName"
+                    },
+                    "lastName": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/lastName"
+                    },
+                    "email": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/email"
+                    },
+                    "password": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/password"
+                    },
+                    "phone": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/phone"
+                    },
+                    "userStatus": {
+                      "type": "integer",
+                      "description": "User Status",
+                      "format": "int32",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/userStatus"
+                    }
+                  },
+                  "xml": {
+                    "name": "User",
+                    "__absolute_uri__": "https://vertx.io/user.model.json#/User/xml"
+                  },
+                  "__absolute_uri__": "https://vertx.io/user.model.json#/User"
+                },
+                "__absolute_uri__": "https://vertx.io/user.api.json#/user-username/get/responses/200/content/application~1xml"
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "format": "int64",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/id"
+                    },
+                    "username": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/username"
+                    },
+                    "firstName": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/firstName"
+                    },
+                    "lastName": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/lastName"
+                    },
+                    "email": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/email"
+                    },
+                    "password": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/password"
+                    },
+                    "phone": {
+                      "type": "string",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/phone"
+                    },
+                    "userStatus": {
+                      "type": "integer",
+                      "description": "User Status",
+                      "format": "int32",
+                      "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/userStatus"
+                    }
+                  },
+                  "xml": {
+                    "name": "User",
+                    "__absolute_uri__": "https://vertx.io/user.model.json#/User/xml"
+                  },
+                  "__absolute_uri__": "https://vertx.io/user.model.json#/User"
+                },
+                "__absolute_uri__": "https://vertx.io/user.api.json#/user-username/get/responses/200/content/application~1json"
+              },
+              "__absolute_uri__": "https://vertx.io/user.api.json#/user-username/get/responses/200/content"
+            },
+            "__absolute_uri__": "https://vertx.io/user.api.json#/user-username/get/responses/200"
+          },
+          "400": {
+            "description": "Invalid username supplied",
+            "content": {
+              "__absolute_uri__": "https://vertx.io/user.api.json#/user-username/get/responses/400/content"
+            },
+            "__absolute_uri__": "https://vertx.io/user.api.json#/user-username/get/responses/400"
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "__absolute_uri__": "https://vertx.io/user.api.json#/user-username/get/responses/404/content"
+            },
+            "__absolute_uri__": "https://vertx.io/user.api.json#/user-username/get/responses/404"
+          },
+          "__absolute_uri__": "https://vertx.io/user.api.json#/user-username/get/responses"
+        },
+        "__absolute_uri__": "https://vertx.io/user.api.json#/user-username/get"
+      },
+      "put": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Updated user",
+        "description": "This can only be done by the logged in user.",
+        "operationId": "updateUser",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "name that need to be updated",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Updated user object",
+          "content": {
+            "*/*": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/id"
+                  },
+                  "username": {
+                    "type": "string",
+                    "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/username"
+                  },
+                  "firstName": {
+                    "type": "string",
+                    "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/firstName"
+                  },
+                  "lastName": {
+                    "type": "string",
+                    "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/lastName"
+                  },
+                  "email": {
+                    "type": "string",
+                    "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/password"
+                  },
+                  "phone": {
+                    "type": "string",
+                    "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/phone"
+                  },
+                  "userStatus": {
+                    "type": "integer",
+                    "description": "User Status",
+                    "format": "int32",
+                    "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/userStatus"
+                  }
+                },
+                "xml": {
+                  "name": "User",
+                  "__absolute_uri__": "https://vertx.io/user.model.json#/User/xml"
+                },
+                "__absolute_uri__": "https://vertx.io/user.model.json#/User"
+              },
+              "__absolute_uri__": "https://vertx.io/user.api.json#/user-username/put/requestBody/content/*~1*"
+            },
+            "__absolute_uri__": "https://vertx.io/user.api.json#/user-username/put/requestBody/content"
+          },
+          "required": true,
+          "__absolute_uri__": "https://vertx.io/user.api.json#/user-username/put/requestBody"
+        },
+        "responses": {
+          "400": {
+            "description": "Invalid user supplied",
+            "content": {
+              "__absolute_uri__": "https://vertx.io/user.api.json#/user-username/put/responses/400/content"
+            },
+            "__absolute_uri__": "https://vertx.io/user.api.json#/user-username/put/responses/400"
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "__absolute_uri__": "https://vertx.io/user.api.json#/user-username/put/responses/404/content"
+            },
+            "__absolute_uri__": "https://vertx.io/user.api.json#/user-username/put/responses/404"
+          },
+          "__absolute_uri__": "https://vertx.io/user.api.json#/user-username/put/responses"
+        },
+        "x-codegen-request-body-name": "body",
+        "__absolute_uri__": "https://vertx.io/user.api.json#/user-username/put"
+      },
+      "delete": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Delete user",
+        "description": "This can only be done by the logged in user.",
+        "operationId": "deleteUser",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "The name that needs to be deleted",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Invalid username supplied",
+            "content": {
+              "__absolute_uri__": "https://vertx.io/user.api.json#/user-username/delete/responses/400/content"
+            },
+            "__absolute_uri__": "https://vertx.io/user.api.json#/user-username/delete/responses/400"
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "__absolute_uri__": "https://vertx.io/user.api.json#/user-username/delete/responses/404/content"
+            },
+            "__absolute_uri__": "https://vertx.io/user.api.json#/user-username/delete/responses/404"
+          },
+          "__absolute_uri__": "https://vertx.io/user.api.json#/user-username/delete/responses"
+        },
+        "__absolute_uri__": "https://vertx.io/user.api.json#/user-username/delete"
+      },
+      "__absolute_uri__": "https://vertx.io/user.api.json#/user-username"
+    }
+  },
+  "components": {
+    "schemas": {
+      "Order": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/id"
+          },
+          "petId": {
+            "type": "integer",
+            "format": "int64",
+            "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/petId"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32",
+            "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/quantity"
+          },
+          "shipDate": {
+            "type": "string",
+            "format": "date-time",
+            "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/shipDate"
+          },
+          "status": {
+            "type": "string",
+            "description": "Order Status",
+            "enum": [
+              "placed",
+              "approved",
+              "delivered"
+            ],
+            "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/status"
+          },
+          "complete": {
+            "type": "boolean",
+            "default": false,
+            "__absolute_uri__": "https://vertx.io/store.model.json#/Order/properties/complete"
+          }
+        },
+        "xml": {
+          "name": "Order",
+          "__absolute_uri__": "https://vertx.io/store.model.json#/Order/xml"
+        },
+        "__absolute_uri__": "https://vertx.io/store.model.json#/Order"
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/id"
+          },
+          "username": {
+            "type": "string",
+            "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/username"
+          },
+          "firstName": {
+            "type": "string",
+            "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/firstName"
+          },
+          "lastName": {
+            "type": "string",
+            "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/lastName"
+          },
+          "email": {
+            "type": "string",
+            "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/email"
+          },
+          "password": {
+            "type": "string",
+            "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/password"
+          },
+          "phone": {
+            "type": "string",
+            "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/phone"
+          },
+          "userStatus": {
+            "type": "integer",
+            "description": "User Status",
+            "format": "int32",
+            "__absolute_uri__": "https://vertx.io/user.model.json#/User/properties/userStatus"
+          }
+        },
+        "xml": {
+          "name": "User",
+          "__absolute_uri__": "https://vertx.io/user.model.json#/User/xml"
+        },
+        "__absolute_uri__": "https://vertx.io/user.model.json#/User"
+      },
+      "Tag": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/properties/id"
+          },
+          "name": {
+            "type": "string",
+            "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/properties/name"
+          }
+        },
+        "xml": {
+          "name": "Tag",
+          "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/xml"
+        },
+        "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag"
+      },
+      "Category": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/properties/id"
+          },
+          "name": {
+            "type": "string",
+            "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/properties/name"
+          }
+        },
+        "xml": {
+          "name": "Category",
+          "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/xml"
+        },
+        "__absolute_uri__": "https://vertx.io/pet.model.json#/Category"
+      },
+      "Pet": {
+        "required": [
+          "name",
+          "photoUrls"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/id"
+          },
+          "category": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "format": "int64",
+                "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/properties/id"
+              },
+              "name": {
+                "type": "string",
+                "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/properties/name"
+              }
+            },
+            "xml": {
+              "name": "Category",
+              "__absolute_uri__": "https://vertx.io/pet.model.json#/Category/xml"
+            },
+            "__absolute_uri__": "https://vertx.io/pet.model.json#/Category"
+          },
+          "name": {
+            "type": "string",
+            "example": "doggie",
+            "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/name"
+          },
+          "photoUrls": {
+            "type": "array",
+            "xml": {
+              "name": "photoUrl",
+              "wrapped": true,
+              "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls/xml"
+            },
+            "items": {
+              "type": "string",
+              "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls/items"
+            },
+            "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/photoUrls"
+          },
+          "tags": {
+            "type": "array",
+            "xml": {
+              "name": "tag",
+              "wrapped": true,
+              "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/tags/xml"
+            },
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "format": "int64",
+                  "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/properties/id"
+                },
+                "name": {
+                  "type": "string",
+                  "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/properties/name"
+                }
+              },
+              "xml": {
+                "name": "Tag",
+                "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag/xml"
+              },
+              "__absolute_uri__": "https://vertx.io/pet.model.json#/Tag"
+            },
+            "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/tags"
+          },
+          "status": {
+            "type": "string",
+            "description": "pet status in the store",
+            "enum": [
+              "available",
+              "pending",
+              "sold"
+            ],
+            "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/properties/status"
+          }
+        },
+        "xml": {
+          "name": "Pet",
+          "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet/xml"
+        },
+        "__absolute_uri__": "https://vertx.io/pet.model.json#/Pet"
+      },
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32",
+            "__absolute_uri__": "https://vertx.io/pet.model.json#/ApiResponse/properties/code"
+          },
+          "type": {
+            "type": "string",
+            "__absolute_uri__": "https://vertx.io/pet.model.json#/ApiResponse/properties/type"
+          },
+          "message": {
+            "type": "string",
+            "__absolute_uri__": "https://vertx.io/pet.model.json#/ApiResponse/properties/message"
+          }
+        },
+        "__absolute_uri__": "https://vertx.io/pet.model.json#/ApiResponse"
+      }
+    },
+    "securitySchemes": {
+      "petstore_auth": {
+        "type": "oauth2",
+        "flows": {
+          "implicit": {
+            "authorizationUrl": "http://petstore.swagger.io/oauth/dialog",
+            "scopes": {
+              "write:pets": "modify pets in your account",
+              "read:pets": "read your pets"
+            }
+          }
+        }
+      },
+      "api_key": {
+        "type": "apiKey",
+        "name": "api_key",
+        "in": "header"
+      }
+    }
+  }
+}
