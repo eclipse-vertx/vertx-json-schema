@@ -211,6 +211,8 @@ class RefTest {
     JsonSchema schema = JsonSchema.of(circularSchema);
     repo.dereference(schema);
     JsonObject resolvedJsonSchema = repo.resolve(circularSchema);
-    resolvedJsonSchema.toString();
+    JsonObject expected = CIRCULAR.copy();
+    expected.remove("$id");
+    assertThat(new JsonObject(resolvedJsonSchema.encode())).isEqualTo(expected);
   }
 }

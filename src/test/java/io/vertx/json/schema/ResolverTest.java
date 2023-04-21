@@ -62,21 +62,6 @@ public class ResolverTest {
   }
 
   @Test
-  @Disabled("This test is disabled because it's not possible to resolve non relative refs or exact refs")
-  public void testResolveRefsFromRepository(Vertx vertx) {
-
-    SchemaRepository repository = SchemaRepository.create(new JsonSchemaOptions().setDraft(Draft.DRAFT4).setBaseUri("https://vertx.io"));
-
-    try {
-      repository.resolve(new JsonObject(vertx.fileSystem().readFileBlocking("resolve/api.json")));
-      // fail
-      fail("Should fail as no other references are loaded");
-    } catch (SchemaException e) {
-      // OK
-    }
-  }
-
-  @Test
   public void testResolveRefsFromRepositoryWithRefs(Vertx vertx) {
     SchemaRepository repository = SchemaRepository.create(new JsonSchemaOptions().setDraft(Draft.DRAFT4).setBaseUri(
       "https://vertx.io"));
@@ -88,8 +73,8 @@ public class ResolverTest {
     }
 
     JsonObject apiJson = new JsonObject(vertx.fileSystem().readFileBlocking("resolve/api.json"));
-    JsonObject apiResolved = new JsonObject(vertx.fileSystem().readFileBlocking("resolve/api_resolved_by_object.json"));
-    assertThat(repository.resolve(apiJson)).isEqualTo(apiResolved);
+    JsonObject apiResolved = new JsonObject(vertx.fileSystem().readFileBlocking("resolve/api_resolved.json"));
+    assertThat(new JsonObject(repository.resolve(apiJson).encode())).isEqualTo(apiResolved);
   }
 
   @Test
@@ -104,7 +89,7 @@ public class ResolverTest {
     }
 
     JsonObject apiResolved = new JsonObject(vertx.fileSystem().readFileBlocking("resolve/api_resolved_by_ref.json"));
-    assertThat(repository.resolve("api.json")).isEqualTo(apiResolved);
+    assertThat(repository.resolve("api.json")).containsExactlyInAnyOrderElementsOf(apiResolved);
   }
 
   @Test
