@@ -214,5 +214,10 @@ class RefTest {
     JsonObject expected = CIRCULAR.copy();
     expected.remove("$id");
     assertThat(new JsonObject(resolvedJsonSchema.encode())).isEqualTo(expected);
+
+    // Test also with intermediate JsonObjects
+    JsonObject intermediate = resolvedJsonSchema.getJsonObject("definitions").getJsonObject("addressWithCity");
+    JsonObject expectedIntermediate = expected.getJsonObject("definitions").getJsonObject("addressWithCity");
+    assertThat(new JsonObject(intermediate.encode())).isEqualTo(expectedIntermediate);
   }
 }
