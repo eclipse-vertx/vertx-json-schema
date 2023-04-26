@@ -8,6 +8,7 @@ import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.EncodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.json.schema.JsonSchema;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -20,6 +21,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import static io.vertx.core.json.impl.JsonUtil.BASE64_ENCODER;
+import static io.vertx.json.schema.JsonSchema.EXCLUDE_ANNOTATION_ENTRIES;
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 import static java.util.stream.Collectors.toMap;
 
@@ -47,6 +49,18 @@ public class JsonObjectProxy extends JsonObject {
     } catch (IOException e) {
       throw new DecodeException("Failed to decode:" + e.getMessage(), e);
     }
+  }
+
+  @Override
+  public JsonObject getJsonObject(String key) {
+    JsonObject o = super.getJsonObject(key);
+    return o == null ? null : new JsonObjectProxy(o);
+  }
+
+  @Override
+  public JsonObject getJsonObject(String key, JsonObject def) {
+    JsonObject o = super.getJsonObject(key, def);
+    return o == null ? null : new JsonObjectProxy(o);
   }
 
   @Override
@@ -88,8 +102,9 @@ public class JsonObjectProxy extends JsonObject {
       }
       if (json instanceof JsonObject) {
         Map<String, Object> properties = ((JsonObject) json).getMap();
-        json =
-          properties.entrySet().stream().filter(entry -> !entry.getKey().equals(KEY_ABS_URI)).collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+        json = properties.entrySet().stream()
+          .filter(EXCLUDE_ANNOTATION_ENTRIES)
+          .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
       } else if (json instanceof JsonArray) {
         json = ((JsonArray) json).getList();
       }
