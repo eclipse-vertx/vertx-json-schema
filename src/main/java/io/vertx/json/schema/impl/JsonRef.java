@@ -87,6 +87,26 @@ public final class JsonRef {
     return resolve(schema, Collections.emptyMap());
   }
 
+  private static <T> T copy(T o) {
+    if (o instanceof JsonObject) {
+      JsonObject obj = (JsonObject) o;
+      JsonObjectProxy ret = new JsonObjectProxy();
+      for (Map.Entry<String, ?> child : obj) {
+        ret.put(child.getKey(), copy(child.getValue()));
+      }
+      return (T) ret;
+    } else if (o instanceof JsonArray) {
+      JsonArray obj = (JsonArray) o;
+      JsonArrayProxy ret = new JsonArrayProxy();
+      for (Object elt : obj) {
+        ret.add(copy(elt));
+      }
+      return (T) ret;
+    } else {
+      return o;
+    }
+  }
+
   /**
    * Public API to resolve a schema like {@link #resolve(JsonObject)}. The main difference is that there is context
    * to lookup external schemas. External schemas are only looked up for absolute references.
@@ -102,7 +122,7 @@ public final class JsonRef {
     }
 
     // 2. work with a copy as the internals of the object will be modified
-    JsonObject tree = schema.copy();
+    JsonObject tree = copy(schema);
 
     // 3. For each kind of "POINTER_KEYWORD" we will collect them in a map (this is actually a MultiMap)
     final Map<String, List<JsonRef>> pointers = new HashMap<>();
@@ -281,9 +301,9 @@ public final class JsonRef {
       // System.out.println("applyRef: update root[" + prop + "] " + target.fieldNames());
 
       if (root instanceof JsonArray) {
-        ((JsonArray) root).set(Integer.parseInt(prop), target);
+        ((JsonArray) root).set(Integer.parseInt(prop), new JsonObjectRef(target));
       } else if (root instanceof JsonObject) {
-        ((JsonObject) root).put(Utils.Pointers.unescape(prop), target);
+        ((JsonObject) root).put(Utils.Pointers.unescape(prop), new JsonObjectRef(target));
       }
 
       return tree;
