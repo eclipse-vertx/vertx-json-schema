@@ -1,6 +1,7 @@
 package io.vertx.json.schema.impl;
 
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.json.schema.Draft;
@@ -219,5 +220,12 @@ class RefTest {
     JsonObject intermediate = resolvedJsonSchema.getJsonObject("definitions").getJsonObject("addressWithCity");
     JsonObject expectedIntermediate = expected.getJsonObject("definitions").getJsonObject("addressWithCity");
     assertThat(new JsonObject(intermediate.encode())).isEqualTo(expectedIntermediate);
+
+    // Test also with intermediate JsonArray
+    JsonArray intermediateArray =
+      intermediate.getJsonObject("properties").getJsonObject("subAddress").getJsonArray("anyOf");
+    JsonArray expectedIntermediateArray = expectedIntermediate.getJsonObject("properties").getJsonObject(
+      "subAddress").getJsonArray("anyOf");
+    assertThat(new JsonArray(intermediateArray.encode())).isEqualTo(expectedIntermediateArray);
   }
 }

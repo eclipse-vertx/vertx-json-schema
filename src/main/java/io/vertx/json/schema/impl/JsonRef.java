@@ -96,9 +96,8 @@ public final class JsonRef {
       }
       return (T) ret;
     } else if (o instanceof JsonArray) {
-      // Todo : use JsonArrayProxy
       JsonArray obj = (JsonArray) o;
-      JsonArray ret = new JsonArray();
+      JsonArrayProxy ret = new JsonArrayProxy();
       for (Object elt : obj) {
         ret.add(copy(elt));
       }
