@@ -4,10 +4,9 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.*;
-import io.vertx.json.schema.JsonSchema;
 
-import java.util.*;
 import java.util.Objects;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import static io.vertx.json.schema.impl.SchemaRepositoryImpl.dereference;
@@ -21,22 +20,31 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
   private final Draft draft;
   private final OutputFormat outputFormat;
 
+  public SchemaValidatorImpl(JsonSchema schema, JsonSchemaOptions options) {
+    this(schema, options, Collections.emptyMap(), true);
+  }
+
   public SchemaValidatorImpl(JsonSchema schema, JsonSchemaOptions options, Map<String, JsonSchema> lookup) {
+    this(schema, options, lookup, false);
+  }
+
+  public SchemaValidatorImpl(JsonSchema schema, JsonSchemaOptions options, Map<String, JsonSchema> lookup, boolean dereference) {
     Objects.requireNonNull(schema, "'schema' cannot be null");
     Objects.requireNonNull(options, "'options' cannot be null");
     Objects.requireNonNull(options.getOutputFormat(), "'options.outputFormat' cannot be null");
-    Objects.requireNonNull(options.getBaseUri(), "'options.baseUri' cannot be null");
-    Objects.requireNonNull(options, "'lookup' cannot be null");
+    Objects.requireNonNull(lookup, "'lookup' cannot be null");
     this.schema = schema;
     // extract the draft from schema when no specific draft is configured in the options
     this.draft = options.getDraft() == null ?
       Draft.fromIdentifier(schema.get("$schema")) :
       options.getDraft();
     this.outputFormat = options.getOutputFormat();
-    URL baseUri = new URL(options.getBaseUri());
     this.lookup = new HashMap<>(lookup);
-    // add the root schema
-    dereference(this.lookup, schema, baseUri, "", true);
+    if (dereference) {
+      URL baseUri = new URL(options.getBaseUri());
+      // add the root schema
+      dereference(this.lookup, schema, baseUri, "", true);
+    }
   }
 
   public SchemaValidatorImpl(String ref, JsonSchemaOptions options, Map<String, JsonSchema> lookup) {
@@ -68,10 +76,33 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       "#",
       "#",
       "#",
-      new HashSet<>());
+      new HashSet<>(),
+      new HashMap<>());
   }
 
-  private OutputUnit validate(Object _instance, JsonSchema schema, JsonSchema _recursiveAnchor, String instanceLocation, String schemaLocation, String baseLocation, Set<Object> evaluated) throws SchemaException {
+  /**
+   * Validate an instance against a schema.
+   *
+   * @param _instance        this is the object instance to validate
+   * @param schema           this is the current schema, it will change as we recurse the schema and do recursive calls with the
+   *                         sub-schema
+   * @param _recursiveAnchor when dealing with recursive anchors (pre 2020-12 draft) this is the schema that is the
+   *                         anchor
+   * @param instanceLocation tracks the instance location (needed to build the correct error messages)
+   * @param schemaLocation   tracks the schema location (needed to build the correct error messages)
+   * @param baseLocation     tracks the location from start to current schema (needed to build the correct error messages)
+   * @param evaluated        tracks evaluated schemas needed for or/oneOf/anyOf/all/etc... like validations
+   * @param dynamicContext   tracks the dynamic context needed for $dynamicRef (2020-12 draft). Keys start with # for
+   *                         dynamic anchors, $ are used for 2019-09 fragments
+   * @return the validation result
+   * @throws SchemaException when the schema is not resolvable (unknown $ref)
+   */
+  private OutputUnit validate(final Object _instance, final JsonSchema schema, final JsonSchema _recursiveAnchor, final String instanceLocation, final String schemaLocation, final String baseLocation, final Set<Object> evaluated, final Map<String, Deque<JsonSchema>> dynamicContext) throws SchemaException {
+
+    // the are 2 kinds of schemas BooleanSchema and JsonSchema
+    // Boolean schemas are terminal and require no further processing.
+
+    // All schemas will be composed to end with a terminal schema.
     if (schema instanceof BooleanSchema) {
       if (schema == BooleanSchema.TRUE) {
         return new OutputUnit(true);
@@ -80,7 +111,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       }
     }
 
-    // adapt JSON types
+    // adapt JSON types. This is needed because the JSON types are not the same as Java types, and this ensures that we
+    // always work on the regular type space (JSON types).
     final Object instance = JSON.jsonify(_instance);
 
     // start validating
@@ -88,12 +120,25 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
     List<OutputUnit> errors = new ArrayList<>();
     List<OutputUnit> annotations = new ArrayList<>();
 
-    if (schema.<Boolean>get("$recursiveAnchor", false) && _recursiveAnchor == null) {
-      _recursiveAnchor = schema;
+    final String dynamicAnchor;
+
+    // push $dynamicAnchor with current "__absolute_uri__"
+    if (schema.containsKey("$dynamicAnchor")) {
+      dynamicAnchor = "#" + schema.get("$dynamicAnchor");
+      dynamicContext
+        .computeIfAbsent(dynamicAnchor, k -> new LinkedList<>())
+        .add(schema);
+    } else {
+      dynamicAnchor = null;
     }
 
-    // Lock
-    final JsonSchema recursiveAnchor = _recursiveAnchor;
+    // Lock (recursive anchor to the current schema, is dealing with $recursiveAnchor)
+    final JsonSchema recursiveAnchor;
+    if (_recursiveAnchor == null && schema.<Boolean>get("$recursiveAnchor", false)) {
+      recursiveAnchor = schema;
+    } else {
+      recursiveAnchor = _recursiveAnchor;
+    }
 
     if ("#".equals(schema.get("$recursiveRef"))) {
       assert schema.containsKey("__absolute_recursive_ref__");
@@ -107,13 +152,57 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         refSchema,
         instanceLocation,
         schemaLocation + "/$recursiveRef",
-        baseLocation  + "/$recursiveRef",
-        evaluated
+        baseLocation + "/$recursiveRef",
+        evaluated,
+        dynamicContext
       );
       if (!result.getValid()) {
         errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/$recursiveRef"), baseLocation + "/$recursiveRef", "A sub-schema had errors"));
         if (result.getErrors() != null) {
           errors.addAll(result.getErrors());
+        }
+      }
+    }
+
+    if (schema.containsKey("$dynamicRef")) {
+      Deque<JsonSchema> deque = dynamicContext.get(schema.<String>get("$dynamicRef"));
+      if (deque != null) {
+        JsonSchema head = deque.peekFirst();
+        if (head != null) {
+          // compute the dynamic reference uri
+          String uri = new URL(schema.<String>get("$dynamicRef"), head.<String>get("__absolute_uri__")).href();
+
+          if (!lookup.containsKey(uri)) {
+            String message = "Unresolved $dynamicRef " + schema.<String>get("$dynamicRef");
+            message += "\nKnown schemas:\n- " + String.join("\n- ", lookup.keySet());
+            throw new SchemaException(schema, message);
+          }
+
+          final JsonSchema refSchema = lookup.get(uri);
+          final OutputUnit result = validate(
+            instance,
+            recursiveAnchor == null ? schema : recursiveAnchor,
+            refSchema,
+            instanceLocation,
+            schemaLocation + "/$dynamicRef",
+            baseLocation + "/$dynamicRef",
+            evaluated,
+            dynamicContext
+          );
+          if (!result.getValid()) {
+            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/$dynamicRef"), baseLocation + "/$dynamicRef", "A sub-schema had errors"));
+            if (result.getErrors() != null) {
+              errors.addAll(result.getErrors());
+            }
+          }
+          if (draft == Draft.DRAFT4 || draft == Draft.DRAFT7) {
+            if (dynamicAnchor != null) {
+              dynamicContext
+                .get(dynamicAnchor)
+                .removeLast();
+            }
+            return new OutputUnit(errors.isEmpty()).setErrors(errors);
+          }
         }
       }
     }
@@ -137,7 +226,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         instanceLocation,
         schema.get("$ref"),
         baseLocation + "/$ref",
-        evaluated
+        evaluated,
+        dynamicContext
       );
       if (!result.getValid()) {
         errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/$ref"), baseLocation + "/$ref", "A subschema had errors"));
@@ -202,7 +292,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         instanceLocation,
         schemaLocation + "/not",
         baseLocation + "/not",
-        new HashSet<>()
+        new HashSet<>(),
+        dynamicContext
       );
       if (result.getValid()) {
         errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/not"), baseLocation + "/not", "Instance matched \"not\" schema"));
@@ -223,7 +314,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
           instanceLocation,
           schemaLocation + "/anyOf/" + i,
           baseLocation + "/anyOf/" + i,
-          subEvaluated
+          subEvaluated,
+          dynamicContext
         );
         if (result.getErrors() != null) {
           errors.addAll(result.getErrors());
@@ -252,7 +344,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
           instanceLocation,
           schemaLocation + "/allOf/" + i,
           baseLocation + "/allOf/" + i,
-          subEvaluated
+          subEvaluated,
+          dynamicContext
         );
         if (result.getErrors() != null) {
           errors.addAll(result.getErrors());
@@ -281,7 +374,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
           instanceLocation,
           schemaLocation + "/oneOf/" + i,
           baseLocation + "/oneOf/" + i,
-          subEvaluated
+          subEvaluated,
+          dynamicContext
         );
         if (result.getErrors() != null) {
           errors.addAll(result.getErrors());
@@ -312,7 +406,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         instanceLocation,
         schemaLocation + "/if",
         baseLocation + "/if",
-        evaluated
+        evaluated,
+        dynamicContext
       );
       if (conditionResult.getValid()) {
         if (schema.containsKey("then")) {
@@ -323,7 +418,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
             instanceLocation,
             schemaLocation + "/then",
             baseLocation + "/then",
-            evaluated
+            evaluated,
+            dynamicContext
           );
           if (!thenResult.getValid()) {
             errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/if"), baseLocation + "/if", "Instance does not match \"then\" schema"));
@@ -340,7 +436,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
           instanceLocation,
           schemaLocation + "/else",
           baseLocation + "/else",
-          evaluated
+          evaluated,
+          dynamicContext
         );
         if (!elseResult.getValid()) {
           errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/else"), baseLocation + "/else", "Instance does not match \"else\" schema"));
@@ -381,7 +478,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               subInstancePointer,
               schemaLocation + "/propertyNames",
               baseLocation + "/propertyNames",
-              new HashSet<>()
+              new HashSet<>(),
+              dynamicContext
             );
             if (!result.getValid()) {
               errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/propertyNames"), baseLocation + "/propertyNames", "Property name \"" + key + "\" does not match schema"));
@@ -415,7 +513,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                 instanceLocation,
                 schemaLocation + "/dependentSchemas/" + Pointers.encode(key),
                 baseLocation + "/dependentSchemas/" + Pointers.encode(key),
-                evaluated
+                evaluated,
+                dynamicContext
               );
               if (!result.getValid()) {
                 errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/dependentSchemas"), baseLocation + "/dependentSchemas", "Instance has \"" + key + "\" but does not match dependant schema"));
@@ -445,7 +544,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                   instanceLocation,
                   schemaLocation + "/dependencies/" + Pointers.encode(key),
                   baseLocation + "/dependencies/" + Pointers.encode(key),
-                  new HashSet<>()
+                  new HashSet<>(),
+                  dynamicContext
                 );
                 if (!result.getValid()) {
                   errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/dependencies"), baseLocation + "/dependencies", "Instance has \"" + key + "\" but does not match dependant schema"));
@@ -475,7 +575,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               subInstancePointer,
               schemaLocation + "/properties/" + Pointers.encode(key),
               baseLocation + "/properties/" + Pointers.encode(key),
-              new HashSet<>()
+              new HashSet<>(),
+              dynamicContext
             );
             if (result.getValid()) {
               evaluated.add(key);
@@ -508,7 +609,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                 subInstancePointer,
                 schemaLocation + "/patternProperties/" + Pointers.encode(pattern),
                 baseLocation + "/patternProperties/" + Pointers.encode(pattern),
-                new HashSet<>()
+                new HashSet<>(),
+                dynamicContext
               );
               if (result.getValid()) {
                 evaluated.add(key);
@@ -537,7 +639,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               subInstancePointer,
               schemaLocation + "/additionalProperties",
               baseLocation + "/additionalProperties",
-              new HashSet<>()
+              new HashSet<>(),
+              dynamicContext
             );
             if (result.getValid()) {
               evaluated.add(key);
@@ -563,7 +666,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                 subInstancePointer,
                 schemaLocation + "/unevaluatedProperties",
                 baseLocation + "/unevaluatedProperties",
-                new HashSet<>()
+                new HashSet<>(),
+                dynamicContext
               );
               if (result.getValid()) {
                 evaluated.add(key);
@@ -601,7 +705,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               instanceLocation + "/" + i,
               schemaLocation + "/prefixItems/" + i,
               baseLocation + "/prefixItems/" + i,
-              new HashSet<>()
+              new HashSet<>(),
+              dynamicContext
             );
             evaluated.add(i);
             if (!result.getValid()) {
@@ -628,7 +733,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                 instanceLocation + "/" + i,
                 schemaLocation + "/items/" + i,
                 baseLocation + "/items/" + i,
-                new HashSet<>()
+                new HashSet<>(),
+                dynamicContext
               );
               evaluated.add(i);
               if (!result.getValid()) {
@@ -651,7 +757,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                 instanceLocation + "/" + i,
                 schemaLocation + "/items",
                 baseLocation + "/items",
-                new HashSet<>()
+                new HashSet<>(),
+                dynamicContext
               );
               evaluated.add(i);
               if (!result.getValid()) {
@@ -677,7 +784,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                 instanceLocation + "/" + i,
                 keywordLocation2,
                 baseLocation + "/additionalItems",
-                new HashSet<>()
+                new HashSet<>(),
+                dynamicContext
               );
               evaluated.add(i);
               if (!result.getValid()) {
@@ -707,7 +815,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                 instanceLocation + "/" + i,
                 schemaLocation + "/contains",
                 baseLocation + "/contains",
-                new HashSet<>()
+                new HashSet<>(),
+                dynamicContext
               );
               if (result.getValid()) {
                 evaluated.add(j);
@@ -749,7 +858,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               instanceLocation + "/" + i,
               schemaLocation + "/unevaluatedItems",
               baseLocation + "/unevaluatedItems",
-              new HashSet<>()
+              new HashSet<>(),
+              dynamicContext
             );
             evaluated.add(i);
             if (!result.getValid()) {
@@ -839,17 +949,16 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
           schema.containsKey("format") &&
             !Format.fastFormat(schema.get("format"), (String) instance)
         ) {
-//          switch (draft) {
-//            case DRAFT201909:
-//            case DRAFT202012:
-//              annotations.add(new OutputUnit(instanceLocation, "format", schemaLocation + "/format", "String does not match format \"" + schema.get("format") + "\""));
-//              break;
-//            default:
-              errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"), baseLocation + "/format", "String does not match format \"" + schema.get("format") + "\""));
-//          }
+          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"), baseLocation + "/format", "String does not match format \"" + schema.get("format") + "\""));
         }
         break;
       }
+    }
+
+    if (dynamicAnchor != null) {
+      dynamicContext
+        .get(dynamicAnchor)
+        .removeLast();
     }
 
     return new OutputUnit(errors.isEmpty())
