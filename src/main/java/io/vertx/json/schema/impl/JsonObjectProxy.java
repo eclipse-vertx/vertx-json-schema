@@ -28,6 +28,9 @@ import static java.util.stream.Collectors.toMap;
 public class JsonObjectProxy extends JsonObject {
   private static final JsonFactory factory = new JsonFactory();
 
+  public JsonObjectProxy() {
+  }
+
   public JsonObjectProxy(JsonObject json) {
     super(json.getMap());
   }
