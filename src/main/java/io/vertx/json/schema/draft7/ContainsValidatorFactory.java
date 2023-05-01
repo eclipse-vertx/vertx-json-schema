@@ -52,7 +52,7 @@ public class ContainsValidatorFactory extends BaseSingleSchemaValidatorFactory {
         if (arr.isEmpty()) {
           return Future.failedFuture(ValidationException.create("provided array should not be empty", "contains", in));
         } else {
-          List<Future> futs = new ArrayList<>();
+          List<Future<Void>> futs = new ArrayList<>();
           for (int i = 0; i < arr.size(); i++) {
             futs.add(schema.validateAsync(context.lowerLevelContext(i), arr.get(i)));
           }

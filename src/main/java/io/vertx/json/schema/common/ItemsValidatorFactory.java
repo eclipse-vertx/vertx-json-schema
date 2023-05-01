@@ -57,7 +57,7 @@ public class ItemsValidatorFactory extends BaseSingleSchemaValidatorFactory {
       in = unwrap(in);
       if (in instanceof List<?>) {
         List<?> arr = (List<?>) in;
-        List<Future> futs = new ArrayList<>();
+        List<Future<Void>> futs = new ArrayList<>();
         for (int i = 0; i < arr.size(); i++) {
           context.markEvaluatedItem(i);
           Future<Void> f = schema.validateAsync(context.lowerLevelContext(i), arr.get(i));
@@ -81,7 +81,7 @@ public class ItemsValidatorFactory extends BaseSingleSchemaValidatorFactory {
         return Future.succeededFuture();
       }
 
-      List<Future> futures = new ArrayList<>();
+      List<Future<?>> futures = new ArrayList<>();
       List<?> arr = (List<?>) value;
       for (Object valToDefault : arr) {
         if (schema.isSync()) {

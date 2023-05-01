@@ -155,7 +155,7 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
       Object o = unwrap(in);
       if (o instanceof Map<?, ?>) {
         Map<String, ?> obj = (Map<String, ?>) o;
-        List<Future> futs = new ArrayList<>();
+        List<Future<Void>> futs = new ArrayList<>();
         for (String key : obj.keySet()) {
           boolean found = false;
           if (properties != null && properties.containsKey(key)) {
@@ -262,7 +262,7 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
         return Future.succeededFuture();
       }
 
-      List<Future> futs = new ArrayList<>();
+      List<Future<?>> futs = new ArrayList<>();
       Map<String, Object> obj = (Map<String, Object>) value;
       for (Map.Entry<String, SchemaInternal> e : properties.entrySet()) {
         final String key = e.getKey();

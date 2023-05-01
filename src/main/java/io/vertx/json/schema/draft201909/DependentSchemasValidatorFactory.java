@@ -71,7 +71,7 @@ public class DependentSchemasValidatorFactory implements ValidatorFactory {
       Object o = unwrap(in);
       if (o instanceof Map<?, ?>) {
         Map<String, ?> obj = (Map<String, ?>) o;
-        List<Future> futs = keySchemaDeps
+        List<Future<Void>> futs = keySchemaDeps
           .entrySet()
           .stream()
           .filter(e -> obj.containsKey(e.getKey()))

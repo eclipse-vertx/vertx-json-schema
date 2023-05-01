@@ -92,7 +92,7 @@ public class DependenciesValidatorFactory implements ValidatorFactory {
         } catch (ValidationException e) {
           return Future.failedFuture(e);
         }
-        List<Future> futs = keySchemaDeps
+        List<Future<Void>> futs = keySchemaDeps
           .entrySet()
           .stream()
           .filter(e -> obj.containsKey(e.getKey()))

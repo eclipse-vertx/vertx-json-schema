@@ -97,7 +97,7 @@ public class ItemsValidatorFactory extends io.vertx.json.schema.common.ItemsVali
       in = unwrap(in);
       if (in instanceof List<?>) {
         List<?> arr = (List<?>) in;
-        List<Future> futures = new ArrayList<>();
+        List<Future<Void>> futures = new ArrayList<>();
         for (int i = 0; i < arr.size(); i++) {
           Future<Void> fut;
           if (i >= schemas.length) {
@@ -131,7 +131,7 @@ public class ItemsValidatorFactory extends io.vertx.json.schema.common.ItemsVali
         return Future.succeededFuture();
       }
 
-      List<Future> futures = new ArrayList<>();
+      List<Future<?>> futures = new ArrayList<>();
       value = unwrap(value);
       List<?> arr = (List<?>) value;
       for (int i = 0; i < arr.size(); i++) {

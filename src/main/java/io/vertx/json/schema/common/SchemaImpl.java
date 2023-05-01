@@ -167,7 +167,7 @@ public class SchemaImpl extends BaseMutableStateValidator implements SchemaInter
   }
 
   protected Future<Void> runAsyncValidators(ValidatorContext context, Object in) {
-    List<Future> futures = new ArrayList<>();
+    List<Future<Void>> futures = new ArrayList<>();
     for (Validator validator : validators) {
       if (!validator.isSync()) {
         Future<Void> asyncValidate = ((AsyncValidator) validator).validateAsync(context, in);
