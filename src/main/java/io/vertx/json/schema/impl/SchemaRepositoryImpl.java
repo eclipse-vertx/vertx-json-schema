@@ -6,6 +6,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.*;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SchemaRepositoryImpl implements SchemaRepository {
 
@@ -94,7 +95,7 @@ public class SchemaRepositoryImpl implements SchemaRepository {
     "https://json-schema.org/draft/2020-12/meta/unevaluated"
   );
 
-  private final Map<String, JsonSchema> lookup = new HashMap<>();
+  private final Map<String, JsonSchema> lookup = new ConcurrentHashMap<>();
 
   private final JsonSchemaOptions options;
   private final URL baseUri;
