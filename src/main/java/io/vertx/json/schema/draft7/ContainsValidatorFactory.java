@@ -56,7 +56,7 @@ public class ContainsValidatorFactory extends BaseSingleSchemaValidatorFactory {
           for (int i = 0; i < arr.size(); i++) {
             futs.add(schema.validateAsync(context.lowerLevelContext(i), arr.get(i)));
           }
-          return CompositeFuture.any(futs).compose(
+          return Future.any(futs).compose(
             cf -> {
               IntStream.rangeClosed(0, cf.size())
                 .forEach(i -> {

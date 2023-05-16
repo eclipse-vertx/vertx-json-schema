@@ -116,7 +116,7 @@ public class ItemsValidatorFactory extends io.vertx.json.schema.common.ItemsVali
           }
         }
         if (futures.isEmpty()) return Future.succeededFuture();
-        else return CompositeFuture.all(futures).compose(cf -> Future.succeededFuture());
+        else return Future.all(futures).compose(cf -> Future.succeededFuture());
       } else return Future.succeededFuture();
     }
 
@@ -162,7 +162,7 @@ public class ItemsValidatorFactory extends io.vertx.json.schema.common.ItemsVali
         return Future.succeededFuture();
       }
 
-      return CompositeFuture.all(futures).mapEmpty();
+      return Future.all(futures).mapEmpty();
     }
   }
 

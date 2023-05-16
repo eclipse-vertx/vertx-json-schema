@@ -45,7 +45,7 @@ public class AllOfValidatorFactory extends BaseCombinatorsValidatorFactory {
     @Override
     public Future<Void> validateAsync(ValidatorContext context, Object in) {
       if (isSync()) return validateSyncAsAsync(context, in);
-      return CompositeFuture
+      return Future
         .all(Arrays.stream(schemas).map(s -> s.validateAsync(context, in)).collect(Collectors.toList()))
         .mapEmpty();
     }

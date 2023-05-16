@@ -52,7 +52,7 @@ public abstract class BaseCombinatorsValidator extends BaseMutableStateValidator
       }
       return Future.succeededFuture();
     }
-    return CompositeFuture.all(
+    return Future.all(
       Arrays.stream(schemas)
         .map(s -> s.getOrApplyDefaultAsync(obj))
         .collect(Collectors.toList())

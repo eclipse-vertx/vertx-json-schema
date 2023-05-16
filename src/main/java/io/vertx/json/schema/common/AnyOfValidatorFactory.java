@@ -66,7 +66,7 @@ public class AnyOfValidatorFactory extends BaseCombinatorsValidatorFactory {
     @Override
     public Future<Void> validateAsync(ValidatorContext context, Object in) {
       if (isSync()) return validateSyncAsAsync(context, in);
-      return CompositeFuture
+      return Future
         .any(Arrays.stream(this.schemas).map(s -> s.validateAsync(context, in)).collect(Collectors.toList()))
         .compose(cf -> {
           if (cf.succeeded()) {

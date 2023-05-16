@@ -75,7 +75,7 @@ public class SchemaImpl extends BaseMutableStateValidator implements SchemaInter
     if (input == null) {
       return Future.succeededFuture(getDefaultValue());
     }
-    return CompositeFuture.all(
+    return Future.all(
       Arrays.stream(validators)
         .filter(v -> v instanceof DefaultApplier)
         .map(v -> ((DefaultApplier) v).applyDefaultValue(input))
@@ -181,7 +181,7 @@ public class SchemaImpl extends BaseMutableStateValidator implements SchemaInter
       }
     }
     if (!futures.isEmpty()) {
-      return CompositeFuture.all(futures).compose(cf -> Future.succeededFuture());
+      return Future.all(futures).compose(cf -> Future.succeededFuture());
     } else {
       return Future.succeededFuture();
     }

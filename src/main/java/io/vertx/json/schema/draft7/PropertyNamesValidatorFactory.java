@@ -58,7 +58,7 @@ public class PropertyNamesValidatorFactory extends BaseSingleSchemaValidatorFact
       Object o = unwrap(in);
       if (o instanceof Map<?, ?>) {
         Map<String, ?> obj = (Map<String, ?>) o;
-        return CompositeFuture.all(
+        return Future.all(
           obj.keySet()
             .stream()
             .map(k -> schema.validateAsync(context, k))

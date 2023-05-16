@@ -78,7 +78,7 @@ public class DependentSchemasValidatorFactory implements ValidatorFactory {
           .map(e -> e.getValue().validateAsync(context, in))
           .collect(Collectors.toList());
         if (futs.isEmpty()) return Future.succeededFuture();
-        else return CompositeFuture.all(futs).mapEmpty();
+        else return Future.all(futs).mapEmpty();
       } else return Future.succeededFuture();
     }
 

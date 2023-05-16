@@ -70,7 +70,7 @@ public class ItemsValidatorFactory extends BaseSingleSchemaValidatorFactory {
         if (futs.isEmpty())
           return Future.succeededFuture();
         else
-          return CompositeFuture.all(futs).compose(cf -> Future.succeededFuture());
+          return Future.all(futs).compose(cf -> Future.succeededFuture());
       } else return Future.succeededFuture();
     }
 
@@ -97,7 +97,7 @@ public class ItemsValidatorFactory extends BaseSingleSchemaValidatorFactory {
         return Future.succeededFuture();
       }
 
-      return CompositeFuture.all(futures).mapEmpty();
+      return Future.all(futures).mapEmpty();
     }
   }
 }

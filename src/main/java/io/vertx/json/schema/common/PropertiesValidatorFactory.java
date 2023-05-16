@@ -213,7 +213,7 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
           }
         }
         if (futs.isEmpty()) return Future.succeededFuture();
-        else return CompositeFuture.all(futs).compose(cf -> Future.succeededFuture());
+        else return Future.all(futs).compose(cf -> Future.succeededFuture());
       } else return Future.succeededFuture();
     }
 
@@ -298,7 +298,7 @@ public class PropertiesValidatorFactory implements ValidatorFactory {
         return Future.succeededFuture();
       }
 
-      return CompositeFuture.all(futs).mapEmpty();
+      return Future.all(futs).mapEmpty();
     }
   }
 

@@ -10,7 +10,6 @@
  */
 package io.vertx.json.schema.draft201909;
 
-import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
@@ -67,7 +66,7 @@ public class UnevaluatedItemsValidatorFactory implements ValidatorFactory {
         List<?> arr = (List<?>) o;
         Set<Integer> unevaluatedItems = computeUnevaluatedItems(context, arr);
 
-        return CompositeFuture.all(
+        return Future.all(
           unevaluatedItems
             .stream()
             .map(index -> schema.validateAsync(context.lowerLevelContext(index), arr.get(index)))

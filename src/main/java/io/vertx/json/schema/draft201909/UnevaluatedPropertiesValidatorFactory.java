@@ -67,7 +67,7 @@ public class UnevaluatedPropertiesValidatorFactory implements ValidatorFactory {
         Map<String, ?> obj = (Map<String, ?>) o;
         Set<String> unevaluatedItems = computeUnevaluatedProperties(context, obj);
 
-        return CompositeFuture.all(
+        return Future.all(
           unevaluatedItems
             .stream()
             .map(key -> schema.validateAsync(context.lowerLevelContext(key), obj.get(key)))

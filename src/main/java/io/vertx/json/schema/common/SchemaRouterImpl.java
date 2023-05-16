@@ -162,7 +162,7 @@ public class SchemaRouterImpl implements SchemaRouter {
 
   // Very very expensive method
   public Future<Void> resolveAllSchemas() {
-    return CompositeFuture
+    return Future
       .all(this.registeredSchemas().stream().map(this::solveAllSchemaReferences).collect(Collectors.toList()))
       .mapEmpty();
   }
@@ -185,7 +185,7 @@ public class SchemaRouterImpl implements SchemaRouter {
       }
       RouterNode node = absolutePaths.get(schema.getScope().getURIWithoutFragment());
       node = (RouterNode) schema.getScope().query(node, RouterNodeJsonPointerIterator.INSTANCE);
-      return CompositeFuture.all(
+      return Future.all(
         node
           .reverseFlattened()
           .collect(Collectors.toList())// Must create a collection to avoid ConcurrentModificationException
