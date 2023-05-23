@@ -6,6 +6,8 @@ public class Format {
 
   public static boolean fastFormat(String format, String value) {
     switch (format) {
+      case "byte":
+        return testByte(value);
       case "date":
         return testDate(value);
       case "time":
@@ -46,13 +48,22 @@ public class Format {
     }
   }
 
-  private static final Pattern RELATIVE_JSON_POINTER = Pattern.compile("^(?:0|[1-9][0-9]*)(?:#|(?:\\/(?:[^~/]|~0|~1)*)*)$");
+  private static final Pattern BASE64 = Pattern.compile("^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A" +
+    "-Za-z0-9+/]{2}==)$");
+
+  private static boolean testByte(String value) {
+    return BASE64.matcher(value).find();
+  }
+
+  private static final Pattern RELATIVE_JSON_POINTER = Pattern.compile("^(?:0|[1-9][0-9]*)(?:#|(?:\\/(?:[^~/]|~0|~1)" +
+    "*)*)$");
 
   private static boolean testRelativeJsonPointer(String value) {
     return RELATIVE_JSON_POINTER.matcher(value).find();
   }
 
-  private static final Pattern JSON_POINTER_URI_FRAGMENT = Pattern.compile("^#(?:\\/(?:[a-z0-9_\\-.!$&'()*+,;:=@]|%[0-9a-f]{2}|~0|~1)*)*$", Pattern.CASE_INSENSITIVE);
+  private static final Pattern JSON_POINTER_URI_FRAGMENT = Pattern.compile("^#(?:\\/(?:[a-z0-9_\\-.!$&'()*+,;" +
+    ":=@]|%[0-9a-f]{2}|~0|~1)*)*$", Pattern.CASE_INSENSITIVE);
 
   private static boolean testJsonPointerUriFragment(String value) {
     return JSON_POINTER_URI_FRAGMENT.matcher(value).find();
