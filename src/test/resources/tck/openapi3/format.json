@@ -265,15 +265,48 @@
                 "valid": false
             },
             {
-                "description": "a host name containing illegal characters",
-                "data": "not_a_valid_host_name",
-                "valid": false
+              "description": "a host name containing illegal characters",
+              "data": "not_a_valid_host_name",
+              "valid": false
             },
-            {
-                "description": "a host name with a component too long",
-                "data": "a-vvvvvvvvvvvvvvvveeeeeeeeeeeeeeeerrrrrrrrrrrrrrrryyyyyyyyyyyyyyyy-long-host-name-component",
-                "valid": false
-            }
+          {
+            "description": "a host name with a component too long",
+            "data": "a-vvvvvvvvvvvvvvvveeeeeeeeeeeeeeeerrrrrrrrrrrrrrrryyyyyyyyyyyyyyyy-long-host-name-component",
+            "valid": false
+          }
         ]
-    }
+    },
+  {
+    "description": "validation of binary data (format: byte) a base64 encoded String",
+    "schema": {
+      "format": "byte"
+    },
+    "tests": [
+      {
+        "description": "The String \"This is a base64 encoded String\" base64 encoded",
+        "data": "VGhpcyBpcyBhIGJhc2U2NCBlbmNvZGVkIFN0cmluZw==",
+        "valid": true
+      },
+      {
+        "description": "Accepts symbols like: +, /, =",
+        "data": "sdFd/+==",
+        "valid": true
+      },
+      {
+        "description": "a Base64 String must have at least 4 characters",
+        "data": "VG=",
+        "valid": false
+      },
+      {
+        "description": "a Base64 String cannot have whitespaces",
+        "data": "VG =",
+        "valid": false
+      },
+      {
+        "description": "a Base64 String must have only digits, characters and symbols like: +, /, =",
+        "data": "sdFG$==",
+        "valid": false
+      }
+    ]
+  }
 ]
