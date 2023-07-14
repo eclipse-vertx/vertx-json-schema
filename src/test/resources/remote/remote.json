@@ -1,7 +1,0 @@
-{
-  "hello": {
-    "$id": "hello",
-    "x-id": "hello_def",
-    "type": "string"
-  }
-}
