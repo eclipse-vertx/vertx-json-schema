@@ -25,8 +25,28 @@ public class Keywords {
       return new Keyword("type", Arrays.stream(types).map(SchemaType::getName).collect(Collectors.toList()));
   }
 
+  public static NumberKeyword exclusiveMaximum(double exclusiveMaximum) {
+    return new NumberKeyword("exclusiveMaximum", exclusiveMaximum);
+  }
+
+  public static NumberKeyword maximum(double maximum) {
+    return new NumberKeyword("maximum", maximum);
+  }
+
+  public static NumberKeyword exclusiveMinimum(double exclusiveMinimum) {
+    return new NumberKeyword("exclusiveMinimum", exclusiveMinimum);
+  }
+
+  public static NumberKeyword minimum(double minimum) {
+    return new NumberKeyword("minimum", minimum);
+  }
+
   public static NumberKeyword multipleOf(double multipleOf) {
     return new NumberKeyword("multipleOf", multipleOf);
+  }
+
+  public static StringKeyword format(StringFormat format) {
+    return new StringKeyword("format", format.getName());
   }
 
   public static StringKeyword maxLength(int maxLength) {

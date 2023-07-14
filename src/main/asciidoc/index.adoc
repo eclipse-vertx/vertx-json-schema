@@ -106,19 +106,19 @@ To validate a schema:
 
 == Custom formats
 
-Adding custom formats is not allowed. This may sound like a limitation but it arises from the validation spec.
-Validators are expected to assume unknown formats as valid input, delegating to the application business code the role
-of validator for custom values.
+Adding custom formats is not allowed.This may sound like a limitation but it arises from the validation spec.
+Validators are expected to assume unknown formats as valid input, delegating to the application business code the role of validator for custom values.
 
 == Building your schemas from code
 
-If you want to build schemas from code, you can use the included DSL. Only Draft-7 is supported for this feature.
+If you want to build schemas from code, you can use the included DSL.
+Only Draft-7 is supported for this feature.
 
-To start, add static imports for {@link io.vertx.json.schema.draft7.dsl.Schemas} and {@link io.vertx.json.schema.draft7.dsl.Keywords}
+To start, add static imports for {@link io.vertx.json.schema.common.dsl.Schemas} and {@link io.vertx.json.schema.common.dsl.Keywords}
 
 === Creating the schema
 
-Inside {@link io.vertx.json.schema.draft7.dsl.Schemas} there are static methods to create the schema:
+Inside {@link io.vertx.json.schema.common.dsl.Schemas} there are static methods to create the schema:
 
 [source,$lang]
 ----
@@ -127,8 +127,7 @@ Inside {@link io.vertx.json.schema.draft7.dsl.Schemas} there are static methods 
 
 === Using the keywords
 
-For every schema you can add keywords built with {@link io.vertx.json.schema.draft7.dsl.Keywords} methods,
-depending on the type of the schema:
+For every schema you can add keywords built with {@link io.vertx.json.schema.common.dsl.Keywords} methods, depending on the type of the schema:
 
 [source,$lang]
 ----

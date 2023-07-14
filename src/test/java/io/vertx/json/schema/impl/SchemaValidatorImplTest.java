@@ -2,8 +2,8 @@ package io.vertx.json.schema.impl;
 
 import io.vertx.json.schema.JsonSchema;
 import io.vertx.json.schema.JsonSchemaOptions;
-import io.vertx.json.schema.draft7.dsl.Keywords;
-import io.vertx.json.schema.draft7.dsl.StringFormat;
+import io.vertx.json.schema.common.dsl.Keywords;
+import io.vertx.json.schema.common.dsl.StringFormat;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 
 import static io.vertx.json.schema.Draft.DRAFT201909;
 import static io.vertx.json.schema.common.dsl.Schemas.stringSchema;
-import static io.vertx.json.schema.draft7.dsl.StringFormat.BYTE;
+import static io.vertx.json.schema.common.dsl.StringFormat.BYTE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class SchemaValidatorImplTest {

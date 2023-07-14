@@ -8,7 +8,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
  */
-package io.vertx.json.schema.draft7.dsl;
+package io.vertx.json.schema.common.dsl;
 
 public enum StringFormat {
   BYTE("byte"),
