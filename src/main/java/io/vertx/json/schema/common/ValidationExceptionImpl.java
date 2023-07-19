@@ -1,7 +1,6 @@
 package io.vertx.json.schema.common;
 
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.json.schema.Schema;
 import io.vertx.json.schema.ValidationException;
 
 import java.util.Collection;
@@ -20,10 +19,6 @@ public class ValidationExceptionImpl extends ValidationException {
 
   public ValidationExceptionImpl(String message, Collection<Throwable> causes, String keyword, Object input) {
     super(message + ". Multiple causes: " + formatExceptions(causes), keyword, input);
-  }
-
-  public void setSchema(Schema schema) {
-    this.schema = schema;
   }
 
   public void setInputScope(JsonPointer scope) {

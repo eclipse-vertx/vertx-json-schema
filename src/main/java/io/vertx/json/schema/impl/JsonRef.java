@@ -73,7 +73,7 @@ public final class JsonRef {
   private JsonRef(String ref, JsonObject obj, String prop, String path, String id) {
     this.ref = ref;
     this.obj = obj;
-    this.prop = prop;
+    this.prop = prop; // What's the use of prop? It's never used.
     this.path = path;
     this.id = id;
   }
