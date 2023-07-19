@@ -14,8 +14,6 @@ import io.vertx.codegen.annotations.Fluent;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
-import io.vertx.json.schema.Schema;
-import io.vertx.json.schema.SchemaParser;
 import io.vertx.json.schema.common.SchemaURNId;
 
 import java.net.URI;
@@ -115,13 +113,4 @@ public abstract class SchemaBuilder<T extends SchemaBuilder<?, ?>, K extends Key
     res.put("$id", id.toString());
     return res;
   }
-
-  /**
-   * @deprecated This method creates an hard link to the parser which we want to avoid
-   */
-  @Deprecated
-  public final Schema build(SchemaParser parser) {
-    return parser.parse(toJson(), JsonPointer.fromURI(id));
-  }
-
 }

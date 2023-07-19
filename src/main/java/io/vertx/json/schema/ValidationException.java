@@ -26,7 +26,6 @@ public abstract class ValidationException extends VertxException {
 
   final private String keyword;
   final private Object input;
-  protected Schema schema;
   protected JsonPointer inputScope;
 
   protected ValidationException(String message, String keyword, Object input) {
@@ -101,22 +100,6 @@ public abstract class ValidationException extends VertxException {
   }
 
   /**
-   * @return the schema that failed the validation
-   */
-  public Schema schema() {
-    return schema;
-  }
-
-  /**
-   * @return the scope of the schema that failed the validation
-   * @deprecated use {@link #schema()} and then {@link Schema#getScope()} instead
-   */
-  @Deprecated
-  public JsonPointer scope() {
-    return this.schema.getScope();
-  }
-
-  /**
    * @return the scope of the input, where the validation failed.
    */
   public JsonPointer inputScope() {
@@ -129,7 +112,6 @@ public abstract class ValidationException extends VertxException {
       "message='" + getMessage() + '\'' +
       ", keyword='" + keyword + '\'' +
       ", input=" + input +
-      ", schema=" + schema +
       ((inputScope != null) ? ", inputScope=" + inputScope.toURI() : "") +
       '}';
   }
