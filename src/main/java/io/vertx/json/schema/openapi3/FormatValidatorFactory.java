@@ -34,6 +34,7 @@ public class FormatValidatorFactory extends BaseFormatValidatorFactory {
     predicates.put("byte", createPredicateFromPattern(RegularExpressions.BASE64));
     predicates.put("date", createPredicateFromPattern(RegularExpressions.DATE));
     predicates.put("date-time", createPredicateFromPattern(RegularExpressions.DATETIME));
+    predicates.put("duration", createPredicateFromPattern(RegularExpressions.DURATION));
     predicates.put("ipv4", createPredicateFromPattern(RegularExpressions.IPV4));
     predicates.put("ipv6", createPredicateFromPattern(RegularExpressions.IPV6));
     predicates.put("hostname", createPredicateFromPattern(RegularExpressions.HOSTNAME));
