@@ -1,0 +1,17 @@
+#/items: Items did not match schema
+#/items/$ref: A subschema had errors
+#/items/$ref/oneOf: Instance does not match exactly one subschema (0 matches)
+#/items/$ref/oneOf/0/$ref: A subschema had errors
+#/items/$ref/oneOf/0/$ref/allOf: Instance does not match every subschema
+#/items/$ref/oneOf/0/$ref/allOf/1/properties: Property "value" does not match schema
+#/items/$ref/oneOf/0/$ref/allOf/1/properties/value/type: Instance type string is invalid. Expected integer
+#/items/$ref/oneOf/1/$ref: A subschema had errors
+#/items/$ref/oneOf/1/$ref/allOf: Instance does not match every subschema
+#/items/$ref/oneOf/1/$ref/allOf/1/properties: Property "modelType" does not match schema
+#/items/$ref/oneOf/1/$ref/allOf/1/properties/modelType/pattern: String does not match pattern
+#/items/$ref/oneOf/2/$ref: A subschema had errors
+#/items/$ref/oneOf/2/$ref/allOf: Instance does not match every subschema
+#/items/$ref/oneOf/2/$ref/allOf/1/properties: Property "value" does not match schema
+#/items/$ref/oneOf/2/$ref/allOf/1/properties/value/type: Instance type string is invalid. Expected array
+#/items/$ref/oneOf/2/$ref/allOf/1/properties: Property "modelType" does not match schema
+#/items/$ref/oneOf/2/$ref/allOf/1/properties/modelType/pattern: String does not match pattern

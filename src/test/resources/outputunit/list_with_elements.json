@@ -1,0 +1,110 @@
+{
+  "components": {
+    "schemas": {
+      "Identifiable": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "IntegerElement": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Identifiable"
+          },
+          {
+            "properties": {
+              "value": {
+                "type": "integer"
+              },
+              "modelType": {
+                "type": "string",
+                "pattern": "IntegerElement"
+              }
+            },
+            "required": [
+              "value",
+              "modelType"
+            ]
+          }
+        ]
+      },
+      "StringElement": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Identifiable"
+          },
+          {
+            "properties": {
+              "value": {
+                "type": "string"
+              },
+              "modelType": {
+                "type": "string",
+                "pattern": "StringElement"
+              }
+            },
+            "required": [
+              "value",
+              "modelType"
+            ]
+          }
+        ]
+      },
+      "ListElement": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Identifiable"
+          },
+          {
+            "properties": {
+              "value": {
+                "type": "array",
+                "items": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ListElement_choice"
+                    }
+                  ]
+                }
+              },
+              "modelType": {
+                "type": "string",
+                "pattern": "ListElement"
+              }
+            },
+            "required": [
+              "value",
+              "modelType"
+            ]
+          }
+        ]
+      },
+      "ListElement_choice": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/IntegerElement"
+          },
+          {
+            "$ref": "#/components/schemas/StringElement"
+          },
+          {
+            "$ref": "#/components/schemas/ListElement"
+          }
+        ]
+      },
+      "List": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/ListElement_choice"
+        },
+        "minItems": 1
+      }
+    }
+  }
+}
