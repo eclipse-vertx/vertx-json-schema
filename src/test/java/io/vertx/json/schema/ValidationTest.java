@@ -224,4 +224,32 @@ class ValidationTest {
 
     repository.validator("schema-parent.json").validate(json).checkValidity();
   }
+
+  @Test
+  void testNegativeDurationValidation() throws JsonSchemaValidationException {
+
+    SchemaRepository repository = SchemaRepository.create(new JsonSchemaOptions().setDraft(Draft.DRAFT201909).setBaseUri("app://"));
+
+    repository.dereference("negative-duration.json", JsonSchema.of(
+      new JsonObject("{\n" +
+        "  \"$schema\": \"https://json-schema.org/draft/2019-09/schema\",\n" +
+        "  \"description\": \"A schema with a duration.\",\n" +
+        "  \"type\": \"object\",\n" +
+        "  \"additionalProperties\": false,\n" +
+        "  \"properties\": {\n" +
+        "    \"duration\": {\n" +
+        "      \"description\": \"a duration property\",\n" +
+        "      \"type\": \"string\",\n" +
+        "      \"format\": \"duration\"\n" +
+        "    }\n" +
+        "  }\n" +
+        "}")
+    ));
+
+    JsonObject positiveDuration = new JsonObject().put("duration", "P3W");
+    JsonObject negativeDuration = new JsonObject().put("duration", "-P3W");
+
+    repository.validator("negative-duration.json").validate(positiveDuration).checkValidity();
+    repository.validator("negative-duration.json").validate(negativeDuration).checkValidity();
+  }
 }
