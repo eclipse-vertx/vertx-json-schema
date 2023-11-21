@@ -185,13 +185,14 @@ public class Format {
   private static final Pattern DURATION_A = Pattern.compile("^-?P\\d+([.,]\\d+)?W$");
   private static final Pattern DURATIION_B = Pattern.compile("^-?P[\\dYMDTHS]*(\\d[.,]\\d+)?[YMDHS]$");
   private static final Pattern DURATIION_C = Pattern.compile("^-?P([.,\\d]+Y)?([.,\\d]+M)?([.,\\d]+D)?(T([.,\\d]+H)?([.,\\d]+M)?([.,\\d]+S)?)?$");
+  // Matches to true if a duration string is not a zero duration with a minus sign in front.
+  private static final Pattern DURATION_D = Pattern.compile("^(-.*[1-9].*|[^-].*)$");
 
   private static boolean testDuration(String value) {
     return value.length() > 1 &&
       value.length() < 80 &&
-      (DURATION_A.matcher(value).find() ||
-        (DURATIION_B.matcher(value).find() &&
-          DURATIION_C.matcher(value).find()));
+      (DURATION_A.matcher(value).find() || (DURATIION_B.matcher(value).find() && DURATIION_C.matcher(value).find())) &&
+      (DURATION_D.matcher(value).find());
   }
 
   private static final Pattern FASTDATETIME = Pattern.compile("^\\d\\d\\d\\d-[0-1]\\d-[0-3]\\d[t\\s](?:[0-2]\\d:[0-5]\\d:[0-5]\\d|23:59:60)(?:\\.\\d+)?(?:z|[+-]\\d\\d(?::?\\d\\d)?)$", Pattern.CASE_INSENSITIVE);

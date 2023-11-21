@@ -230,7 +230,7 @@ class ValidationTest {
 
     SchemaRepository repository = SchemaRepository.create(new JsonSchemaOptions().setDraft(Draft.DRAFT201909).setBaseUri("app://"));
 
-    repository.dereference("negative-duration.json", JsonSchema.of(
+    repository.dereference("acceptable-duration.json", JsonSchema.of(
       new JsonObject("{\n" +
         "  \"$schema\": \"https://json-schema.org/draft/2019-09/schema\",\n" +
         "  \"description\": \"A schema with a duration.\",\n" +
@@ -248,8 +248,17 @@ class ValidationTest {
 
     JsonObject positiveDuration = new JsonObject().put("duration", "P3W");
     JsonObject negativeDuration = new JsonObject().put("duration", "-P3W");
+    JsonObject positiveNullDuration = new JsonObject().put("duration", "P0W");
+    JsonObject negativeNullDuration = new JsonObject().put("duration", "-PT0S");
 
-    repository.validator("negative-duration.json").validate(positiveDuration).checkValidity();
-    repository.validator("negative-duration.json").validate(negativeDuration).checkValidity();
+    repository.validator("acceptable-duration.json").validate(positiveDuration).checkValidity();
+    repository.validator("acceptable-duration.json").validate(negativeDuration).checkValidity();
+    repository.validator("acceptable-duration.json").validate(positiveNullDuration).checkValidity();
+    try {
+      repository.validator("acceptable-duration.json").validate(negativeNullDuration).checkValidity();
+      fail("Should have thrown an exception");
+    } catch (JsonSchemaValidationException e) {
+      // OK
+    }
   }
 }
