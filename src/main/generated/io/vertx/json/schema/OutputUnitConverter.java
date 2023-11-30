@@ -17,22 +17,27 @@ public class OutputUnitConverter {
   private static final Base64.Decoder BASE64_DECODER = JsonUtil.BASE64_DECODER;
   private static final Base64.Encoder BASE64_ENCODER = JsonUtil.BASE64_ENCODER;
 
-  public static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, OutputUnit obj) {
+   static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, OutputUnit obj) {
     for (java.util.Map.Entry<String, Object> member : json) {
       switch (member.getKey()) {
+        case "valid":
+          if (member.getValue() instanceof Boolean) {
+            obj.setValid((Boolean)member.getValue());
+          }
+          break;
         case "absoluteKeywordLocation":
           if (member.getValue() instanceof String) {
             obj.setAbsoluteKeywordLocation((String)member.getValue());
           }
           break;
-        case "annotations":
-          if (member.getValue() instanceof JsonArray) {
-            java.util.ArrayList<io.vertx.json.schema.OutputUnit> list =  new java.util.ArrayList<>();
-            ((Iterable<Object>)member.getValue()).forEach( item -> {
-              if (item instanceof JsonObject)
-                list.add(new io.vertx.json.schema.OutputUnit((io.vertx.core.json.JsonObject)item));
-            });
-            obj.setAnnotations(list);
+        case "keywordLocation":
+          if (member.getValue() instanceof String) {
+            obj.setKeywordLocation((String)member.getValue());
+          }
+          break;
+        case "instanceLocation":
+          if (member.getValue() instanceof String) {
+            obj.setInstanceLocation((String)member.getValue());
           }
           break;
         case "error":
@@ -50,37 +55,36 @@ public class OutputUnitConverter {
             obj.setErrors(list);
           }
           break;
-        case "instanceLocation":
-          if (member.getValue() instanceof String) {
-            obj.setInstanceLocation((String)member.getValue());
-          }
-          break;
-        case "keywordLocation":
-          if (member.getValue() instanceof String) {
-            obj.setKeywordLocation((String)member.getValue());
-          }
-          break;
-        case "valid":
-          if (member.getValue() instanceof Boolean) {
-            obj.setValid((Boolean)member.getValue());
+        case "annotations":
+          if (member.getValue() instanceof JsonArray) {
+            java.util.ArrayList<io.vertx.json.schema.OutputUnit> list =  new java.util.ArrayList<>();
+            ((Iterable<Object>)member.getValue()).forEach( item -> {
+              if (item instanceof JsonObject)
+                list.add(new io.vertx.json.schema.OutputUnit((io.vertx.core.json.JsonObject)item));
+            });
+            obj.setAnnotations(list);
           }
           break;
       }
     }
   }
 
-  public static void toJson(OutputUnit obj, JsonObject json) {
+   static void toJson(OutputUnit obj, JsonObject json) {
     toJson(obj, json.getMap());
   }
 
-  public static void toJson(OutputUnit obj, java.util.Map<String, Object> json) {
+   static void toJson(OutputUnit obj, java.util.Map<String, Object> json) {
+    if (obj.getValid() != null) {
+      json.put("valid", obj.getValid());
+    }
     if (obj.getAbsoluteKeywordLocation() != null) {
       json.put("absoluteKeywordLocation", obj.getAbsoluteKeywordLocation());
     }
-    if (obj.getAnnotations() != null) {
-      JsonArray array = new JsonArray();
-      obj.getAnnotations().forEach(item -> array.add(item.toJson()));
-      json.put("annotations", array);
+    if (obj.getKeywordLocation() != null) {
+      json.put("keywordLocation", obj.getKeywordLocation());
+    }
+    if (obj.getInstanceLocation() != null) {
+      json.put("instanceLocation", obj.getInstanceLocation());
     }
     if (obj.getError() != null) {
       json.put("error", obj.getError());
@@ -90,14 +94,10 @@ public class OutputUnitConverter {
       obj.getErrors().forEach(item -> array.add(item.toJson()));
       json.put("errors", array);
     }
-    if (obj.getInstanceLocation() != null) {
-      json.put("instanceLocation", obj.getInstanceLocation());
-    }
-    if (obj.getKeywordLocation() != null) {
-      json.put("keywordLocation", obj.getKeywordLocation());
-    }
-    if (obj.getValid() != null) {
-      json.put("valid", obj.getValid());
+    if (obj.getAnnotations() != null) {
+      JsonArray array = new JsonArray();
+      obj.getAnnotations().forEach(item -> array.add(item.toJson()));
+      json.put("annotations", array);
     }
   }
 }
