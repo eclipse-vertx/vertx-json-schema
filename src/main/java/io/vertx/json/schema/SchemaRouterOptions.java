@@ -12,6 +12,7 @@ package io.vertx.json.schema;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.annotations.JsonGen;
 import io.vertx.core.json.JsonObject;
 
 import java.util.HashMap;
@@ -22,7 +23,8 @@ import java.util.Map;
  * @deprecated users should migrate to the new validator
  */
 @Deprecated
-@DataObject(generateConverter = true)
+@DataObject
+@JsonGen(publicConverter = false)
 public class SchemaRouterOptions {
 
   private Map<String, String> authQueryParams;

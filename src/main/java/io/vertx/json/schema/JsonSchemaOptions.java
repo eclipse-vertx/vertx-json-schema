@@ -11,6 +11,7 @@
 package io.vertx.json.schema;
 
 import io.vertx.codegen.annotations.DataObject;
+import io.vertx.codegen.annotations.JsonGen;
 import io.vertx.core.json.JsonObject;
 
 import java.util.Objects;
@@ -20,7 +21,8 @@ import java.util.Objects;
  *
  * @author Paulo Lopes
  */
-@DataObject(generateConverter = true)
+@DataObject
+@JsonGen(publicConverter = false)
 public class JsonSchemaOptions {
 
   /**
