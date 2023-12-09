@@ -1,5 +1,6 @@
 package io.vertx.json.schema.impl;
 
+import java.time.format.DateTimeFormatter;
 import java.util.regex.Pattern;
 
 public class Format {
@@ -209,6 +210,14 @@ public class Format {
   private static final Pattern FASTDATE = Pattern.compile("^\\d\\d\\d\\d-[0-1]\\d-[0-3]\\d$");
 
   private static boolean testDate(String value) {
-    return FASTDATE.matcher(value).find();
+    if (!FASTDATE.matcher(value).matches()) {
+      return false;
+    }
+    try {
+      DateTimeFormatter.ISO_DATE.parse(value);
+      return true;
+    } catch (java.time.format.DateTimeParseException e) {
+      return false;
+    }
   }
 }
