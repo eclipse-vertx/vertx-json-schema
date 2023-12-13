@@ -17,7 +17,7 @@ public class SchemaRouterOptionsConverter {
   private static final Base64.Decoder BASE64_DECODER = JsonUtil.BASE64_DECODER;
   private static final Base64.Encoder BASE64_ENCODER = JsonUtil.BASE64_ENCODER;
 
-  public static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, SchemaRouterOptions obj) {
+   static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, SchemaRouterOptions obj) {
     for (java.util.Map.Entry<String, Object> member : json) {
       switch (member.getKey()) {
         case "authHeaders":
@@ -32,11 +32,11 @@ public class SchemaRouterOptionsConverter {
     }
   }
 
-  public static void toJson(SchemaRouterOptions obj, JsonObject json) {
+   static void toJson(SchemaRouterOptions obj, JsonObject json) {
     toJson(obj, json.getMap());
   }
 
-  public static void toJson(SchemaRouterOptions obj, java.util.Map<String, Object> json) {
+   static void toJson(SchemaRouterOptions obj, java.util.Map<String, Object> json) {
     if (obj.getAuthHeaders() != null) {
       JsonObject map = new JsonObject();
       obj.getAuthHeaders().forEach((key, value) -> map.put(key, value));
