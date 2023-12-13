@@ -1,6 +1,7 @@
 package io.vertx.json.schema.impl;
 
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.regex.Pattern;
 
 public class Format {
@@ -216,7 +217,7 @@ public class Format {
     try {
       DateTimeFormatter.ISO_DATE.parse(value);
       return true;
-    } catch (java.time.format.DateTimeParseException e) {
+    } catch (DateTimeParseException e) {
       return false;
     }
   }
