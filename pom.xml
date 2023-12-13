@@ -24,12 +24,12 @@
   </parent>
 
   <artifactId>vertx-json-schema</artifactId>
-  <version>4.5.1-SNAPSHOT</version>
+  <version>4.5.1</version>
 
   <name>Vert.x JSON Schema</name>
 
   <properties>
-    <stack.version>4.5.1-SNAPSHOT</stack.version>
+    <stack.version>4.5.1</stack.version>
     <mockito.version>3.3.0</mockito.version>
     <assertj.version>3.15.0</assertj.version>
     <doc.skip>false</doc.skip>
