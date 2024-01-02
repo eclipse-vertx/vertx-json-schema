@@ -185,7 +185,7 @@ public class Format {
   private static final Pattern DURATION_A = Pattern.compile("^P\\d+([.,]\\d+)?W$");
   private static final Pattern DURATIION_B = Pattern.compile("^P[\\dYMDTHS]*(\\d[.,]\\d+)?[YMDHS]$");
   private static final Pattern DURATIION_C = Pattern.compile("^P([.,\\d]+Y)?([.,\\d]+M)?([.,\\d]+D)?(T([.,\\d]+H)?([.,\\d]+M)?([.,\\d]+S)?)?$");
-  private static final Pattern DURATION_D = Pattern.compile("^-?P(-?\\d+(\\.\\d+)?Y)?(-?\\d+(\\.\\d+)?M)?(-?\\d+(\\.\\d+)?W)?(-?\\d+(\\.\\d+)?D)?(T(-?\\d+(\\.\\d+)?H)?(-?\\d+(\\.\\d+)?M)?(-?\\d+(\\.\\d+)?S)?)?$");
+  private static final Pattern DURATION_D = Pattern.compile("^-?P(-?\\d+([.,]\\d+)?Y)?(-?\\d+([.,]\\d+)?M)?(-?\\d+([.,]\\d+)?W)?(-?\\d+([.,]\\d+)?D)?(T(-?\\d+([.,]\\d+)?H)?(-?\\d+([.,]\\d+)?M)?(-?\\d+([.,]\\d+)?S)?)?$");
 
   private static boolean testDuration(String value) {
     return value.length() > 1 &&

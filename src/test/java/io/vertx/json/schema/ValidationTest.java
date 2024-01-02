@@ -286,5 +286,6 @@ class ValidationTest {
     shouldValidate.accept("P1Y2M3W4DT5H6M7S");
     shouldValidate.accept("P-1Y-2M-3W-4DT-5H-6M-7S");
     shouldValidate.accept("-P-1.0Y2.2M-33.4W-4.2DT5H-7S");
+    shouldValidate.accept("-P-1,0Y2,2M-33,4W-4,2DT5H-7S");
   }
 }
