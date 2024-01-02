@@ -9,6 +9,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
+import java.util.function.Consumer;
+
 @ExtendWith(VertxExtension.class)
 class ValidationTest {
 
@@ -226,7 +228,7 @@ class ValidationTest {
   }
 
   @Test
-  void testNegativeDurationValidation() throws JsonSchemaValidationException {
+  void testDurationValidation() {
 
     SchemaRepository repository = SchemaRepository.create(new JsonSchemaOptions().setDraft(Draft.DRAFT201909).setBaseUri("app://"));
 
@@ -246,19 +248,43 @@ class ValidationTest {
         "}")
     ));
 
-    JsonObject positiveDuration = new JsonObject().put("duration", "P3W");
-    JsonObject negativeDuration = new JsonObject().put("duration", "-P3W");
-    JsonObject positiveNullDuration = new JsonObject().put("duration", "P0W");
-    JsonObject negativeNullDuration = new JsonObject().put("duration", "-PT0S");
+    Consumer<String> shouldValidate = duration -> {
+      try {
+        repository.validator("acceptable-duration.json").validate(new JsonObject().put("duration", duration)).checkValidity();
+      } catch (JsonSchemaValidationException ignored) {
+        fail("Duration " + duration + " should pass validation.");
+      }
+    };
 
-    repository.validator("acceptable-duration.json").validate(positiveDuration).checkValidity();
-    repository.validator("acceptable-duration.json").validate(negativeDuration).checkValidity();
-    repository.validator("acceptable-duration.json").validate(positiveNullDuration).checkValidity();
-    try {
-      repository.validator("acceptable-duration.json").validate(negativeNullDuration).checkValidity();
-      fail("Should have thrown an exception");
-    } catch (JsonSchemaValidationException e) {
-      // OK
-    }
+    Consumer<String> shouldNotValidate = duration -> {
+      try {
+        repository.validator("acceptable-duration.json").validate(new JsonObject().put("duration", duration)).checkValidity();
+        fail("Duration " + duration + " should not pass validation.");
+      } catch (JsonSchemaValidationException ignored) {}
+    };
+
+    shouldValidate.accept("PT0S");
+    shouldValidate.accept("-PT0S");
+    shouldValidate.accept("PT-0S");
+    shouldValidate.accept("P1Y");
+    shouldValidate.accept("P1M");
+    shouldValidate.accept("P1W");
+    shouldValidate.accept("P1D");
+    shouldValidate.accept("PT1H");
+    shouldValidate.accept("PT1M");
+    shouldValidate.accept("PT1S");
+    shouldValidate.accept("P1Y2M");
+    shouldValidate.accept("P1M2W");
+    shouldValidate.accept("P1W2D");
+    shouldNotValidate.accept("P1M2Y");
+    shouldNotValidate.accept("P1W2M");
+    shouldNotValidate.accept("P1D2W");
+    shouldValidate.accept("PT1H2M");
+    shouldValidate.accept("PT1M2S");
+    shouldNotValidate.accept("PT1M2H");
+    shouldNotValidate.accept("PT1S2M");
+    shouldValidate.accept("P1Y2M3W4DT5H6M7S");
+    shouldValidate.accept("P-1Y-2M-3W-4DT-5H-6M-7S");
+    shouldValidate.accept("-P-1.0Y2.2M-33.4W-4.2DT5H-7S");
   }
 }
