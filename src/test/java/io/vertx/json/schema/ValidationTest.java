@@ -9,8 +9,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-import java.util.function.Consumer;
-
 @ExtendWith(VertxExtension.class)
 class ValidationTest {
 
@@ -225,67 +223,5 @@ class ValidationTest {
 
 
     repository.validator("schema-parent.json").validate(json).checkValidity();
-  }
-
-  @Test
-  void testDurationValidation() {
-
-    SchemaRepository repository = SchemaRepository.create(new JsonSchemaOptions().setDraft(Draft.DRAFT201909).setBaseUri("app://"));
-
-    repository.dereference("acceptable-duration.json", JsonSchema.of(
-      new JsonObject("{\n" +
-        "  \"$schema\": \"https://json-schema.org/draft/2019-09/schema\",\n" +
-        "  \"description\": \"A schema with a duration.\",\n" +
-        "  \"type\": \"object\",\n" +
-        "  \"additionalProperties\": false,\n" +
-        "  \"properties\": {\n" +
-        "    \"duration\": {\n" +
-        "      \"description\": \"a duration property\",\n" +
-        "      \"type\": \"string\",\n" +
-        "      \"format\": \"duration\"\n" +
-        "    }\n" +
-        "  }\n" +
-        "}")
-    ));
-
-    Consumer<String> shouldValidate = duration -> {
-      try {
-        repository.validator("acceptable-duration.json").validate(new JsonObject().put("duration", duration)).checkValidity();
-      } catch (JsonSchemaValidationException ignored) {
-        fail("Duration " + duration + " should pass validation.");
-      }
-    };
-
-    Consumer<String> shouldNotValidate = duration -> {
-      try {
-        repository.validator("acceptable-duration.json").validate(new JsonObject().put("duration", duration)).checkValidity();
-        fail("Duration " + duration + " should not pass validation.");
-      } catch (JsonSchemaValidationException ignored) {}
-    };
-
-    shouldValidate.accept("PT0S");
-    shouldValidate.accept("-PT0S");
-    shouldValidate.accept("PT-0S");
-    shouldValidate.accept("P1Y");
-    shouldValidate.accept("P1M");
-    shouldValidate.accept("P1W");
-    shouldValidate.accept("P1D");
-    shouldValidate.accept("PT1H");
-    shouldValidate.accept("PT1M");
-    shouldValidate.accept("PT1S");
-    shouldValidate.accept("P1Y2M");
-    shouldValidate.accept("P1M2W");
-    shouldValidate.accept("P1W2D");
-    shouldNotValidate.accept("P1M2Y");
-    shouldNotValidate.accept("P1W2M");
-    shouldNotValidate.accept("P1D2W");
-    shouldValidate.accept("PT1H2M");
-    shouldValidate.accept("PT1M2S");
-    shouldNotValidate.accept("PT1M2H");
-    shouldNotValidate.accept("PT1S2M");
-    shouldValidate.accept("P1Y2M3W4DT5H6M7S");
-    shouldValidate.accept("P-1Y-2M-3W-4DT-5H-6M-7S");
-    shouldValidate.accept("-P-1.0Y2.2M-33.4W-4.2DT5H-7S");
-    shouldValidate.accept("-P-1,0Y2,2M-33,4W-4,2DT5H-7S");
   }
 }

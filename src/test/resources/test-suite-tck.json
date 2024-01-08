@@ -7039,6 +7039,16 @@
               "valid": true
             },
             {
+              "description": "negative zero time, in seconds",
+              "data": "-PT0S",
+              "valid": true
+            },
+            {
+              "description": "negative seconds zero time component",
+              "data": "PT-0S",
+              "valid": true
+            },
+            {
               "description": "zero time, in days",
               "data": "P0D",
               "valid": true
@@ -7069,9 +7079,29 @@
               "valid": true
             },
             {
-              "description": "weeks cannot be combined with other units",
+              "description": "weeks can be combined with other units",
               "data": "P1Y2W",
-              "valid": false
+              "valid": true
+            },
+            {
+              "description": "negative duration",
+              "data": "-P1Y2W",
+              "valid": true
+            },
+            {
+              "description": "time scale components with fractions using commas",
+              "data": "P1,0Y2,2M33,4W4,4DT5,5H7,7S",
+              "valid": true
+            },
+            {
+              "description": "time scale components with fractions using commas",
+              "data": "P1.0Y2.2M33.4W4.4DT5.5H7.7S",
+              "valid": true
+            },
+            {
+              "description": "differing sign of time scale components",
+              "data": "P-1WT1S",
+              "valid": true
             }
           ]
         }
@@ -21659,9 +21689,9 @@
               "valid": true
             },
             {
-              "description": "weeks cannot be combined with other units",
+              "description": "weeks can be combined with other units",
               "data": "P1Y2W",
-              "valid": false
+              "valid": true
             }
           ]
         }

@@ -182,18 +182,18 @@ public class Format {
     return NOT_URI_FRAGMENT.matcher(value).find() && URI_PATTERN.matcher(value).find();
   }
 
-  private static final Pattern DURATION_A = Pattern.compile("^P\\d+([.,]\\d+)?W$");
-  private static final Pattern DURATIION_B = Pattern.compile("^P[\\dYMDTHS]*(\\d[.,]\\d+)?[YMDHS]$");
-  private static final Pattern DURATIION_C = Pattern.compile("^P([.,\\d]+Y)?([.,\\d]+M)?([.,\\d]+D)?(T([.,\\d]+H)?([.,\\d]+M)?([.,\\d]+S)?)?$");
-  private static final Pattern DURATION_D = Pattern.compile("^-?P(-?\\d+([.,]\\d+)?Y)?(-?\\d+([.,]\\d+)?M)?(-?\\d+([.,]\\d+)?W)?(-?\\d+([.,]\\d+)?D)?(T(-?\\d+([.,]\\d+)?H)?(-?\\d+([.,]\\d+)?M)?(-?\\d+([.,]\\d+)?S)?)?$");
+  private static final Pattern ISO8601_DURATION = Pattern.compile("^-?P(?=.*[YMWDHMS])(-?\\d+([.,]\\d+)?Y)?(-?\\d+([.,]\\d+)?M)?(-?\\d+([.,]\\d+)?W)?(-?\\d+([.,]\\d+)?D)?(T(?=.*[HMS])(-?\\d+([.,]\\d+)?H)?(-?\\d+([.,]\\d+)?M)?(-?\\d+([.,]\\d+)?S)?)?$");
 
+  /**
+   * Checks if the given value is a valid duration.
+   *
+   * @param  value  the value to be checked
+   * @return        true if the value is a valid duration, false otherwise
+   */
   private static boolean testDuration(String value) {
     return value.length() > 1 &&
       value.length() < 80 &&
-      (DURATION_A.matcher(value).find() ||
-        (DURATIION_B.matcher(value).find() &&
-          DURATIION_C.matcher(value).find())) ||
-      DURATION_D.matcher(value).find();
+      ISO8601_DURATION.matcher(value).find();
   }
 
   private static final Pattern FASTDATETIME = Pattern.compile("^\\d\\d\\d\\d-[0-1]\\d-[0-3]\\d[t\\s](?:[0-2]\\d:[0-5]\\d:[0-5]\\d|23:59:60)(?:\\.\\d+)?(?:z|[+-]\\d\\d(?::?\\d\\d)?)$", Pattern.CASE_INSENSITIVE);
