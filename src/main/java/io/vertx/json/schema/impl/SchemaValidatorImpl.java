@@ -260,6 +260,17 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       if (!"number".equals(instanceType) || !Numbers.isInteger(instance)) {
         errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/type"), baseLocation + "/type", "Instance type " + instanceType + " is invalid. Expected " + schema.get("type")));
       }
+
+      String intFormat = schema.get("format");
+      if ("int32".equalsIgnoreCase(intFormat) && !(instance instanceof Integer)) {
+        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"), baseLocation + "/format", "Integer does not match format \"" + intFormat + "\""));
+      }
+
+      if ("int64".equalsIgnoreCase(intFormat) && !(instance instanceof Integer || instance instanceof Long)) {
+        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"), baseLocation + "/format", "Integer does not match format \"" + intFormat + "\""));
+      }
+
+
     } else if (schema.containsKey("type") && !instanceType.equals(schema.get("type"))) {
       errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/type"), baseLocation + "/type", "Instance type " + instanceType + " is invalid. Expected " + schema.get("type")));
     }
@@ -930,6 +941,28 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
             errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/multipleOf"), baseLocation + "/multipleOf", instance + " is not a multiple of " + schema.get("multipleOf")));
           }
         }
+        String numberFormat = schema.get("format");
+
+
+        if ("float".equalsIgnoreCase(numberFormat)) {
+          if (!(instance instanceof  Float)) {
+            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"), baseLocation + "/format", "Number does not match format \"" + numberFormat + "\""));
+          } else if (((Float) instance).isInfinite()) {
+            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"), baseLocation + "/format", "Number does not match format \"" + numberFormat + "\""));
+          }
+
+        }
+
+        if ("double".equalsIgnoreCase(numberFormat)) {
+          if (!(instance instanceof Double || instance instanceof Float)) {
+            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"), baseLocation + "/format", "Number does not match format \"" + numberFormat + "\""));
+          } else if (instance instanceof Float && ((Float) instance).isInfinite()) {
+            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"), baseLocation + "/format", "Number does not match format \"" + numberFormat + "\""));
+          } else if (instance instanceof Double && ((Double) instance).isInfinite()) {
+            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"), baseLocation + "/format", "Number does not match format \"" + numberFormat + "\""));
+          }
+        }
+
         break;
       case "string": {
         final int length =
