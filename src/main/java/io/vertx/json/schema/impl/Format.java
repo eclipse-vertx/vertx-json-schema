@@ -226,14 +226,14 @@ public class Format {
   }
 
   private static final Pattern IDN_HOSTNAME_PUNY = Pattern.compile("^xn--[a-z0-9-.]*$");
-  private static final Pattern STARTS_WITH = Pattern
+  private static final Pattern IDN_HOSTNAME_UNICODE = Pattern
     .compile("^\\p{gc=Mc}|\\p{gc=Me}|\\p{gc=Mn}|.*\\u302e.*|(^.*?[^l]\\u00b7.|.*l\\u00b7[^l]|\\u00b7$|^\\u00b7.)|(.*\\u30fB[^\\u3041\\u30A1\\u4e08].*|^\\u30fB$)|(^[\\u05f3\\u05f4].*)$"
       , Pattern.UNICODE_CHARACTER_CLASS);
 
 
   private static boolean testIdnHostname(String value) {
     try {
-      return !STARTS_WITH.matcher(value).find() && IDN_HOSTNAME_PUNY.matcher(IDN.toASCII(value)).find();
+      return !IDN_HOSTNAME_UNICODE.matcher(value).find() && IDN_HOSTNAME_PUNY.matcher(IDN.toASCII(value)).find();
     } catch(Exception e) {
       return false;
     }
