@@ -1,7 +1,10 @@
 package io.vertx.json.schema.impl;
 
+import java.net.IDN;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 public class Format {
@@ -44,6 +47,8 @@ public class Format {
         return testJsonPointerUriFragment(value);
       case "relative-json-pointer":
         return testRelativeJsonPointer(value);
+      case "idn-hostname":
+        return testIdHostname(value);
       default:
         // unknown formats are assumed true, e.g.: idn-hostname, binary
         return true;
@@ -221,4 +226,19 @@ public class Format {
       return false;
     }
   }
+
+  private static final Pattern IDN_HOSTNAME_PUNY = Pattern.compile("^xn--[a-z0-9-.]*$");
+  private static final Pattern IDN_HOSTNAME = Pattern.compile("^(!?〮).*$", Pattern.UNICODE_CHARACTER_CLASS);
+  private static final Pattern STARTS_WITH = Pattern.compile("^\\p{gc=Mc}|\\p{gc=Me}|\\p{gc=Mn}|.*〮.*$", Pattern.UNICODE_CHARACTER_CLASS);
+
+
+  private static boolean testIdHostname(String value) {
+    try {
+      return !STARTS_WITH.matcher(value).find() && IDN_HOSTNAME_PUNY.matcher(IDN.toASCII(value)).find();
+    } catch(Exception e) {
+      return false;
+    }
+  }
+
+
 }
