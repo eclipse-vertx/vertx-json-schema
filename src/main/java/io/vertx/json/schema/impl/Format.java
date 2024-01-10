@@ -1,11 +1,8 @@
 package io.vertx.json.schema.impl;
 
 import java.net.IDN;
-import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 public class Format {
@@ -229,8 +226,7 @@ public class Format {
   }
 
   private static final Pattern IDN_HOSTNAME_PUNY = Pattern.compile("^xn--[a-z0-9-.]*$");
-  private static final Pattern IDN_HOSTNAME = Pattern.compile("^(!?〮).*$", Pattern.UNICODE_CHARACTER_CLASS);
-  private static final Pattern STARTS_WITH = Pattern.compile("^\\p{gc=Mc}|\\p{gc=Me}|\\p{gc=Mn}|.*〮.*$", Pattern.UNICODE_CHARACTER_CLASS);
+  private static final Pattern STARTS_WITH = Pattern.compile("^\\p{gc=Mc}|\\p{gc=Me}|\\p{gc=Mn}|.*〮.*|(^.*?[^l]·.|.*l·[^l]|·$|^·.)$", Pattern.UNICODE_CHARACTER_CLASS);
 
 
   private static boolean testIdHostname(String value) {
