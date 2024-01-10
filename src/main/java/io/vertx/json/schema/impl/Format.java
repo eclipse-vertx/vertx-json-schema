@@ -1,6 +1,7 @@
 package io.vertx.json.schema.impl;
 
 import java.net.IDN;
+import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.HashSet;
@@ -206,7 +207,7 @@ public class Format {
   }
 
   // date-time: http://tools.ietf.org/html/rfc3339#section-5.6
-  private static final Pattern FASTTIME = Pattern.compile("^(?:[0-2]\\d:[0-5]\\d:[0-5]\\d|23:59:60[Z+].*)(?:\\.\\d+)?(?:z|[+-]\\d\\d(?::?\\d\\d)?)?$", Pattern.CASE_INSENSITIVE);
+  private static final Pattern FASTTIME = Pattern.compile("^(?:[0-2]\\d:[0-5]\\d:[0-5]\\d|23:59:60.*)(?:\\.\\d+)?(?:z|[+-]\\d\\d(?::?\\d\\d)?)?$", Pattern.CASE_INSENSITIVE);
 
   private static boolean testTime(String value) {
     return FASTTIME.matcher(value).find();
