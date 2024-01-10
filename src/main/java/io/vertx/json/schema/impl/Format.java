@@ -46,7 +46,7 @@ public class Format {
       case "relative-json-pointer":
         return testRelativeJsonPointer(value);
       case "idn-hostname":
-        return testIdHostname(value);
+        return testIdnHostname(value);
       default:
         // unknown formats are assumed true, e.g.: idn-hostname, binary
         return true;
@@ -204,7 +204,7 @@ public class Format {
   }
 
   // date-time: http://tools.ietf.org/html/rfc3339#section-5.6
-  private static final Pattern FASTTIME = Pattern.compile("^(?:[0-2]\\d:[0-5]\\d:[0-5]\\d|23:59:60.*)(?:\\.\\d+)?(?:z|[+-]\\d\\d(?::?\\d\\d)?)?$", Pattern.CASE_INSENSITIVE);
+  private static final Pattern FASTTIME = Pattern.compile("^(?:[0-2]\\d:[0-5]\\d:[0-5]\\d|23:59:60)(?:\\.\\d+)?(?:z|[+-]\\d\\d(?::?\\d\\d)?)?$", Pattern.CASE_INSENSITIVE);
 
   private static boolean testTime(String value) {
     return FASTTIME.matcher(value).find();
@@ -226,10 +226,12 @@ public class Format {
   }
 
   private static final Pattern IDN_HOSTNAME_PUNY = Pattern.compile("^xn--[a-z0-9-.]*$");
-  private static final Pattern STARTS_WITH = Pattern.compile("^\\p{gc=Mc}|\\p{gc=Me}|\\p{gc=Mn}|.*〮.*|(^.*?[^l]·.|.*l·[^l]|·$|^·.)$", Pattern.UNICODE_CHARACTER_CLASS);
+  private static final Pattern STARTS_WITH = Pattern
+    .compile("^\\p{gc=Mc}|\\p{gc=Me}|\\p{gc=Mn}|.*\\u302e.*|(^.*?[^l]\\u00b7.|.*l\\u00b7[^l]|\\u00b7$|^\\u00b7.)|(.*\\u30fB[^\\u3041\\u30A1\\u4e08].*|^\\u30fB$)|(^[\\u05f3\\u05f4].*)$"
+      , Pattern.UNICODE_CHARACTER_CLASS);
 
 
-  private static boolean testIdHostname(String value) {
+  private static boolean testIdnHostname(String value) {
     try {
       return !STARTS_WITH.matcher(value).find() && IDN_HOSTNAME_PUNY.matcher(IDN.toASCII(value)).find();
     } catch(Exception e) {
