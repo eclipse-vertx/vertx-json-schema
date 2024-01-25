@@ -38,10 +38,6 @@ public class Utils {
 
     // Check if an object is smaller (bit wise) or equal to (bit wise) the size of an int32 number.
     public static boolean isSmallerOrEqualToThanInteger(Object instance) {
-      if (!isInteger(instance)) {
-        return false;
-      }
-
       return instance instanceof Byte || instance instanceof Short || instance instanceof Integer;
     }
 
