@@ -225,15 +225,25 @@ public class Format {
     }
   }
 
+  //IDN Puny code is only ever in this format. xn--abc.xyz
   private static final Pattern IDN_HOSTNAME_PUNY = Pattern.compile("^xn--[a-z0-9-.]*$");
+
+  // This is checking various other combinations of invalid characters/combinations of invalid characters.
   private static final Pattern IDN_HOSTNAME_UNICODE = Pattern
-    .compile("^\\p{gc=Mc}|\\p{gc=Me}|\\p{gc=Mn}|.*\\u302e.*|(^.*?[^l]\\u00b7.|.*l\\u00b7[^l]|\\u00b7$|^\\u00b7.)|(.*\\u30fB[^\\u3041\\u30A1\\u4e08].*|^\\u30fB$)|(^[\\u05f3\\u05f4].*)$"
+    .compile("^.*\\u302e.*|(^.*?[^l]\\u00b7.|.*l\\u00b7[^l]|\\u00b7$|^\\u00b7.)|(.*\\u30fB[^\\u3041\\u30A1\\u4e08].*|^\\u30fB$)|(^[\\u05f3\\u05f4].*)$"
       , Pattern.UNICODE_CHARACTER_CLASS);
+
+  // This is checking the start of the word for Mc,Me or Mn characters.
+  // Mc -> Spacing_Combining_Mark
+  // Me -> Enclosing_Mark
+  // Mn -> Non_Spacing_Mark (excluding if Virma \\u094d follows
+  private static final Pattern IDN_HOSTNAME_STARTING_ERRORS = Pattern
+    .compile("^\\p{gc=Mc}|^\\p{gc=Me}|^\\p{gc=Mn}(?!\\u094d)", Pattern.UNICODE_CHARACTER_CLASS);
 
 
   private static boolean testIdnHostname(String value) {
     try {
-      return !IDN_HOSTNAME_UNICODE.matcher(value).find() && IDN_HOSTNAME_PUNY.matcher(IDN.toASCII(value)).find();
+      return !IDN_HOSTNAME_STARTING_ERRORS.matcher(value).find() && !IDN_HOSTNAME_UNICODE.matcher(value).find() && IDN_HOSTNAME_PUNY.matcher(IDN.toASCII(value)).find();
     } catch(Exception e) {
       return false;
     }
