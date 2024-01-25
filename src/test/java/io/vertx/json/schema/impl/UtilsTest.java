@@ -33,4 +33,16 @@ class UtilsTest {
     assertThat(Utils.Pointers.encode("percent%field"))
       .isEqualTo("percent%25field");
   }
+
+  @Test
+  public void testIsSmallerOrEqualToThanInteger() {
+    assertThat(Utils.Numbers.isSmallerOrEqualToThanInteger(Byte.MAX_VALUE)).isTrue();
+    assertThat(Utils.Numbers.isSmallerOrEqualToThanInteger(Byte.MIN_VALUE)).isTrue();
+    assertThat(Utils.Numbers.isSmallerOrEqualToThanInteger(Short.MAX_VALUE)).isTrue();
+    assertThat(Utils.Numbers.isSmallerOrEqualToThanInteger(Short.MIN_VALUE)).isTrue();
+    assertThat(Utils.Numbers.isSmallerOrEqualToThanInteger(Integer.MAX_VALUE)).isTrue();
+    assertThat(Utils.Numbers.isSmallerOrEqualToThanInteger(Integer.MIN_VALUE)).isTrue();
+    assertThat(Utils.Numbers.isSmallerOrEqualToThanInteger(Long.MAX_VALUE)).isFalse();
+    assertThat(Utils.Numbers.isSmallerOrEqualToThanInteger(Long.MIN_VALUE)).isFalse();
+  }
 }

@@ -262,11 +262,11 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       }
 
       String intFormat = schema.get("format");
-      if ("int32".equalsIgnoreCase(intFormat) && !(instance instanceof Integer)) {
+      if ("int32".equalsIgnoreCase(intFormat) && !(Numbers.isSmallerOrEqualToThanInteger(instance))) {
         errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"), baseLocation + "/format", "Integer does not match format \"" + intFormat + "\""));
       }
 
-      if ("int64".equalsIgnoreCase(intFormat) && !(instance instanceof Integer || instance instanceof Long)) {
+      if ("int64".equalsIgnoreCase(intFormat) && !(Numbers.isSmallerOrEqualToThanInteger(instance) || instance instanceof Long)) {
         errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"), baseLocation + "/format", "Integer does not match format \"" + intFormat + "\""));
       }
 
