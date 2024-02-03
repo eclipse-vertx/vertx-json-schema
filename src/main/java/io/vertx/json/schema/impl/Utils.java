@@ -36,11 +36,6 @@ public class Utils {
       return false;
     }
 
-    // Check if an object is smaller (bit wise) or equal to (bit wise) the size of an int32 number.
-    public static boolean isSmallerOrEqualToThanInteger(Object instance) {
-      return instance instanceof Byte || instance instanceof Short || instance instanceof Integer;
-    }
-
     private static BigDecimal toBigDecimal(Number in) {
       if (in instanceof BigDecimal) {
         return (BigDecimal) in;

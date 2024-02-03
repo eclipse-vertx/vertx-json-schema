@@ -13,6 +13,8 @@ package io.vertx.json.schema;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.json.annotations.JsonGen;
 import io.vertx.core.json.JsonObject;
+import io.vertx.json.schema.impl.DefaultJsonFormatValidatorImpl;
+import io.vertx.json.schema.impl.JsonFormatValidator;
 
 import java.util.Objects;
 
@@ -40,6 +42,8 @@ public class JsonSchemaOptions {
    */
   private OutputFormat outputFormat = OutputFormat.Flag;
 
+  private JsonFormatValidator jsonFormatValidator = new DefaultJsonFormatValidatorImpl();
+
   public JsonSchemaOptions() {
   }
 
@@ -52,6 +56,7 @@ public class JsonSchemaOptions {
     this.baseUri = other.baseUri;
     this.draft = other.draft;
     this.outputFormat = other.outputFormat;
+    this.jsonFormatValidator = other.jsonFormatValidator;
   }
 
   public String getBaseUri() {
@@ -85,6 +90,15 @@ public class JsonSchemaOptions {
     final JsonObject json = new JsonObject();
     JsonSchemaOptionsConverter.toJson(this, json);
     return json;
+  }
+
+  public JsonFormatValidator getJsonFormatValidator() {
+    return jsonFormatValidator;
+  }
+
+  public JsonSchemaOptions setJsonFormatValidator(JsonFormatValidator jsonFormatValidator) {
+    this.jsonFormatValidator = jsonFormatValidator;
+    return this;
   }
 
   @Override

@@ -35,10 +35,10 @@ class SchemaValidatorImplTest {
 
   static Stream<Arguments> testNumberSchema() {
     return Stream.of(
-      Arguments.of("Invalid Double", numberSchema().toJson().put("format", "double"), new BigDecimal("99999999.999"), false),
-      Arguments.of("Invalid Float", numberSchema().toJson().put("format", "float"), Double.MAX_VALUE, false),
-      Arguments.of("Invalid int32", intSchema().toJson().put("format", "int32"), Long.MAX_VALUE, false),
-      Arguments.of("Invalid int64", intSchema().toJson().put("format", "int64"), new BigInteger("99999999999999999999999"), false),
+      Arguments.of("Invalid Double", numberSchema().toJson().put("format", "double"), new BigDecimal("99999999.999"), true),
+      Arguments.of("Invalid Float", numberSchema().toJson().put("format", "float"), Double.MAX_VALUE, true),
+      Arguments.of("Invalid int32", intSchema().toJson().put("format", "int32"), Long.MAX_VALUE, true),
+      Arguments.of("Invalid int64", intSchema().toJson().put("format", "int64"), new BigInteger("99999999999999999999999"), true),
       Arguments.of("Valid Double", numberSchema().toJson().put("format", "double"), Double.MAX_VALUE, true),
       Arguments.of("Valid Float", numberSchema().toJson().put("format", "float"), Float.MAX_VALUE, true),
       Arguments.of("Valid int32", intSchema().toJson().put("format", "int32"), Integer.MAX_VALUE, true),
@@ -47,7 +47,7 @@ class SchemaValidatorImplTest {
       Arguments.of("Valid int64 with byte", intSchema().toJson().put("format", "int64"), Byte.MAX_VALUE, true),
       Arguments.of("Valid int32 with short", intSchema().toJson().put("format", "int32"), Short.MAX_VALUE, true),
       Arguments.of("Valid int32 with byte", intSchema().toJson().put("format", "int32"), Byte.MAX_VALUE, true),
-      Arguments.of("Valid float with smaller value casted as a double", numberSchema().toJson().put("format", "float"), 1.4d, false),
+      Arguments.of("Valid float with smaller value casted as a double", numberSchema().toJson().put("format", "float"), 1.4d, true),
       Arguments.of("Valid double with smaller value", numberSchema().toJson().put("format", "double"), 123.4f, true)
       );
   }

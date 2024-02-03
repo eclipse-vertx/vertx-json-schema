@@ -19,6 +19,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
   private final JsonSchema schema;
   private final Draft draft;
   private final OutputFormat outputFormat;
+  private final JsonFormatValidator formatValidator;
 
   public SchemaValidatorImpl(JsonSchema schema, JsonSchemaOptions options) {
     this(schema, options, Collections.emptyMap(), true);
@@ -33,6 +34,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
     Objects.requireNonNull(options, "'options' cannot be null");
     Objects.requireNonNull(options.getOutputFormat(), "'options.outputFormat' cannot be null");
     Objects.requireNonNull(lookup, "'lookup' cannot be null");
+    Objects.requireNonNull(options.getJsonFormatValidator(), "'options.jsonFormatValidator' cannot be null");
+
     this.schema = schema;
     // extract the draft from schema when no specific draft is configured in the options
     this.draft = options.getDraft() == null ?
@@ -40,6 +43,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       options.getDraft();
     this.outputFormat = options.getOutputFormat();
     this.lookup = new HashMap<>(lookup);
+    this.formatValidator = options.getJsonFormatValidator();
     if (dereference) {
       URL baseUri = new URL(options.getBaseUri());
       // add the root schema
@@ -53,6 +57,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
     Objects.requireNonNull(options.getOutputFormat(), "'options.outputFormat' cannot be null");
     Objects.requireNonNull(options.getBaseUri(), "'options.baseUri' cannot be null");
     Objects.requireNonNull(options, "'lookup' cannot be null");
+    Objects.requireNonNull(options.getJsonFormatValidator(), "'options.jsonFormatValidator' cannot be null");
     this.schema = lookup.get(ref);
     // extract the draft from schema when no specific draft is configured in the options
     this.draft = options.getDraft() == null ?
@@ -60,6 +65,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       options.getDraft();
     this.outputFormat = options.getOutputFormat();
     this.lookup = lookup;
+    this.formatValidator = options.getJsonFormatValidator();
   }
 
   @Override
@@ -260,17 +266,6 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       if (!"number".equals(instanceType) || !Numbers.isInteger(instance)) {
         errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/type"), baseLocation + "/type", "Instance type " + instanceType + " is invalid. Expected " + schema.get("type")));
       }
-
-      String intFormat = schema.get("format");
-      if ("int32".equalsIgnoreCase(intFormat) && !(Numbers.isSmallerOrEqualToThanInteger(instance))) {
-        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"), baseLocation + "/format", "Integer does not match format \"" + intFormat + "\""));
-      }
-
-      if ("int64".equalsIgnoreCase(intFormat) && !(Numbers.isSmallerOrEqualToThanInteger(instance) || instance instanceof Long)) {
-        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"), baseLocation + "/format", "Integer does not match format \"" + intFormat + "\""));
-      }
-
-
     } else if (schema.containsKey("type") && !instanceType.equals(schema.get("type"))) {
       errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/type"), baseLocation + "/type", "Instance type " + instanceType + " is invalid. Expected " + schema.get("type")));
     }
@@ -941,28 +936,6 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
             errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/multipleOf"), baseLocation + "/multipleOf", instance + " is not a multiple of " + schema.get("multipleOf")));
           }
         }
-        String numberFormat = schema.get("format");
-
-
-        if ("float".equalsIgnoreCase(numberFormat)) {
-          if (!(instance instanceof  Float)) {
-            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"), baseLocation + "/format", "Number does not match format \"" + numberFormat + "\""));
-          } else if (((Float) instance).isInfinite()) {
-            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"), baseLocation + "/format", "Number does not match format \"" + numberFormat + "\""));
-          }
-
-        }
-
-        if ("double".equalsIgnoreCase(numberFormat)) {
-          if (!(instance instanceof Double || instance instanceof Float)) {
-            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"), baseLocation + "/format", "Number does not match format \"" + numberFormat + "\""));
-          } else if (instance instanceof Float && ((Float) instance).isInfinite()) {
-            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"), baseLocation + "/format", "Number does not match format \"" + numberFormat + "\""));
-          } else if (instance instanceof Double && ((Double) instance).isInfinite()) {
-            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"), baseLocation + "/format", "Number does not match format \"" + numberFormat + "\""));
-          }
-        }
-
         break;
       case "string": {
         final int length =
@@ -986,6 +959,11 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         }
         break;
       }
+    }
+
+    String error = formatValidator.validateFormat((String)schema.get("format"), instance);
+    if(error != null) {
+      errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"), baseLocation + "/format", error));
     }
 
     if (dynamicAnchor != null) {
