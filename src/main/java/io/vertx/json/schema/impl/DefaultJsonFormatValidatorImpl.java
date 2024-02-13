@@ -14,6 +14,7 @@ public class DefaultJsonFormatValidatorImpl extends JsonFormatValidator {
 
   @Override
   public String validateFormat(String format, Object instance) {
+    //By default we do no additional format validation. We leave that up to the implementor.
     return null;
   }
 }

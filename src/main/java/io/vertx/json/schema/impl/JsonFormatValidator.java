@@ -10,12 +10,14 @@
  */
 package io.vertx.json.schema.impl;
 
-import io.vertx.json.schema.OutputUnit;
-
-import java.util.List;
-
 public abstract class JsonFormatValidator {
 
+  /**
+   *
+   * @param format The format specified in the schema for the current object instance.
+   * @param instance The current object instance that is currently being validated.
+   * @return Any string if there are any format validation errors, null if there are no validation errors.
+   */
   public abstract String validateFormat(String format, Object instance);
 
 }

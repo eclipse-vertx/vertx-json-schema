@@ -42,6 +42,9 @@ public class JsonSchemaOptions {
    */
   private OutputFormat outputFormat = OutputFormat.Flag;
 
+  /**
+   * The json format validator that is used during schema validation.
+   */
   private JsonFormatValidator jsonFormatValidator = new DefaultJsonFormatValidatorImpl();
 
   public JsonSchemaOptions() {
@@ -92,10 +95,19 @@ public class JsonSchemaOptions {
     return json;
   }
 
+  /**
+   *
+   * @return The {@link JsonFormatValidator} that is currently being used during schema validation.
+   */
   public JsonFormatValidator getJsonFormatValidator() {
     return jsonFormatValidator;
   }
 
+  /**
+   *
+   * @param jsonFormatValidator The format validator that should be used during schema validation.
+   * @return A reference to the current {@link JsonSchemaOptions}
+   */
   public JsonSchemaOptions setJsonFormatValidator(JsonFormatValidator jsonFormatValidator) {
     this.jsonFormatValidator = jsonFormatValidator;
     return this;
