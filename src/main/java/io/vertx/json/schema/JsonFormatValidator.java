@@ -8,7 +8,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
  */
-package io.vertx.json.schema.impl;
+package io.vertx.json.schema;
 
 public abstract class JsonFormatValidator {
 

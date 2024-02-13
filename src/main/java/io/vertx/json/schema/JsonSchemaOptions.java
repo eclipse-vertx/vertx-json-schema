@@ -14,7 +14,6 @@ import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.json.annotations.JsonGen;
 import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.impl.DefaultJsonFormatValidatorImpl;
-import io.vertx.json.schema.impl.JsonFormatValidator;
 
 import java.util.Objects;
 

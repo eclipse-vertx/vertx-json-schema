@@ -2,6 +2,7 @@ package examples;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.*;
+import io.vertx.json.schema.impl.DefaultJsonFormatValidatorImpl;
 
 public class JsonSchemaExamples {
 
@@ -27,5 +28,14 @@ public class JsonSchemaExamples {
     if (result.getValid()) {
       // Successful validation
     }
+  }
+
+  public void instantiateWithCustomJsonFormatValidator() {
+    JsonSchemaOptions jsonSchemaOptionsWithFormatValidator = new JsonSchemaOptions()
+      .setBaseUri("https://vertx.io")
+      .setJsonFormatValidator(new DefaultJsonFormatValidatorImpl());
+
+    SchemaRepository repository =
+      SchemaRepository.create(jsonSchemaOptionsWithFormatValidator);
   }
 }

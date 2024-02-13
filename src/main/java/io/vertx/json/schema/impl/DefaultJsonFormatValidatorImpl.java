@@ -10,6 +10,8 @@
  */
 package io.vertx.json.schema.impl;
 
+import io.vertx.json.schema.JsonFormatValidator;
+
 public class DefaultJsonFormatValidatorImpl extends JsonFormatValidator {
 
   @Override
