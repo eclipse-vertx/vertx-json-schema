@@ -33,6 +33,7 @@ public class JsonSchemaExamples {
   public void instantiateWithCustomJsonFormatValidator() {
     JsonSchemaOptions jsonSchemaOptionsWithFormatValidator = new JsonSchemaOptions()
       .setBaseUri("https://vertx.io")
+      //Specify your own format validator here!
       .setJsonFormatValidator(new DefaultJsonFormatValidatorImpl());
 
     SchemaRepository repository =
