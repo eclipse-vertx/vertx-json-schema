@@ -13,7 +13,6 @@ package io.vertx.json.schema;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.json.annotations.JsonGen;
 import io.vertx.core.json.JsonObject;
-import io.vertx.json.schema.impl.DefaultJsonFormatValidatorImpl;
 
 import java.util.Objects;
 
@@ -44,7 +43,7 @@ public class JsonSchemaOptions {
   /**
    * The json format validator that is used during schema validation.
    */
-  private JsonFormatValidator jsonFormatValidator = new DefaultJsonFormatValidatorImpl();
+  private JsonFormatValidator jsonFormatValidator = (format, instance) -> null;
 
   public JsonSchemaOptions() {
   }

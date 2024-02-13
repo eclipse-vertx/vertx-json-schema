@@ -2,7 +2,6 @@ package examples;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.*;
-import io.vertx.json.schema.impl.DefaultJsonFormatValidatorImpl;
 
 public class JsonSchemaExamples {
 
@@ -34,7 +33,7 @@ public class JsonSchemaExamples {
     JsonSchemaOptions jsonSchemaOptionsWithFormatValidator = new JsonSchemaOptions()
       .setBaseUri("https://vertx.io")
       //Specify your own format validator here!
-      .setJsonFormatValidator(new DefaultJsonFormatValidatorImpl());
+      .setJsonFormatValidator((format, instance) -> null);
 
     SchemaRepository repository =
       SchemaRepository.create(jsonSchemaOptionsWithFormatValidator);

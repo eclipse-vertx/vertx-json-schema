@@ -105,8 +105,9 @@ To validate a schema:
 ----
 
 == Defining a custom JSON format
-It could be the case that additional format checking is required depending on the JSON specification you decide to use.
-If you need to define additional format checking, you can supply your own {@link io.vertx.json.schema.JsonFormatValidator}
+By default, the schema validator will perform an NOOP on unknown formats so they will be treated as valid inputs.
+It may be the case that additional format checking is required depending on the JSON specification you decide to use.
+If you need to define additional format checking, you can supply your own implementation of {@link io.vertx.json.schema.JsonFormatValidator}
 into your {@link io.vertx.json.schema.JsonSchemaOptions}:
 
 

@@ -10,7 +10,7 @@
  */
 package io.vertx.json.schema;
 
-public abstract class JsonFormatValidator {
+public interface JsonFormatValidator {
 
   /**
    *
@@ -18,6 +18,6 @@ public abstract class JsonFormatValidator {
    * @param instance The current object instance that is currently being validated.
    * @return Any string if there are any format validation errors, null if there are no validation errors.
    */
-  public abstract String validateFormat(String format, Object instance);
+  String validateFormat(String format, Object instance);
 
 }

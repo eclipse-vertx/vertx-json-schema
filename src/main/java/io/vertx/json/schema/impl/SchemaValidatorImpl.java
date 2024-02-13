@@ -961,7 +961,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       }
     }
 
-    String error = formatValidator.validateFormat((String)schema.get("format"), instance);
+    String error = formatValidator.validateFormat(schema.get("format"), instance);
     if(error != null) {
       errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"), baseLocation + "/format", error));
     }
