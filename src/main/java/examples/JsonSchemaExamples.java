@@ -2,6 +2,7 @@ package examples;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.*;
+import io.vertx.json.schema.common.dsl.Schemas;
 
 public class JsonSchemaExamples {
 
@@ -27,5 +28,22 @@ public class JsonSchemaExamples {
     if (result.getValid()) {
       // Successful validation
     }
+  }
+
+  public void instantiateWithCustomJsonFormatValidator() {
+    JsonFormatValidator customFormatValidator = (instanceType, format, instance) -> {
+      if ("string".equals(instanceType) && "allUpercase".equals(format)) {
+        if (instance.toString().equals(instance.toString().toUpperCase())) {
+          return null;
+        }
+        return String.format("String does not match the format \"%s\"", format);
+      }
+      return null;
+    };
+
+    SchemaRepository repository = SchemaRepository.create(new JsonSchemaOptions(), customFormatValidator);
+
+    JsonSchema schema = JsonSchema.of(Schemas.stringSchema().toJson());
+    Validator validator = Validator.create(schema, new JsonSchemaOptions(), customFormatValidator);
   }
 }

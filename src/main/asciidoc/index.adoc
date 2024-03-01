@@ -104,11 +104,18 @@ To validate a schema:
 {@link examples.JsonSchemaExamples#validate}
 ----
 
-== Custom formats
+== Defining a custom JSON format
 
-Adding custom formats is not allowed. This may sound like a limitation but it arises from the validation spec.
-Validators are expected to assume unknown formats as valid input, delegating to the application business code the role
-of validator for custom values.
+By default, the schema validator will perform an NOOP on unknown formats, so they will be treated as valid inputs.
+It may be the case that additional format checking is required depending on the JSON specification you decide to use.
+If you need to define additional format checking, you can supply your own implementation of
+{@link io.vertx.json.schema.JsonFormatValidator} when creating a {@link io.vertx.json.schema.SchemaRepository} or
+{@link io.vertx.json.schema.Validator}:
+
+[source,$lang]
+----
+{@link examples.JsonSchemaExamples#instantiateWithCustomJsonFormatValidator}
+----
 
 == Building your schemas from code
 
