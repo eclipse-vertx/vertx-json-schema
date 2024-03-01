@@ -3,8 +3,13 @@ package io.vertx.json.schema.impl;
 import io.vertx.core.Vertx;
 import io.vertx.core.file.FileSystem;
 import io.vertx.json.schema.Draft;
+import io.vertx.json.schema.JsonFormatValidator;
+import io.vertx.json.schema.JsonSchema;
 import io.vertx.json.schema.JsonSchemaOptions;
+import io.vertx.json.schema.OutputUnit;
 import io.vertx.json.schema.SchemaRepository;
+import io.vertx.json.schema.Validator;
+import io.vertx.json.schema.common.dsl.Schemas;
 import io.vertx.junit5.VertxExtension;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -21,10 +26,14 @@ import static io.vertx.json.schema.Draft.DRAFT201909;
 import static io.vertx.json.schema.Draft.DRAFT202012;
 import static io.vertx.json.schema.Draft.DRAFT4;
 import static io.vertx.json.schema.Draft.DRAFT7;
+import static io.vertx.json.schema.OutputFormat.Basic;
 import static io.vertx.json.schema.impl.SchemaRepositoryImpl.DRAFT_201909_META_FILES;
 import static io.vertx.json.schema.impl.SchemaRepositoryImpl.DRAFT_202012_META_FILES;
 import static io.vertx.json.schema.impl.SchemaRepositoryImpl.DRAFT_4_META_FILES;
 import static io.vertx.json.schema.impl.SchemaRepositoryImpl.DRAFT_7_META_FILES;
+import static java.util.Collections.emptyMap;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.endsWith;
 import static org.mockito.ArgumentMatchers.eq;
@@ -63,7 +72,7 @@ class SchemaRepositoryImplTest {
     JsonSchemaOptions opts = new JsonSchemaOptions().setBaseUri("https://example.org");
     SchemaRepository repo = SchemaRepository.create(opts);
 
-    Assertions.assertThrows(IllegalStateException.class, () -> repo.preloadMetaSchema(vertx.fileSystem()));
+    assertThrows(IllegalStateException.class, () -> repo.preloadMetaSchema(vertx.fileSystem()));
   }
 
   @Test
@@ -74,5 +83,34 @@ class SchemaRepositoryImplTest {
     repoSpy.preloadMetaSchema(vertx.fileSystem());
 
     verify(repoSpy).preloadMetaSchema(any(), eq(DRAFT4));
+  }
+
+  @Test
+  public void testThrowErrorNoFormatValidator() {
+    JsonSchemaOptions dummyOptions = new JsonSchemaOptions().setBaseUri("app://").setDraft(DRAFT201909);
+    NullPointerException exception = assertThrows(NullPointerException.class,
+      () -> new SchemaRepositoryImpl(dummyOptions, null));
+    assertThat(exception).hasMessage("'formatValidator' cannot be null");
+  }
+
+  @Test
+  public void testFormatValidatorIsPassed() {
+    JsonSchemaOptions options =
+      new JsonSchemaOptions().setBaseUri("https://vertx.io").setDraft(Draft.DRAFT202012).setOutputFormat(Basic);
+    JsonSchema dummySchema = JsonSchema.of(Schemas.stringSchema().withKeyword("format", "noFoobar").toJson());
+
+    OutputUnit ouSuccess = SchemaRepository.create(options).validator(dummySchema).validate("foobar");
+    assertThat(ouSuccess.getValid()).isTrue();
+
+    JsonFormatValidator formatValidator = (instanceType, format, instance) -> {
+      if (instanceType == "string" && "noFoobar".equals(format) && "foobar".equalsIgnoreCase(instance.toString())) {
+        return "no foobar allowed";
+      }
+      return null;
+    };
+    OutputUnit ouFailed = SchemaRepository.create(options, formatValidator).validator(dummySchema).validate("foobar");
+    assertThat(ouFailed.getValid()).isFalse();
+    assertThat(ouFailed.getErrors()).hasSize(1);
+    assertThat(ouFailed.getErrors().get(0).getError()).isEqualTo("no foobar allowed");
   }
 }

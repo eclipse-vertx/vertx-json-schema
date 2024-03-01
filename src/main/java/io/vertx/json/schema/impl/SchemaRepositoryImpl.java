@@ -8,6 +8,8 @@ import io.vertx.json.schema.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static io.vertx.json.schema.JsonFormatValidator.DEFAULT_VALIDATOR;
+
 public class SchemaRepositoryImpl implements SchemaRepository {
 
   private static final List<String> IGNORE_KEYWORD = Arrays.asList(
@@ -99,11 +101,14 @@ public class SchemaRepositoryImpl implements SchemaRepository {
 
   private final JsonSchemaOptions options;
   private final URL baseUri;
+  private final JsonFormatValidator formatValidator;
 
-  public SchemaRepositoryImpl(JsonSchemaOptions options) {
-    this.options = options;
+  public SchemaRepositoryImpl(JsonSchemaOptions options, JsonFormatValidator formatValidator) {
     Objects.requireNonNull(options, "'options' cannot be null");
     Objects.requireNonNull(options.getBaseUri(), "'options.baseUri' cannot be null");
+    Objects.requireNonNull(formatValidator, "'formatValidator' cannot be null");
+    this.options = options;
+    this.formatValidator = formatValidator;
     this.baseUri = new URL(options.getBaseUri());
   }
 
@@ -168,10 +173,12 @@ public class SchemaRepositoryImpl implements SchemaRepository {
       }
       final String uri = url.href();
       if (lookup.containsKey(uri)) {
-        return new SchemaValidatorImpl(uri, options, Collections.unmodifiableMap(lookup));
+        Objects.requireNonNull(uri, "'ref' cannot be null");
+        return new SchemaValidatorImpl(lookup.get(uri), options, Collections.unmodifiableMap(lookup), false,
+          formatValidator);
       }
     }
-    return new SchemaValidatorImpl(schema, options, Collections.unmodifiableMap(lookup));
+    return new SchemaValidatorImpl(schema, options, Collections.unmodifiableMap(lookup), false, formatValidator);
   }
 
   @Override
@@ -184,22 +191,24 @@ public class SchemaRepositoryImpl implements SchemaRepository {
     }
     final String uri = url.href();
     if (lookup.containsKey(uri)) {
-      return new SchemaValidatorImpl(uri, options, Collections.unmodifiableMap(lookup));
+      return new SchemaValidatorImpl(lookup.get(uri), options, Collections.unmodifiableMap(lookup), false,
+        formatValidator);
     }
     throw new IllegalArgumentException("Unknown $ref: " + ref);
   }
 
   @Override
-  public Validator validator(JsonSchema schema, JsonSchemaOptions options, boolean derefenrence) {
+  public Validator validator(JsonSchema schema, JsonSchemaOptions options, boolean dereference) {
     final JsonSchemaOptions config;
     if (options.getBaseUri() == null) {
       // add the default base if missing
       config = new JsonSchemaOptions(options)
-        .setBaseUri(options.getBaseUri());
+        .setBaseUri(baseUri.href());
     } else {
       config = options;
     }
-    return new SchemaValidatorImpl(schema, config, Collections.unmodifiableMap(lookup), derefenrence);
+
+    return new SchemaValidatorImpl(schema, config, Collections.unmodifiableMap(lookup), dereference, formatValidator);
   }
 
   @Override
@@ -208,7 +217,7 @@ public class SchemaRepositoryImpl implements SchemaRepository {
     if (options.getBaseUri() == null) {
       // add the default base if missing
       config = new JsonSchemaOptions(options)
-        .setBaseUri(options.getBaseUri());
+        .setBaseUri(baseUri.href());
     } else {
       config = options;
     }
@@ -220,7 +229,9 @@ public class SchemaRepositoryImpl implements SchemaRepository {
       url.anchor(""); // normalize hash https://url.spec.whatwg.org/#dom-url-hash
     }
     if (lookup.containsKey(uri)) {
-      return new SchemaValidatorImpl(uri, config, Collections.unmodifiableMap(lookup));
+      Objects.requireNonNull(uri, "'ref' cannot be null");
+      return new SchemaValidatorImpl(lookup.get(uri), config, Collections.unmodifiableMap(lookup), false,
+        formatValidator);
     }
     throw new IllegalArgumentException("Unknown $ref: " + ref);
   }

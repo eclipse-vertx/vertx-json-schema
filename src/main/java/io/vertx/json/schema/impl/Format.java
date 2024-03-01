@@ -1,5 +1,8 @@
 package io.vertx.json.schema.impl;
 
+import java.net.IDN;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.regex.Pattern;
 
 public class Format {
@@ -42,6 +45,10 @@ public class Format {
         return testJsonPointerUriFragment(value);
       case "relative-json-pointer":
         return testRelativeJsonPointer(value);
+      case "idn-hostname":
+        return testIdnHostname(value);
+      case "idn-email":
+        return testIdnEmail(value);
       default:
         // unknown formats are assumed true, e.g.: idn-hostname, binary
         return true;
@@ -103,7 +110,7 @@ public class Format {
   }
 
   // optimized https://www.safaribooksonline.com/library/view/regular-expressions-cookbook/9780596802837/ch07s16.html
-  private static final Pattern IPV4 = Pattern.compile("^(?:(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\.){3}(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)$");
+  private static final Pattern IPV4 = Pattern.compile("^(?:(?:25[0-5]|2[0-4]\\d|[1]?\\d\\d?)\\.){3}(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)$");
 
   private static boolean testIpv4(String value) {
     return IPV4.matcher(value).find();
@@ -121,33 +128,37 @@ public class Format {
 
   // https://github.com/ExodusMovement/schemasafe/blob/master/src/formats.js
   private static boolean testEmail(String value) {
-     if (value.charAt(0) == '"') {
-       return false;
-     }
-     final String[] parts = value.split("@");
-     if (
-       parts.length != 2 ||
-         Utils.Strings.empty(parts[0]) ||
-         Utils.Strings.empty(parts[1]) ||
-         parts[0].length() > 64 ||
-         parts[1].length() > 253
-     ) {
-       return false;
-     }
-     if (parts[0].charAt(0) == '.' || parts[0].endsWith(".") || parts[0].contains("..")) {
-       return false;
-     }
-     if (
-       !EMAIL_HOST.matcher(parts[1]).find() ||
-       !EMAIL_NAME.matcher(parts[0]).find()
-     ) {
-       return false;
-     }
-     for (String part : parts[1].split("\\.")) {
-       if (!EMAIL_HOST_PART.matcher(part).find()) {
-         return false;
-       }
-     }
+    return testEmail(value, EMAIL_HOST, EMAIL_NAME, EMAIL_HOST_PART);
+  }
+
+  private static boolean testEmail(String value, Pattern emailHostMatcher, Pattern emailNameMatcher, Pattern emailHostPartMatcher) {
+    if (value.charAt(0) == '"') {
+      return false;
+    }
+    final String[] parts = value.split("@");
+    if (
+      parts.length != 2 ||
+        Utils.Strings.empty(parts[0]) ||
+        Utils.Strings.empty(parts[1]) ||
+        parts[0].length() > 64 ||
+        parts[1].length() > 253
+    ) {
+      return false;
+    }
+    if (parts[0].charAt(0) == '.' || parts[0].endsWith(".") || parts[0].contains("..")) {
+      return false;
+    }
+    if (
+      !emailHostMatcher.matcher(parts[1]).find() ||
+        !emailNameMatcher.matcher(parts[0]).find()
+    ) {
+      return false;
+    }
+    for (String part : parts[1].split("\\.")) {
+      if (!emailHostPartMatcher.matcher(part).find()) {
+        return false;
+      }
+    }
     return true;
   }
 
@@ -209,6 +220,60 @@ public class Format {
   private static final Pattern FASTDATE = Pattern.compile("^\\d\\d\\d\\d-[0-1]\\d-[0-3]\\d$");
 
   private static boolean testDate(String value) {
-    return FASTDATE.matcher(value).find();
+    if (!FASTDATE.matcher(value).matches()) {
+      return false;
+    }
+    try {
+      DateTimeFormatter.ISO_DATE.parse(value);
+      return true;
+    } catch (DateTimeParseException e) {
+      return false;
+    }
   }
+
+  //IDN Puny code is only ever in this format. xn--abc.xyz
+  private static final Pattern IDN_HOSTNAME_PUNY = Pattern.compile("^xn--[a-z0-9-.]*$");
+
+  // This is checking various other combinations of invalid characters/combinations of invalid characters.
+  private static final Pattern IDN_HOSTNAME_UNICODE = Pattern
+    .compile("^.*\\u302e.*|(^.*?[^l]\\u00b7.|.*l\\u00b7[^l]|\\u00b7$|^\\u00b7.)|(.*\\u30fB[^\\u3041\\u30A1\\u4e08].*|^\\u30fB$)|(^[\\u05f3\\u05f4].*)$"
+      , Pattern.UNICODE_CHARACTER_CLASS);
+
+  // This is checking the start of the word for Mc,Me or Mn characters.
+  // Mc -> Spacing_Combining_Mark
+  // Me -> Enclosing_Mark
+  // Mn -> Non_Spacing_Mark (excluding if Virma \\u094d follows
+  private static final Pattern IDN_HOSTNAME_STARTING_ERRORS = Pattern
+    .compile("^\\p{gc=Mc}|^\\p{gc=Me}|^\\p{gc=Mn}(?!\\u094d)", Pattern.UNICODE_CHARACTER_CLASS);
+
+
+  private static boolean testIdnHostname(String value) {
+    try {
+      return !IDN_HOSTNAME_STARTING_ERRORS.matcher(value).find() && !IDN_HOSTNAME_UNICODE.matcher(value).find() && IDN_HOSTNAME_PUNY.matcher(IDN.toASCII(value)).find();
+    } catch(Exception e) {
+      return false;
+    }
+  }
+
+  //IDN emails can have - and . throughout unlike a normal email address. The email host part can also have the same.
+  private static final Pattern IDN_EMAIL_PUNY = Pattern.compile("^xn--[a-z0-9-.]*@[a-z0-9-.]*$");
+  private static final Pattern IDN_EMAIL_HOST = Pattern.compile("^[a-z0-9-.]*");
+  private static final Pattern IDN_EMAIL_NAME = Pattern.compile("^xn--[a-z0-9-.]*$");
+  private static final Pattern IDN_EMAIL_HOST_PART = Pattern.compile("^[a-z0-9-]([a-z0-9-]{0,61}[a-z0-9-])?$");
+
+  private static boolean testIdnEmail(String value) {
+    try {
+      String asciiVersion = IDN.toASCII(value);
+      //we were given a non IDN email, so just check if that email is valid or not. No need to do any other checks.
+      if(asciiVersion.equals(value)) {
+        return testEmail(asciiVersion);
+      }
+
+      return IDN_EMAIL_PUNY.matcher(asciiVersion).find() && testEmail(asciiVersion, IDN_EMAIL_HOST, IDN_EMAIL_NAME, IDN_EMAIL_HOST_PART);
+    } catch(Exception e) {
+      return false;
+    }
+  }
+
+
 }
