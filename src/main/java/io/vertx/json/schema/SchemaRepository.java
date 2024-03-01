@@ -16,6 +16,8 @@ import io.vertx.core.file.FileSystem;
 import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.impl.SchemaRepositoryImpl;
 
+import static io.vertx.json.schema.JsonFormatValidator.DEFAULT_VALIDATOR;
+
 /**
  * A repository is a holder of dereferenced schemas, it can be used to create validator instances for a specific schema.
  * <p>
@@ -33,7 +35,17 @@ public interface SchemaRepository {
    * @return a repository
    */
   static SchemaRepository create(JsonSchemaOptions options) {
-    return new SchemaRepositoryImpl(options);
+    return new SchemaRepositoryImpl(options, DEFAULT_VALIDATOR);
+  }
+
+  /**
+   * Create a repository with some initial configuration.
+   *
+   * @param options the initial configuration
+   * @return a repository
+   */
+  static SchemaRepository create(JsonSchemaOptions options, JsonFormatValidator jsonFormatValidator) {
+    return new SchemaRepositoryImpl(options, jsonFormatValidator);
   }
 
   /**

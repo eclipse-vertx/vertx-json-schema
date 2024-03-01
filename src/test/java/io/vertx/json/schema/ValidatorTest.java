@@ -2,12 +2,17 @@ package io.vertx.json.schema;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.json.schema.common.dsl.Schemas;
+import io.vertx.json.schema.common.dsl.StringSchemaBuilder;
 import io.vertx.junit5.Timeout;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.TimeUnit;
 
+import static io.vertx.json.schema.OutputFormat.Basic;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ValidatorTest {
 
@@ -99,7 +104,7 @@ public class ValidatorTest {
       new JsonSchemaOptions()
         .setBaseUri("https://vertx.io")
         .setDraft(Draft.DRAFT201909)
-        .setOutputFormat(OutputFormat.Basic));
+        .setOutputFormat(Basic));
 
     final OutputUnit res = validator.validate(
       new JsonArray()
@@ -125,7 +130,7 @@ public class ValidatorTest {
             .put("required", new JsonArray().add("name").add("email").add("number")))),
       new JsonSchemaOptions()
         .setDraft(Draft.DRAFT201909)
-        .setOutputFormat(OutputFormat.Basic)
+        .setOutputFormat(Basic)
         .setBaseUri("https://vertx.io"));
 
     final OutputUnit res = validator.validate(
@@ -146,7 +151,7 @@ public class ValidatorTest {
       .create(
         new JsonSchemaOptions()
           .setDraft(Draft.DRAFT4)
-          .setOutputFormat(OutputFormat.Basic)
+          .setOutputFormat(Basic)
           .setBaseUri("https://github.com/eclipse-vertx"));
 
     repository.dereference(
@@ -317,7 +322,7 @@ public class ValidatorTest {
       .create(
         new JsonSchemaOptions()
           .setDraft(Draft.DRAFT4)
-          .setOutputFormat(OutputFormat.Basic)
+          .setOutputFormat(Basic)
           .setBaseUri("https://github.com/eclipse-vertx"));
 
     repository.dereference(
@@ -520,5 +525,34 @@ public class ValidatorTest {
       .isEqualTo(true);
     assertThat(validator.validate("hello world").getValid())
       .isEqualTo(false);
+  }
+
+  @Test
+  public void testThrowErrorNoBaseUri() {
+    JsonSchema dummySchema = JsonSchema.of(Schemas.stringSchema().toJson());
+    NullPointerException exception = assertThrows(NullPointerException.class, () -> Validator.create(dummySchema,
+      new JsonSchemaOptions()));
+    assertThat(exception).hasMessage("'options.baseUri' cannot be null");
+  }
+
+  @Test
+  public void testFormatValidatorIsPassed() {
+    JsonSchemaOptions options =
+      new JsonSchemaOptions().setBaseUri("https://vertx.io").setDraft(Draft.DRAFT202012).setOutputFormat(Basic);
+    JsonSchema dummySchema = JsonSchema.of(Schemas.stringSchema().withKeyword("format", "noFoobar").toJson());
+
+    OutputUnit ouSuccess = Validator.create(dummySchema, options).validate("foobar");
+    assertThat(ouSuccess.getValid()).isTrue();
+
+    JsonFormatValidator formatValidator = (instanceType, format, instance) -> {
+      if (instanceType == "string" && "noFoobar".equals(format) && "foobar".equalsIgnoreCase(instance.toString())) {
+        return "no foobar allowed";
+      }
+      return null;
+    };
+    OutputUnit ouFailed = Validator.create(dummySchema, options, formatValidator).validate("foobar");
+    assertThat(ouFailed.getValid()).isFalse();
+    assertThat(ouFailed.getErrors()).hasSize(1);
+    assertThat(ouFailed.getErrors().get(0).getError()).isEqualTo("no foobar allowed");
   }
 }

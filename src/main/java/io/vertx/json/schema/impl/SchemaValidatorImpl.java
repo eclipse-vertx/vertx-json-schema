@@ -19,20 +19,17 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
   private final JsonSchema schema;
   private final Draft draft;
   private final OutputFormat outputFormat;
+  private final JsonFormatValidator formatValidator;
 
-  public SchemaValidatorImpl(JsonSchema schema, JsonSchemaOptions options) {
-    this(schema, options, Collections.emptyMap(), true);
-  }
-
-  public SchemaValidatorImpl(JsonSchema schema, JsonSchemaOptions options, Map<String, JsonSchema> lookup) {
-    this(schema, options, lookup, false);
-  }
-
-  public SchemaValidatorImpl(JsonSchema schema, JsonSchemaOptions options, Map<String, JsonSchema> lookup, boolean dereference) {
+  public SchemaValidatorImpl(JsonSchema schema, JsonSchemaOptions options, Map<String, JsonSchema> lookup,
+                             boolean dereference, JsonFormatValidator formatValidator) {
     Objects.requireNonNull(schema, "'schema' cannot be null");
     Objects.requireNonNull(options, "'options' cannot be null");
     Objects.requireNonNull(options.getOutputFormat(), "'options.outputFormat' cannot be null");
     Objects.requireNonNull(lookup, "'lookup' cannot be null");
+    Objects.requireNonNull(formatValidator, "'formatValidator' cannot be null");
+
+    this.formatValidator = formatValidator;
     this.schema = schema;
     // extract the draft from schema when no specific draft is configured in the options
     this.draft = options.getDraft() == null ?
@@ -45,21 +42,6 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       // add the root schema
       dereference(this.lookup, schema, baseUri, "", true);
     }
-  }
-
-  public SchemaValidatorImpl(String ref, JsonSchemaOptions options, Map<String, JsonSchema> lookup) {
-    Objects.requireNonNull(ref, "'ref' cannot be null");
-    Objects.requireNonNull(options, "'options' cannot be null");
-    Objects.requireNonNull(options.getOutputFormat(), "'options.outputFormat' cannot be null");
-    Objects.requireNonNull(options.getBaseUri(), "'options.baseUri' cannot be null");
-    Objects.requireNonNull(options, "'lookup' cannot be null");
-    this.schema = lookup.get(ref);
-    // extract the draft from schema when no specific draft is configured in the options
-    this.draft = options.getDraft() == null ?
-      Draft.fromIdentifier(schema.get("$schema")) :
-      options.getDraft();
-    this.outputFormat = options.getOutputFormat();
-    this.lookup = lookup;
   }
 
   @Override
@@ -953,6 +935,12 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         }
         break;
       }
+    }
+
+    String error = formatValidator.validateFormat(instanceType, schema.get("format"), instance);
+    if (error != null) {
+      errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"),
+        baseLocation + "/format", error));
     }
 
     if (dynamicAnchor != null) {
