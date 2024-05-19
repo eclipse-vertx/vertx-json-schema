@@ -3322,6 +3322,11 @@
           },
           "tests": [
             {
+              "description": "test for https://github.com/eclipse-vertx/vertx-json-schema/issues/131",
+              "data": "2024-04-06T22:30:41",
+              "valid": true
+            },
+            {
               "description": "all string formats ignore integers",
               "data": 12,
               "valid": true
@@ -6725,6 +6730,11 @@
             "format": "date-time"
           },
           "tests": [
+            {
+              "description": "test for https://github.com/eclipse-vertx/vertx-json-schema/issues/87",
+              "data": "2024-11-31T08:30:06.283185Z",
+              "valid": false
+            },
             {
               "description": "a valid date-time string",
               "data": "1963-06-19T08:30:06.283185Z",
@@ -17885,6 +17895,11 @@
           },
           "tests": [
             {
+              "description": "test for https://github.com/eclipse-vertx/vertx-json-schema/issues/131",
+              "data": "2024-04-06T22:30:41",
+              "valid": true
+            },
+            {
               "description": "all string formats ignore integers",
               "data": 12,
               "valid": true
@@ -21315,6 +21330,11 @@
             "format": "date-time"
           },
           "tests": [
+            {
+              "description": "test for https://github.com/eclipse-vertx/vertx-json-schema/issues/87",
+              "data": "2024-11-31T08:30:06.283185Z",
+              "valid": false
+            },
             {
               "description": "a valid date-time string",
               "data": "1963-06-19T08:30:06.283185Z",
@@ -30444,6 +30464,11 @@
           },
           "tests": [
             {
+              "description": "test for https://github.com/eclipse-vertx/vertx-json-schema/issues/131",
+              "data": "2024-04-06T22:30:41",
+              "valid": true
+            },
+            {
               "description": "all string formats ignore integers",
               "data": 12,
               "valid": true
@@ -32517,6 +32542,11 @@
             "format": "date-time"
           },
           "tests": [
+            {
+              "description": "test for https://github.com/eclipse-vertx/vertx-json-schema/issues/87",
+              "data": "2024-11-31T08:30:06.283185Z",
+              "valid": false
+            },
             {
               "description": "a valid date-time string",
               "data": "1963-06-19T08:30:06.283185Z",
@@ -38968,6 +38998,11 @@
           },
           "tests": [
             {
+              "description": "test for https://github.com/eclipse-vertx/vertx-json-schema/issues/131",
+              "data": "2024-04-06T22:30:41",
+              "valid": true
+            },
+            {
               "description": "all string formats ignore integers",
               "data": 12,
               "valid": true
@@ -41735,6 +41770,11 @@
             "format": "date-time"
           },
           "tests": [
+            {
+              "description": "test for https://github.com/eclipse-vertx/vertx-json-schema/issues/87",
+              "data": "2024-11-31T08:30:06.283185Z",
+              "valid": false
+            },
             {
               "description": "a valid date-time string",
               "data": "1963-06-19T08:30:06.283185Z",
