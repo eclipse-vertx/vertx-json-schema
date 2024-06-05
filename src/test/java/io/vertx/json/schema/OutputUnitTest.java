@@ -38,35 +38,41 @@ class OutputUnitTest {
         "    {\n" +
         "      \"keywordLocation\": \"\",\n" +
         "      \"instanceLocation\": \"\",\n" +
-        "      \"error\": \"A subschema had errors.\"\n" +
+        "      \"error\": \"A subschema had errors.\",\n" +
+        "      \"errorType\": \"INVALID_VALUE\"\n" +
         "    },\n" +
         "    {\n" +
         "      \"keywordLocation\": \"/items/$ref\",\n" +
         "      \"absoluteKeywordLocation\":\n" +
         "        \"https://example.com/polygon#/$defs/point\",\n" +
         "      \"instanceLocation\": \"/1\",\n" +
-        "      \"error\": \"A subschema had errors.\"\n" +
+        "      \"error\": \"A subschema had errors.\",\n" +
+        "      \"errorType\": \"INVALID_VALUE\"\n" +
         "    },\n" +
         "    {\n" +
         "      \"keywordLocation\": \"/items/$ref/required\",\n" +
         "      \"absoluteKeywordLocation\":\n" +
         "        \"https://example.com/polygon#/$defs/point/required\",\n" +
         "      \"instanceLocation\": \"/1\",\n" +
-        "      \"error\": \"Required property 'y' not found.\"\n" +
+        "      \"error\": \"Required property 'y' not found.\",\n" +
+        "      \"errorType\": \"MISSING_VALUE\"\n" +
         "    },\n" +
         "    {\n" +
         "      \"keywordLocation\": \"/items/$ref/additionalProperties\",\n" +
         "      \"absoluteKeywordLocation\":\n" +
         "        \"https://example.com/polygon#/$defs/point/additionalProperties\",\n" +
         "      \"instanceLocation\": \"/1/z\",\n" +
-        "      \"error\": \"Additional property 'z' found but was invalid.\"\n" +
+        "      \"error\": \"Additional property 'z' found but was invalid.\",\n" +
+        "      \"errorType\": \"INVALID_VALUE\"\n" +
         "    },\n" +
         "    {\n" +
         "      \"keywordLocation\": \"/minItems\",\n" +
         "      \"instanceLocation\": \"\",\n" +
-        "      \"error\": \"Expected at least 3 items but found 2\"\n" +
+        "      \"error\": \"Expected at least 3 items but found 2\",\n" +
+        "      \"errorType\": \"MISSING_VALUE\"\n" +
         "    }\n" +
-        "  ]\n" +
+        "  ],\n" +
+        "\"errorType\": \"MISSING_VALUE\"\n" +
         "}"
     ));
     try {
@@ -75,6 +81,7 @@ class OutputUnitTest {
     } catch (JsonSchemaValidationException e) {
       assertEquals("Expected at least 3 items but found 2", e.getMessage());
       assertNull(e.location());
+      assertEquals(OutputErrorType.MISSING_VALUE, e.errorType());
     }
   }
 

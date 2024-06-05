@@ -18,19 +18,24 @@ import io.vertx.codegen.annotations.Nullable;
 public final class JsonSchemaValidationException extends Exception {
 
   final private String location;
+  final private OutputErrorType errorType;
 
-  public JsonSchemaValidationException(String message, Throwable cause, String location) {
+  public JsonSchemaValidationException(String message, Throwable cause, String location, OutputErrorType errorType) {
     super(message, cause);
     this.location = location;
+    this.errorType = errorType;
   }
 
-  public JsonSchemaValidationException(String message, String location, StackTraceElement stackTraceElement) {
-    this(message, null, location, stackTraceElement);
+  public JsonSchemaValidationException(String message, String location, OutputErrorType errorType,
+                                       StackTraceElement stackTraceElement) {
+    this(message, null, location, errorType, stackTraceElement);
   }
 
-  public JsonSchemaValidationException(String message, Throwable cause, String location, StackTraceElement stackTraceElement) {
+  public JsonSchemaValidationException(String message, Throwable cause, String location, OutputErrorType errorType,
+                                       StackTraceElement stackTraceElement) {
     super(message, cause, stackTraceElement != null, stackTraceElement != null);
     this.location = location;
+    this.errorType = errorType;
     if (stackTraceElement != null) {
       setStackTrace(new StackTraceElement[]{
         stackTraceElement
@@ -45,4 +50,12 @@ public final class JsonSchemaValidationException extends Exception {
   public String location() {
     return location;
   }
+
+  /**
+   * @return our best guess on what the validation error type is.
+   */
+  public OutputErrorType errorType() {
+    return errorType;
+  }
+
 }

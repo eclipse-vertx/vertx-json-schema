@@ -166,11 +166,13 @@ public class ResolverTest {
     // Canary
     OutputUnit result = repo.validator(schema).validate(fixture);
     assertThat(result.getValid()).isTrue();
+    assertThat(result.getErrorType()).isEqualByComparingTo(OutputErrorType.NONE);
 
     // Real test (given that the resolved holds the dereferenced metadata, it works as it picks the dereferneced schema
     // from the __absolute_uri__ field
     OutputUnit result2 = repo.validator(schema2).validate(fixture);
     assertThat(result2.getValid()).isTrue();
+    assertThat(result.getErrorType()).isEqualByComparingTo(OutputErrorType.NONE);
   }
 
   @Test

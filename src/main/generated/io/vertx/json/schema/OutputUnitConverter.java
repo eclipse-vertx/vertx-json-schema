@@ -65,6 +65,11 @@ public class OutputUnitConverter {
             obj.setAnnotations(list);
           }
           break;
+        case "errorType":
+          if (member.getValue() instanceof String) {
+            obj.setErrorType(io.vertx.json.schema.OutputErrorType.valueOf((String)member.getValue()));
+          }
+          break;
       }
     }
   }
@@ -98,6 +103,9 @@ public class OutputUnitConverter {
       JsonArray array = new JsonArray();
       obj.getAnnotations().forEach(item -> array.add(item.toJson()));
       json.put("annotations", array);
+    }
+    if (obj.getErrorType() != null) {
+      json.put("errorType", obj.getErrorType().name());
     }
   }
 }

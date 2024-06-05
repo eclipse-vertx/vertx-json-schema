@@ -114,6 +114,7 @@ public class ValidatorTest {
 
     assertThat(res.getValid()).isFalse();
     assertThat(res.getErrors().size()).isEqualTo(4);
+    assertThat(res.getErrorType()).isEqualByComparingTo(OutputErrorType.MISSING_VALUE);
   }
 
   @Test
@@ -143,6 +144,7 @@ public class ValidatorTest {
 
     assertThat(res.getValid()).isFalse();
     assertThat(res.getErrors().size()).isEqualTo(4);
+    assertThat(res.getErrorType()).isEqualByComparingTo(OutputErrorType.INVALID_VALUE);
   }
 
   @Test
@@ -313,6 +315,7 @@ public class ValidatorTest {
 
 
     assertThat(res.getValid()).isTrue();
+    assertThat(res.getErrorType()).isEqualByComparingTo(OutputErrorType.NONE);
   }
 
   @Test
@@ -485,6 +488,7 @@ public class ValidatorTest {
       new JsonObject("{\"definitions\":{\"foo\":{\"type\":\"integer\"}}}"));
 
     assertThat(res.getValid()).isTrue();
+    assertThat(res.getErrorType()).isEqualByComparingTo(OutputErrorType.NONE);
   }
 
   @Test
@@ -507,7 +511,8 @@ public class ValidatorTest {
       .create(
         new JsonSchemaOptions()
           .setBaseUri("https://vertx.io")
-          .setDraft(Draft.DRAFT201909));
+          .setDraft(Draft.DRAFT201909)
+          .setOutputFormat(OutputFormat.Basic));
 
     repository
       .dereference(JsonSchema.of(
@@ -523,8 +528,12 @@ public class ValidatorTest {
 
     assertThat(validator.validate(true).getValid())
       .isEqualTo(true);
+    assertThat(validator.validate(true).getErrorType())
+      .isEqualTo(OutputErrorType.NONE);
     assertThat(validator.validate("hello world").getValid())
       .isEqualTo(false);
+    assertThat(validator.validate("hello world").getErrorType())
+      .isEqualTo(OutputErrorType.INVALID_VALUE);
   }
 
   @Test

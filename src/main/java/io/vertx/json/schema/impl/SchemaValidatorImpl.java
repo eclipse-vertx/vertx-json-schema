@@ -89,7 +89,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       if (schema == BooleanSchema.TRUE) {
         return new OutputUnit(true);
       } else {
-        return new OutputUnit(false);
+        return new OutputUnit(false).setErrorType(OutputErrorType.INVALID_VALUE);
       }
     }
 
@@ -139,7 +139,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         dynamicContext
       );
       if (!result.getValid()) {
-        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/$recursiveRef"), baseLocation + "/$recursiveRef", "A sub-schema had errors"));
+        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/$recursiveRef"), baseLocation + "/$recursiveRef", "A sub-schema had errors", result.getErrorType()));
         if (result.getErrors() != null) {
           errors.addAll(result.getErrors());
         }
@@ -172,7 +172,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
             dynamicContext
           );
           if (!result.getValid()) {
-            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/$dynamicRef"), baseLocation + "/$dynamicRef", "A sub-schema had errors"));
+            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/$dynamicRef"), baseLocation + "/$dynamicRef", "A sub-schema had errors", result.getErrorType()));
             if (result.getErrors() != null) {
               errors.addAll(result.getErrors());
             }
@@ -183,7 +183,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                 .get(dynamicAnchor)
                 .removeLast();
             }
-            return new OutputUnit(errors.isEmpty()).setErrors(errors);
+            return new OutputUnit(errors.isEmpty()).setErrors(errors).setErrorType(errors.isEmpty() ? OutputErrorType.NONE : errors.get(0).getErrorType());
           }
         }
       }
@@ -212,14 +212,15 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         dynamicContext
       );
       if (!result.getValid()) {
-        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/$ref"), baseLocation + "/$ref", "A subschema had errors"));
+        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/$ref"), baseLocation + "/$ref", "A subschema had errors", result.getErrorType()));
         if (result.getErrors() != null) {
           errors.addAll(result.getErrors());
         }
       }
       if (draft == Draft.DRAFT4 || draft == Draft.DRAFT7) {
         return new OutputUnit(errors.isEmpty())
-          .setErrors(outputFormat == OutputFormat.Flag ? null : errors.isEmpty() ? null : errors);
+          .setErrors(outputFormat == OutputFormat.Flag ? null : errors.isEmpty() ? null : errors)
+          .setErrorType(outputFormat == OutputFormat.Flag ? null : errors.isEmpty() ? OutputErrorType.NONE : errors.get(0).getErrorType());
       }
     }
 
@@ -236,33 +237,33 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         }
       }
       if (!valid) {
-        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/type"), baseLocation + "/type", "Instance type " + instanceType + " is invalid. Expected " + String.join(", ", type.getList())));
+        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/type"), baseLocation + "/type", "Instance type " + instanceType + " is invalid. Expected " + String.join(", ", type.getList()), OutputErrorType.INVALID_VALUE));
       }
     } else if ("integer".equals(schema.get("type"))) {
       if (!"number".equals(instanceType) || !Numbers.isInteger(instance)) {
-        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/type"), baseLocation + "/type", "Instance type " + instanceType + " is invalid. Expected " + schema.get("type")));
+        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/type"), baseLocation + "/type", "Instance type " + instanceType + " is invalid. Expected " + schema.get("type"), OutputErrorType.INVALID_VALUE));
       }
     } else if (schema.containsKey("type") && !instanceType.equals(schema.get("type"))) {
-      errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/type"), baseLocation + "/type", "Instance type " + instanceType + " is invalid. Expected " + schema.get("type")));
+      errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/type"), baseLocation + "/type", "Instance type " + instanceType + " is invalid. Expected " + schema.get("type"), OutputErrorType.INVALID_VALUE));
     }
 
     if (schema.containsKey("const")) {
       if ("object".equals(instanceType) || "array".equals(instanceType)) {
         if (!JSON.deepCompare(instance, schema.get("const"))) {
-          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/const"), baseLocation + "/const", "Instance does not match " + Json.encode(schema.get("const"))));
+          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/const"), baseLocation + "/const", "Instance does not match " + Json.encode(schema.get("const")), OutputErrorType.INVALID_VALUE));
         }
       } else if (!Utils.Objects.equals(schema.get("const"), instance)) {
-        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/const"), baseLocation + "/const", "Instance does not match " + Json.encode(schema.get("const"))));
+        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/const"), baseLocation + "/const", "Instance does not match " + Json.encode(schema.get("const")), OutputErrorType.INVALID_VALUE));
       }
     }
 
     if (schema.containsKey("enum")) {
       if ("object".equals(instanceType) || "array".equals(instanceType)) {
         if (schema.<JsonArray>get("enum").stream().noneMatch(value -> JSON.deepCompare(instance, value))) {
-          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/enum"), baseLocation + "/enum", "Instance does not match any of " + Json.encode(schema.get("enum"))));
+          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/enum"), baseLocation + "/enum", "Instance does not match any of " + Json.encode(schema.get("enum")), OutputErrorType.INVALID_VALUE));
         }
       } else if (schema.<JsonArray>get("enum").stream().noneMatch(value -> Utils.Objects.equals(instance, value))) {
-        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/enum"), baseLocation + "/enum", "Instance does not match any of " + Json.encode(schema.get("enum"))));
+        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/enum"), baseLocation + "/enum", "Instance does not match any of " + Json.encode(schema.get("enum")), OutputErrorType.INVALID_VALUE));
       }
     }
 
@@ -278,7 +279,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         dynamicContext
       );
       if (result.getValid()) {
-        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/not"), baseLocation + "/not", "Instance matched \"not\" schema"));
+        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/not"), baseLocation + "/not", "Instance matched \"not\" schema", result.getErrorType()));
       }
     }
 
@@ -310,7 +311,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       if (anyValid) {
         errors = errors.subList(0, Math.min(errors.size(), errorsLength));
       } else {
-        errors.add(errorsLength, new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/anyOf"), baseLocation + "/anyOf", "Instance does not match any subschemas"));
+        errors.add(errorsLength, new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/anyOf"), baseLocation + "/anyOf", "Instance does not match any subschemas", OutputErrorType.INVALID_VALUE));
       }
     }
 
@@ -340,7 +341,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       if (allValid) {
         errors = errors.subList(0, Math.min(errors.size(), errorsLength));
       } else {
-        errors.add(errorsLength, new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/allOf"), baseLocation + "/allOf", "Instance does not match every subschema"));
+        errors.add(errorsLength, new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/allOf"), baseLocation + "/allOf", "Instance does not match every subschema", OutputErrorType.INVALID_VALUE));
       }
     }
 
@@ -372,7 +373,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       if (matches == 1) {
         errors = errors.subList(0, Math.min(errors.size(), errorsLength));
       } else {
-        errors.add(errorsLength, new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/oneOf"), baseLocation + "/oneOf", "Instance does not match exactly one subschema (" + matches + " matches)"));
+        errors.add(errorsLength, new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/oneOf"), baseLocation + "/oneOf", "Instance does not match exactly one subschema (" + matches + " matches)", OutputErrorType.INVALID_VALUE));
       }
     }
 
@@ -404,7 +405,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
             dynamicContext
           );
           if (!thenResult.getValid()) {
-            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/if"), baseLocation + "/if", "Instance does not match \"then\" schema"));
+            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/if"), baseLocation + "/if", "Instance does not match \"then\" schema", thenResult.getErrorType()));
             if (thenResult.getErrors() != null) {
               errors.addAll(thenResult.getErrors());
             }
@@ -422,7 +423,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
           dynamicContext
         );
         if (!elseResult.getValid()) {
-          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/else"), baseLocation + "/else", "Instance does not match \"else\" schema"));
+          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/else"), baseLocation + "/else", "Instance does not match \"else\" schema", elseResult.getErrorType()));
           if (elseResult.getErrors() != null) {
             errors.addAll(elseResult.getErrors());
           }
@@ -435,7 +436,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         if (schema.containsKey("required")) {
           for (final Object key : schema.<JsonArray>get("required")) {
             if (!((JsonObject) instance).containsKey((String) key)) {
-              errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/required"), baseLocation + "/required", "Instance does not have required property \"" + key + "\""));
+              errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/required"), baseLocation + "/required", "Instance does not have required property \"" + key + "\"", OutputErrorType.MISSING_VALUE));
             }
           }
         }
@@ -443,11 +444,11 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         final Set<String> keys = ((JsonObject) instance).fieldNames();
 
         if (schema.containsKey("minProperties") && keys.size() < schema.<Integer>get("minProperties")) {
-          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minProperties"), baseLocation + "/minProperties", "Instance does not have at least " + schema.get("minProperties") + " properties"));
+          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minProperties"), baseLocation + "/minProperties", "Instance does not have at least " + schema.get("minProperties") + " properties", OutputErrorType.MISSING_VALUE));
         }
 
         if (schema.containsKey("maxProperties") && keys.size() > schema.<Integer>get("maxProperties")) {
-          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/maxProperties"), baseLocation + "/maxProperties", "Instance does not have at least " + schema.get("maxProperties") + " properties"));
+          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/maxProperties"), baseLocation + "/maxProperties", "Instance does not have at least " + schema.get("maxProperties") + " properties", OutputErrorType.INVALID_VALUE));
         }
 
         if (schema.containsKey("propertyNames")) {
@@ -464,7 +465,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               dynamicContext
             );
             if (!result.getValid()) {
-              errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/propertyNames"), baseLocation + "/propertyNames", "Property name \"" + key + "\" does not match schema"));
+              errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/propertyNames"), baseLocation + "/propertyNames", "Property name \"" + key + "\" does not match schema", OutputErrorType.INVALID_VALUE));
               if (result.getErrors() != null) {
                 errors.addAll(result.getErrors());
               }
@@ -478,7 +479,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               final JsonArray required = schema.<JsonObject>get("dependentRequired").getJsonArray(key);
               for (final Object dependantKey : required) {
                 if (!(((JsonObject) instance).containsKey((String) dependantKey))) {
-                  errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/dependentRequired"), baseLocation + "/dependentRequired", "Instance has \"" + key + "\" but does not have \"" + dependantKey + "\""));
+                  errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/dependentRequired"), baseLocation + "/dependentRequired", "Instance has \"" + key + "\" but does not have \"" + dependantKey + "\"", OutputErrorType.MISSING_VALUE));
                 }
               }
             }
@@ -499,7 +500,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                 dynamicContext
               );
               if (!result.getValid()) {
-                errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/dependentSchemas"), baseLocation + "/dependentSchemas", "Instance has \"" + key + "\" but does not match dependant schema"));
+                errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/dependentSchemas"), baseLocation + "/dependentSchemas", "Instance has \"" + key + "\" but does not match dependant schema", OutputErrorType.MISSING_VALUE));
                 if (result.getErrors() != null) {
                   errors.addAll(result.getErrors());
                 }
@@ -515,7 +516,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               if (propsOrSchema instanceof JsonArray) {
                 for (final Object dependantKey : ((JsonArray) propsOrSchema)) {
                   if (!((JsonObject) instance).containsKey((String) dependantKey)) {
-                    errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/dependencies"), baseLocation + "/dependencies", "Instance has \"" + key + "\" but does not have \"" + dependantKey + "\""));
+                    errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/dependencies"), baseLocation + "/dependencies", "Instance has \"" + key + "\" but does not have \"" + dependantKey + "\"", OutputErrorType.MISSING_VALUE));
                   }
                 }
               } else {
@@ -530,7 +531,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                   dynamicContext
                 );
                 if (!result.getValid()) {
-                  errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/dependencies"), baseLocation + "/dependencies", "Instance has \"" + key + "\" but does not match dependant schema"));
+                  errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/dependencies"), baseLocation + "/dependencies", "Instance has \"" + key + "\" but does not match dependant schema", OutputErrorType.MISSING_VALUE));
                   if (result.getErrors() != null) {
                     errors.addAll(result.getErrors());
                   }
@@ -565,7 +566,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               thisEvaluated.add(key);
             } else {
               stop = outputFormat == OutputFormat.Flag;
-              errors.add(new OutputUnit(subInstancePointer, computeAbsoluteKeywordLocation(schema, schemaLocation + "/properties"), baseLocation + "/properties", "Property \"" + key + "\" does not match schema"));
+              errors.add(new OutputUnit(subInstancePointer, computeAbsoluteKeywordLocation(schema, schemaLocation + "/properties"), baseLocation + "/properties", "Property \"" + key + "\" does not match schema", result.getErrorType()));
               if (result.getErrors() != null) {
                 errors.addAll(result.getErrors());
               }
@@ -599,7 +600,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                 thisEvaluated.add(key);
               } else {
                 stop = outputFormat == OutputFormat.Flag;
-                errors.add(new OutputUnit(subInstancePointer, computeAbsoluteKeywordLocation(schema, schemaLocation + "/patternProperties"), baseLocation + "/patternProperties", "Property \"" + key + "\" matches pattern \"" + pattern + "\" but does not match associated schema"));
+                errors.add(new OutputUnit(subInstancePointer, computeAbsoluteKeywordLocation(schema, schemaLocation + "/patternProperties"), baseLocation + "/patternProperties", "Property \"" + key + "\" matches pattern \"" + pattern + "\" but does not match associated schema", OutputErrorType.MISSING_VALUE));
                 if (result.getErrors() != null) {
                   errors.addAll(result.getErrors());
                 }
@@ -628,7 +629,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               evaluated.add(key);
             } else {
               stop = outputFormat == OutputFormat.Flag;
-              errors.add(new OutputUnit(subInstancePointer, computeAbsoluteKeywordLocation(schema, schemaLocation + "/additionalProperties"), baseLocation + "/additionalProperties", "Property \"" + key + "\" does not match additional properties schema"));
+              errors.add(new OutputUnit(subInstancePointer, computeAbsoluteKeywordLocation(schema, schemaLocation + "/additionalProperties"), baseLocation + "/additionalProperties", "Property \"" + key + "\" does not match additional properties schema", result.getErrorType()));
               if (result.getErrors() != null) {
                 errors.addAll(result.getErrors());
               }
@@ -654,7 +655,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               if (result.getValid()) {
                 evaluated.add(key);
               } else {
-                errors.add(new OutputUnit(subInstancePointer, computeAbsoluteKeywordLocation(schema, schemaLocation + "/unevaluatedProperties"), baseLocation + "/unevaluatedProperties", "Property \"" + key + "\" does not match unevaluated properties schema"));
+                errors.add(new OutputUnit(subInstancePointer, computeAbsoluteKeywordLocation(schema, schemaLocation + "/unevaluatedProperties"), baseLocation + "/unevaluatedProperties", "Property \"" + key + "\" does not match unevaluated properties schema", result.getErrorType()));
                 if (result.getErrors() != null) {
                   errors.addAll(result.getErrors());
                 }
@@ -666,11 +667,11 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       }
       case "array": {
         if (schema.containsKey("maxItems") && ((JsonArray) instance).size() > schema.<Integer>get("maxItems")) {
-          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/maxItems"), baseLocation + "/maxItems", "Array has too many items ( + " + ((JsonArray) instance).size() + " > " + schema.get("maxItems") + ")"));
+          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/maxItems"), baseLocation + "/maxItems", "Array has too many items ( + " + ((JsonArray) instance).size() + " > " + schema.get("maxItems") + ")", OutputErrorType.INVALID_VALUE));
         }
 
         if (schema.containsKey("minItems") && ((JsonArray) instance).size() < schema.<Integer>get("minItems")) {
-          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minItems"), baseLocation + "/minItems", "Array has too few items ( + " + ((JsonArray) instance).size() + " < " + schema.get("minItems") + ")"));
+          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minItems"), baseLocation + "/minItems", "Array has too few items ( + " + ((JsonArray) instance).size() + " < " + schema.get("minItems") + ")", OutputErrorType.MISSING_VALUE));
         }
 
         final int length = ((JsonArray) instance).size();
@@ -693,7 +694,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
             evaluated.add(i);
             if (!result.getValid()) {
               stop = outputFormat == OutputFormat.Flag;
-              errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/prefixItems"), baseLocation + "/prefixItems", "Items did not match schema"));
+              errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/prefixItems"), baseLocation + "/prefixItems", "Items did not match schema", result.getErrorType()));
               if (result.getErrors() != null) {
                 errors.addAll(result.getErrors());
               }
@@ -721,7 +722,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               evaluated.add(i);
               if (!result.getValid()) {
                 stop = outputFormat == OutputFormat.Flag;
-                errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/items"), baseLocation + "/items", "Items did not match schema"));
+                errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/items"), baseLocation + "/items", "Items did not match schema", result.getErrorType()));
                 if (result.getErrors() != null) {
                   errors.addAll(result.getErrors());
                 }
@@ -745,7 +746,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               evaluated.add(i);
               if (!result.getValid()) {
                 stop = outputFormat == OutputFormat.Flag;
-                errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/items"), baseLocation + "/items", "Items did not match schema"));
+                errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/items"), baseLocation + "/items", "Items did not match schema", result.getErrorType()));
                 if (result.getErrors() != null) {
                   errors.addAll(result.getErrors());
                 }
@@ -772,7 +773,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               evaluated.add(i);
               if (!result.getValid()) {
                 stop = outputFormat == OutputFormat.Flag;
-                errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/additionalItems"), schemaLocation + "/additionalItems", "Items did not match additional items schema"));
+                errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/additionalItems"), schemaLocation + "/additionalItems", "Items did not match additional items schema", result.getErrorType()));
                 if (result.getErrors() != null) {
                   errors.addAll(result.getErrors());
                 }
@@ -783,9 +784,9 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
 
         if (schema.containsKey("contains")) {
           if (length == 0 && !schema.containsKey("minContains")) {
-            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/contains"), baseLocation + "/contains", "Array is empty. It must contain at least one item matching the schema"));
+            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/contains"), baseLocation + "/contains", "Array is empty. It must contain at least one item matching the schema", OutputErrorType.MISSING_VALUE));
           } else if (schema.containsKey("minContains") && length < schema.<Integer>get("minContains")) {
-            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minContains"), baseLocation + "/minContains", "Array has less items (" + length + ") than minContains (" + schema.get("minContains") + ")"));
+            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minContains"), baseLocation + "/minContains", "Array has less items (" + length + ") than minContains (" + schema.get("minContains") + ")", OutputErrorType.MISSING_VALUE));
           } else {
             final int errorsLength = errors.size();
             int contained = 0;
@@ -819,11 +820,11 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                 !schema.containsKey("maxContains") &&
                 contained == 0
             ) {
-              errors.add(errorsLength, new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/contains"), baseLocation + "/contains", "Array does not contain item matching schema"));
+              errors.add(errorsLength, new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/contains"), baseLocation + "/contains", "Array does not contain item matching schema", OutputErrorType.INVALID_VALUE));
             } else if (schema.containsKey("minContains") && contained < schema.<Integer>get("minContains")) {
-              errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minContains"), baseLocation + "/minContains", "Array must contain at least " + schema.get("minContains") + " items matching schema. Only " + contained + " items were found"));
+              errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minContains"), baseLocation + "/minContains", "Array must contain at least " + schema.get("minContains") + " items matching schema. Only " + contained + " items were found", OutputErrorType.MISSING_VALUE));
             } else if (schema.containsKey("maxContains") && contained > schema.<Integer>get("maxContains")) {
-              errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/maxContains"), baseLocation + "/maxContains", "Array may contain at most " + schema.get("minContains") + " items matching schema. " + contained + " items were found"));
+              errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/maxContains"), baseLocation + "/maxContains", "Array may contain at most " + schema.get("minContains") + " items matching schema. " + contained + " items were found", OutputErrorType.INVALID_VALUE));
             }
           }
         }
@@ -845,7 +846,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
             );
             evaluated.add(i);
             if (!result.getValid()) {
-              errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/unevaluatedItems"), baseLocation + "/unevaluatedItems", "Items did not match unevaluated items schema"));
+              errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/unevaluatedItems"), baseLocation + "/unevaluatedItems", "Items did not match unevaluated items schema", result.getErrorType()));
               if (result.getErrors() != null) {
                 errors.addAll(result.getErrors());
               }
@@ -865,7 +866,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               final Object b = ((JsonArray) instance).getValue(k);
               final boolean bo = "object".equals(JSON.typeOf(b)) && b != null;
               if (Utils.Objects.equals(a, b) || (ao && bo && JSON.deepCompare(a, b))) {
-                errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/uniqueItems"), baseLocation + "/uniqueItems", "Duplicate items at indexes " + j + " and " + k));
+                errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/uniqueItems"), baseLocation + "/uniqueItems", "Duplicate items at indexes " + j + " and " + k, OutputErrorType.INVALID_VALUE));
                 break outer;
               }
             }
@@ -880,27 +881,27 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               ((schema.<Boolean>get("exclusiveMinimum", false) && Numbers.lte((Number) instance, schema.get("minimum"))) ||
                 Numbers.lt((Number) instance, schema.get("minimum")))
           ) {
-            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minimum"), baseLocation + "/minimum", instance + " is less than " + (schema.<Boolean>get("exclusiveMinimum", false) ? "or equal to " : "") + schema.get("minimum")));
+            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minimum"), baseLocation + "/minimum", instance + " is less than " + (schema.<Boolean>get("exclusiveMinimum", false) ? "or equal to " : "") + schema.get("minimum"), OutputErrorType.INVALID_VALUE));
           }
           if (
             schema.containsKey("maximum") &&
               ((schema.<Boolean>get("exclusiveMaximum", false) && Numbers.gte((Number) instance, schema.get("maximum"))) ||
                 Numbers.gt((Number) instance, schema.get("maximum")))
           ) {
-            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/maximum"), baseLocation + "/maximum", instance + " is greater than " + (schema.<Boolean>get("exclusiveMaximum", false) ? "or equal to " : "") + schema.get("maximum")));
+            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/maximum"), baseLocation + "/maximum", instance + " is greater than " + (schema.<Boolean>get("exclusiveMaximum", false) ? "or equal to " : "") + schema.get("maximum"), OutputErrorType.INVALID_VALUE));
           }
         } else {
           if (schema.containsKey("minimum") && Numbers.lt((Number) instance, schema.get("minimum"))) {
-            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minimum"), baseLocation + "/minimum", instance + " is less than " + schema.get("minimum")));
+            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minimum"), baseLocation + "/minimum", instance + " is less than " + schema.get("minimum"), OutputErrorType.INVALID_VALUE));
           }
           if (schema.containsKey("maximum") && Numbers.gt((Number) instance, schema.get("maximum"))) {
-            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/maximum"), baseLocation + "/maximum", instance + " is greater than " + schema.get("maximum")));
+            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/maximum"), baseLocation + "/maximum", instance + " is greater than " + schema.get("maximum"), OutputErrorType.INVALID_VALUE));
           }
           if (schema.containsKey("exclusiveMinimum") && Numbers.lte((Number) instance, schema.get("exclusiveMinimum"))) {
-            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/exclusiveMinimum"), baseLocation + "/exclusiveMinimum", instance + " is less than or equal to " + schema.get("exclusiveMinimum")));
+            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/exclusiveMinimum"), baseLocation + "/exclusiveMinimum", instance + " is less than or equal to " + schema.get("exclusiveMinimum"), OutputErrorType.INVALID_VALUE));
           }
           if (schema.containsKey("exclusiveMaximum") && Numbers.gte((Number) instance, schema.get("exclusiveMaximum"))) {
-            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/exclusiveMaximum"), baseLocation + "/exclusiveMaximum", instance + " is greater than or equal to " + schema.get("exclusiveMaximum")));
+            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/exclusiveMaximum"), baseLocation + "/exclusiveMaximum", instance + " is greater than or equal to " + schema.get("exclusiveMaximum"), OutputErrorType.INVALID_VALUE));
           }
         }
         if (schema.containsKey("multipleOf")) {
@@ -909,7 +910,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
             Math.abs(0 - remainder) >= 1.1920929e-7 &&
               Math.abs(schema.<Number>get("multipleOf").doubleValue() - remainder) >= 1.1920929e-7
           ) {
-            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/multipleOf"), baseLocation + "/multipleOf", instance + " is not a multiple of " + schema.get("multipleOf")));
+            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/multipleOf"), baseLocation + "/multipleOf", instance + " is not a multiple of " + schema.get("multipleOf"), OutputErrorType.INVALID_VALUE));
           }
         }
         break;
@@ -919,19 +920,19 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
             ? 0
             : Strings.ucs2length((String) instance);
         if (schema.containsKey("minLength") && Numbers.lt(length, schema.get("minLength"))) {
-          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minLength"), baseLocation + "/minLength", "String is too short (" + length + " < " + schema.get("minLength") + ")"));
+          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minLength"), baseLocation + "/minLength", "String is too short (" + length + " < " + schema.get("minLength") + ")", OutputErrorType.INVALID_VALUE));
         }
         if (schema.containsKey("maxLength") && Numbers.gt(length, schema.get("maxLength"))) {
-          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/maxLength"), baseLocation + "/maxLength", "String is too long (" + length + " > " + schema.get("maxLength") + ")"));
+          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/maxLength"), baseLocation + "/maxLength", "String is too long (" + length + " > " + schema.get("maxLength") + ")", OutputErrorType.INVALID_VALUE));
         }
         if (schema.containsKey("pattern") && !Pattern.compile(schema.get("pattern")).matcher((String) instance).find()) {
-          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/pattern"), baseLocation + "/pattern", "String does not match pattern"));
+          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/pattern"), baseLocation + "/pattern", "String does not match pattern", OutputErrorType.INVALID_VALUE));
         }
         if (
           schema.containsKey("format") &&
             !Format.fastFormat(schema.get("format"), (String) instance)
         ) {
-          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"), baseLocation + "/format", "String does not match format \"" + schema.get("format") + "\""));
+          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"), baseLocation + "/format", "String does not match format \"" + schema.get("format") + "\"", OutputErrorType.INVALID_VALUE));
         }
         break;
       }
@@ -940,7 +941,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
     String error = formatValidator.validateFormat(instanceType, schema.get("format"), instance);
     if (error != null) {
       errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"),
-        baseLocation + "/format", error));
+        baseLocation + "/format", error, OutputErrorType.INVALID_VALUE));
     }
 
     if (dynamicAnchor != null) {
@@ -951,7 +952,9 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
 
     return new OutputUnit(errors.isEmpty())
       .setErrors(outputFormat == OutputFormat.Flag ? null : errors.isEmpty() ? null : errors)
-      .setAnnotations(outputFormat == OutputFormat.Flag ? null : annotations.isEmpty() ? null : annotations);
+      .setAnnotations(outputFormat == OutputFormat.Flag ? null : annotations.isEmpty() ? null : annotations)
+      .setErrorType((outputFormat == OutputFormat.Flag ? OutputErrorType.NONE :
+        errors.isEmpty() ? OutputErrorType.NONE : errors.get(0).getErrorType()));
   }
 
   private String computeAbsoluteKeywordLocation(JsonSchema schema, String schemaKeywordLocation) {
