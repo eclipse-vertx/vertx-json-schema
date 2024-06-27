@@ -1,4 +1,4 @@
-package io.vertx.tests.impl;
+package io.vertx.json.schema.impl;
 
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.json.JsonArray;
@@ -7,8 +7,6 @@ import io.vertx.json.schema.*;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static io.vertx.json.schema.JsonFormatValidator.DEFAULT_VALIDATOR;
 
 public class SchemaRepositoryImpl implements SchemaRepository {
 
@@ -68,15 +66,15 @@ public class SchemaRepositoryImpl implements SchemaRepository {
     "else"
   );
 
-  static final List<String> DRAFT_4_META_FILES = Collections.singletonList(
+  public static final List<String> DRAFT_4_META_FILES = Collections.singletonList(
     "http://json-schema.org/draft-04/schema"
   );
 
-  static final List<String> DRAFT_7_META_FILES = Collections.singletonList(
+  public static final List<String> DRAFT_7_META_FILES = Collections.singletonList(
     "http://json-schema.org/draft-07/schema"
   );
 
-  static final List<String> DRAFT_201909_META_FILES = Arrays.asList(
+  public static final List<String> DRAFT_201909_META_FILES = Arrays.asList(
     "https://json-schema.org/draft/2019-09/schema",
     "https://json-schema.org/draft/2019-09/meta/core",
     "https://json-schema.org/draft/2019-09/meta/applicator",
@@ -86,7 +84,7 @@ public class SchemaRepositoryImpl implements SchemaRepository {
     "https://json-schema.org/draft/2019-09/meta/content"
     );
 
-  static final List<String> DRAFT_202012_META_FILES = Arrays.asList(
+  public static final List<String> DRAFT_202012_META_FILES = Arrays.asList(
     "https://json-schema.org/draft/2020-12/schema",
     "https://json-schema.org/draft/2020-12/meta/core",
     "https://json-schema.org/draft/2020-12/meta/applicator",

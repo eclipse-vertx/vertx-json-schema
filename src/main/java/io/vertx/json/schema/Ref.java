@@ -12,7 +12,7 @@ package io.vertx.json.schema;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.json.JsonObject;
-import io.vertx.tests.impl.JsonRef;
+import io.vertx.json.schema.impl.JsonRef;
 
 /**
  * JsonObject {@code $ref} resolver. This interface is used to resolve {@code $ref} in a {@link JsonObject}. The result

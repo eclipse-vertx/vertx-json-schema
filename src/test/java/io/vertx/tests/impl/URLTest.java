@@ -1,5 +1,6 @@
 package io.vertx.tests.impl;
 
+import io.vertx.json.schema.impl.URL;
 import org.junit.jupiter.api.Test;
 
 import java.net.URISyntaxException;

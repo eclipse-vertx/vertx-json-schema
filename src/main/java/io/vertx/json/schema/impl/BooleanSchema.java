@@ -1,4 +1,4 @@
-package io.vertx.tests.impl;
+package io.vertx.json.schema.impl;
 
 import io.vertx.json.schema.JsonSchema;
 

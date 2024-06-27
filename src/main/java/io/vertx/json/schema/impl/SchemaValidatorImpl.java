@@ -1,4 +1,4 @@
-package io.vertx.tests.impl;
+package io.vertx.json.schema.impl;
 
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
@@ -9,8 +9,8 @@ import java.util.Objects;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import static io.vertx.tests.impl.SchemaRepositoryImpl.dereference;
-import static io.vertx.tests.impl.Utils.*;
+import static io.vertx.json.schema.impl.SchemaRepositoryImpl.dereference;
+import static io.vertx.json.schema.impl.Utils.*;
 
 public class SchemaValidatorImpl implements SchemaValidatorInternal {
 

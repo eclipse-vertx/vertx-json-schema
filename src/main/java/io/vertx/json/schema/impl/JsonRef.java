@@ -1,4 +1,4 @@
-package io.vertx.tests.impl;
+package io.vertx.json.schema.impl;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -6,8 +6,8 @@ import io.vertx.json.schema.JsonSchema;
 
 import java.util.*;
 
-import static io.vertx.core.net.impl.URIDecoder.decodeURIComponent;
-import static io.vertx.tests.impl.Utils.Objects.isObject;
+import static io.vertx.core.internal.net.URIDecoder.decodeURIComponent;
+import static io.vertx.json.schema.impl.Utils.Objects.isObject;
 
 /**
  * This class is used to resolve JSON references. Resolving means replacing all the references with the actual object.

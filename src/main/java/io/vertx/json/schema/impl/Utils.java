@@ -1,4 +1,4 @@
-package io.vertx.tests.impl;
+package io.vertx.json.schema.impl;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -256,7 +256,7 @@ public class Utils {
     }
   }
 
-  static class Pointers {
+  public static class Pointers {
 
     private static final String genDelims = ":?#@"; // except /[]
     private static final String subDelims = "!$&'()*+,;=";

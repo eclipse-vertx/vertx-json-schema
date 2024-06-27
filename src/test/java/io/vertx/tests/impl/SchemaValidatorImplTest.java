@@ -2,17 +2,15 @@ package io.vertx.tests.impl;
 
 import io.vertx.json.schema.JsonSchema;
 import io.vertx.json.schema.JsonSchemaOptions;
-import io.vertx.json.schema.Validator;
 import io.vertx.json.schema.common.dsl.Keywords;
 import io.vertx.json.schema.common.dsl.Schemas;
 import io.vertx.json.schema.common.dsl.StringFormat;
-import org.junit.jupiter.api.Assertions;
+import io.vertx.json.schema.impl.SchemaValidatorImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.Collections;
 import java.util.stream.Stream;
 
 import static io.vertx.json.schema.Draft.DRAFT201909;
