@@ -3,6 +3,8 @@ package io.vertx.json.schema.impl;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.JsonSchema;
+import io.vertx.json.schema.internal.JsonArrayProxy;
+import io.vertx.json.schema.internal.JsonObjectProxy;
 
 import java.util.*;
 

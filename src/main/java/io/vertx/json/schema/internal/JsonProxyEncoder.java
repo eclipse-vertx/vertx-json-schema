@@ -1,4 +1,4 @@
-package io.vertx.json.schema.impl;
+package io.vertx.json.schema.internal;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -8,6 +8,7 @@ import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.EncodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.json.schema.impl.JsonObjectRef;
 
 import java.io.IOException;
 import java.io.StringWriter;

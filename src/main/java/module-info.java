@@ -22,5 +22,6 @@ module io.vertx.jsonschema {
   exports io.vertx.json.schema.common.dsl;
 
   exports io.vertx.json.schema.impl to io.vertx.tests;
+  exports io.vertx.json.schema.internal to io.vertx.tests, io.vertx.openapi;
 
 }
