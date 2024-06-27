@@ -14,7 +14,7 @@ import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.json.JsonObject;
-import io.vertx.json.schema.impl.SchemaRepositoryImpl;
+import io.vertx.tests.impl.SchemaRepositoryImpl;
 
 import static io.vertx.json.schema.JsonFormatValidator.DEFAULT_VALIDATOR;
 

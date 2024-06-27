@@ -11,7 +11,7 @@
 package io.vertx.json.schema;
 
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.json.schema.impl.SchemaValidatorImpl;
+import io.vertx.tests.impl.SchemaValidatorImpl;
 
 import java.util.Collections;
 import java.util.Objects;

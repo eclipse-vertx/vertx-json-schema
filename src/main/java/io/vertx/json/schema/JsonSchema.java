@@ -14,8 +14,8 @@ import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.json.JsonObject;
-import io.vertx.json.schema.impl.BooleanSchema;
-import io.vertx.json.schema.impl.JsonObjectSchema;
+import io.vertx.tests.impl.BooleanSchema;
+import io.vertx.tests.impl.JsonObjectSchema;
 
 import java.util.Map;
 import java.util.Set;
