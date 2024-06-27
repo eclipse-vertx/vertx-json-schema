@@ -6,7 +6,7 @@ import io.vertx.json.schema.JsonSchema;
 
 import java.util.*;
 
-import static io.vertx.core.net.impl.URIDecoder.decodeURIComponent;
+import static io.vertx.core.internal.net.URIDecoder.decodeURIComponent;
 import static io.vertx.json.schema.impl.Utils.Objects.isObject;
 
 /**

@@ -3,7 +3,7 @@
  *
  * (C) Copyright - 2013 - J.W. Janssen <j.w.janssen@lxtreme.nl>
  */
-package io.vertx.json.schema;
+package io.vertx.tests;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;

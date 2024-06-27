@@ -1,7 +1,8 @@
-package io.vertx.json.schema;
+package io.vertx.tests;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
+import io.vertx.json.schema.*;
 import io.vertx.junit5.Timeout;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
