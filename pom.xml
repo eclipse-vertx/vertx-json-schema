@@ -28,8 +28,13 @@
 
   <name>Vert.x JSON Schema</name>
 
+  <scm>
+    <connection>scm:git:git@github.com:eclipse-vertx/vertx-json-schema.git</connection>
+    <developerConnection>scm:git:git@github.com:eclipse-vertx/vertx-json-schema.git</developerConnection>
+    <url>git@github.com:eclipse-vertx/vertx-json-schema.git</url>
+  </scm>
+
   <properties>
-    <stack.version>5.0.0-SNAPSHOT</stack.version>
     <mockito.version>5.12.0</mockito.version>
     <assertj.version>3.15.0</assertj.version>
     <jar.manifest>${project.basedir}/src/main/resources/META-INF/MANIFEST.MF</jar.manifest>
@@ -40,7 +45,7 @@
       <dependency>
         <groupId>io.vertx</groupId>
         <artifactId>vertx-dependencies</artifactId>
-        <version>${stack.version}</version>
+        <version>${project.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
