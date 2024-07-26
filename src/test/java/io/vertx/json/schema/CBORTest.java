@@ -64,6 +64,7 @@ public class CBORTest {
 
     assertThat(res.getValid()).isTrue();
     assertThat(res.getErrors()).isNull();
+    assertThat(res.getErrorType()).isEqualByComparingTo(OutputErrorType.NONE);
   }
 
   @Test
@@ -83,6 +84,7 @@ public class CBORTest {
 
     assertThat(res.getValid()).isFalse();
     assertThat(res.getErrors()).isNotEmpty();
+    assertThat(res.getErrorType()).isEqualByComparingTo(OutputErrorType.MISSING_VALUE);
 
     try {
       res.checkValidity();

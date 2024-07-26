@@ -12,7 +12,8 @@ import static org.assertj.core.api.Assertions.fail;
 @ExtendWith(VertxExtension.class)
 class ValidationTest {
 
-  private final static JsonSchemaOptions SCHEMA_OPTIONS = new JsonSchemaOptions().setDraft(Draft.DRAFT202012).setBaseUri("app://");
+  private final static JsonSchemaOptions SCHEMA_OPTIONS = new JsonSchemaOptions()
+      .setDraft(Draft.DRAFT202012).setBaseUri("app://").setOutputFormat(OutputFormat.Basic);
 
   @Test
   public void testValidate202012RelyingOnDynamicAnchorDynamicRefShouldFail(Vertx vertx) {
@@ -35,6 +36,7 @@ class ValidationTest {
         "}"));
 
     assertThat(ou.getValid()).isFalse();
+    assertThat(ou.getErrorType()).isEqualByComparingTo(OutputErrorType.INVALID_VALUE);
   }
 
   @Test
@@ -55,6 +57,7 @@ class ValidationTest {
         "}"));
 
     assertThat(ou.getValid()).isTrue();
+    assertThat(ou.getErrorType()).isEqualByComparingTo(OutputErrorType.NONE);
   }
 
   @Test
@@ -70,6 +73,7 @@ class ValidationTest {
 
     assertThat(res.getValid()).isTrue();
     assertThat(res.getErrors()).isNull();
+    assertThat(res.getErrorType()).isEqualByComparingTo(OutputErrorType.NONE);
   }
 
   @Test
@@ -87,7 +91,8 @@ class ValidationTest {
       res.checkValidity();
       fail("Should have thrown an exception");
     } catch (JsonSchemaValidationException e) {
-      // OK
+      assertThat(e.errorType()).isEqualByComparingTo(res.getErrorType());
+      assertThat(e.errorType()).isEqualByComparingTo(OutputErrorType.MISSING_VALUE);
     }
   }
 
@@ -104,6 +109,7 @@ class ValidationTest {
 
     // Should be fine!
     res.checkValidity();
+    assertThat(res.getErrorType()).isEqualByComparingTo(OutputErrorType.NONE);
   }
 
   @Test
@@ -161,8 +167,10 @@ class ValidationTest {
       .put("prop1", "123e4567-e89b-42d3-a456-556642440000")
       .put("prop2", 42);
 
+    OutputUnit res = repository.validator("schema-parent.json").validate(json);
+    res.checkValidity();
+    assertThat(res.getErrorType()).isEqualByComparingTo(OutputErrorType.NONE);
 
-    repository.validator("schema-parent.json").validate(json).checkValidity();
   }
 
   @Test
@@ -222,6 +230,8 @@ class ValidationTest {
       .put("prop2", 42);
 
 
-    repository.validator("schema-parent.json").validate(json).checkValidity();
+    OutputUnit res = repository.validator("schema-parent.json").validate(json);
+    res.checkValidity();
+    assertThat(res.getErrorType()).isEqualByComparingTo(OutputErrorType.NONE);
   }
 }
