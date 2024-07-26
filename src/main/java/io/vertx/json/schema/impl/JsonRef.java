@@ -3,10 +3,12 @@ package io.vertx.json.schema.impl;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.JsonSchema;
+import io.vertx.json.schema.internal.JsonArrayProxy;
+import io.vertx.json.schema.internal.JsonObjectProxy;
 
 import java.util.*;
 
-import static io.vertx.core.net.impl.URIDecoder.decodeURIComponent;
+import static io.vertx.core.internal.net.URIDecoder.decodeURIComponent;
 import static io.vertx.json.schema.impl.Utils.Objects.isObject;
 
 /**

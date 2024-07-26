@@ -1,4 +1,4 @@
-package io.vertx.json.schema.impl;
+package io.vertx.json.schema.internal;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import io.vertx.core.json.JsonObject;

@@ -1,4 +1,4 @@
-package io.vertx.json.schema;
+package io.vertx.tests;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;

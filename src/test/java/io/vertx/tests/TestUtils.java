@@ -8,7 +8,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
  */
-package io.vertx.json.schema;
+package io.vertx.tests;
 
 import io.vertx.core.json.JsonObject;
 

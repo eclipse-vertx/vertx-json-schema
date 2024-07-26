@@ -1,9 +1,10 @@
-package io.vertx.json.schema;
+package io.vertx.tests;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
+import io.vertx.json.schema.*;
 import io.vertx.junit5.VertxExtension;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;

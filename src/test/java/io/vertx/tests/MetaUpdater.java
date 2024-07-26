@@ -1,4 +1,4 @@
-package io.vertx.json.schema;
+package io.vertx.tests;
 
 import java.io.IOException;
 import java.io.InputStream;

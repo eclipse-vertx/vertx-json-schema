@@ -1,4 +1,4 @@
-package io.vertx.json.schema.impl;
+package io.vertx.json.schema.internal;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -8,6 +8,7 @@ import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.EncodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.json.schema.impl.JsonObjectRef;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -15,15 +16,17 @@ import java.io.Writer;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
-import static io.vertx.core.json.impl.JsonUtil.BASE64_ENCODER;
 import static io.vertx.json.schema.JsonSchema.EXCLUDE_ANNOTATION_ENTRIES;
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 import static java.util.stream.Collectors.toMap;
 
 public interface JsonProxyEncoder {
+
+  Base64.Encoder BASE64_ENCODER = Base64.getUrlEncoder().withoutPadding();
   JsonFactory factory = new JsonFactory().configure(JsonParser.Feature.ALLOW_COMMENTS, true);
   String KEY_ABS_URI = "__absolute_uri__";
 

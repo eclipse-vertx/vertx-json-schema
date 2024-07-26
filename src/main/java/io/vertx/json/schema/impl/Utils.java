@@ -256,7 +256,7 @@ public class Utils {
     }
   }
 
-  static class Pointers {
+  public static class Pointers {
 
     private static final String genDelims = ":?#@"; // except /[]
     private static final String subDelims = "!$&'()*+,;=";

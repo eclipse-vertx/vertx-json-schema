@@ -1,7 +1,8 @@
-package io.vertx.json.schema;
+package io.vertx.tests;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.json.schema.*;
 import io.vertx.junit5.VertxExtension;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.extension.ExtendWith;

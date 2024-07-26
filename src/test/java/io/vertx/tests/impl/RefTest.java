@@ -1,14 +1,13 @@
-package io.vertx.json.schema.impl;
+package io.vertx.tests.impl;
 
-import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.json.schema.Draft;
 import io.vertx.json.schema.JsonSchema;
 import io.vertx.json.schema.JsonSchemaOptions;
-import io.vertx.json.schema.JsonSchemaValidationException;
 import io.vertx.json.schema.SchemaRepository;
+import io.vertx.json.schema.impl.JsonRef;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
