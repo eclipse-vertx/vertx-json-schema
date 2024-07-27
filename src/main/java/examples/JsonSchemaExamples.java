@@ -27,6 +27,8 @@ public class JsonSchemaExamples {
 
     if (result.getValid()) {
       // Successful validation
+    } else {
+      System.out.println("Validation failed due to " + result.getError() + " this is an error type: " + result.getErrorType());
     }
   }
 
