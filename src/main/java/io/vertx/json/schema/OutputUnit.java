@@ -29,6 +29,7 @@ public class OutputUnit {
   private String keywordLocation;
   private String instanceLocation;
   private String error;
+  private OutputErrorType errorType = OutputErrorType.NONE;
 
   private List<OutputUnit> errors;
   private List<OutputUnit> annotations;
@@ -44,11 +45,12 @@ public class OutputUnit {
     this.valid = valid;
   }
 
-  public OutputUnit(String instanceLocation, String absoluteKeywordLocation, String keywordLocation, String error) {
+  public OutputUnit(String instanceLocation, String absoluteKeywordLocation, String keywordLocation, String error, OutputErrorType errorType) {
     this.instanceLocation = instanceLocation;
     this.absoluteKeywordLocation = absoluteKeywordLocation;
     this.keywordLocation = keywordLocation;
     this.error = error;
+    this.errorType = errorType;
   }
 
   public Boolean getValid() {
@@ -132,6 +134,15 @@ public class OutputUnit {
     return this;
   }
 
+  public OutputErrorType getErrorType() {
+    return errorType;
+  }
+
+  public OutputUnit setErrorType(OutputErrorType errorType) {
+    this.errorType = errorType;
+    return this;
+  }
+
   public OutputUnit addAnnotation(OutputUnit annotation) {
     if (this.annotations == null) {
       this.annotations = new ArrayList<>();
@@ -161,6 +172,7 @@ public class OutputUnit {
       throw new JsonSchemaValidationException(
         msg == null ? "JsonSchema Validation error" : msg,
         location,
+        errorType,
         // add some information to the stack trace
         createStackTraceElement());
     } else {
@@ -173,6 +185,7 @@ public class OutputUnit {
           throw new JsonSchemaValidationException(
             msg == null ? "JsonSchema Validation error" : msg,
             location,
+            errorType,
             // add some information to the stack trace
             createStackTraceElement());
         } else {
@@ -186,6 +199,7 @@ public class OutputUnit {
               error.getError(),
               lastException,
               location,
+              errorType,
               // add some information to the stack trace
               error.createStackTraceElement());
             lastException = cause;
@@ -194,7 +208,7 @@ public class OutputUnit {
             throw lastException;
           } else {
             // one final wrap as there is extra error message in the unit
-            throw new JsonSchemaValidationException(msg, lastException, getAbsoluteKeywordLocation());
+            throw new JsonSchemaValidationException(msg, lastException, getAbsoluteKeywordLocation(), errorType);
           }
         }
       }

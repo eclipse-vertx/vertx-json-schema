@@ -47,5 +47,6 @@ class SchemaDefinitionValidationTest {
 
     OutputUnit res = repo.validator(draft.getIdentifier()).validate(schemaToValidate);
     Assertions.assertTrue(res.getValid());
+    Assertions.assertEquals(OutputErrorType.NONE, res.getErrorType());
   }
 }

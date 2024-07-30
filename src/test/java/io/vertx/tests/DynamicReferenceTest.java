@@ -134,6 +134,7 @@ public class DynamicReferenceTest {
       .validate(instance);
 
     assertThat(ou.getValid()).isFalse();
+    assertThat(ou.getErrorType()).isEqualByComparingTo(OutputErrorType.INVALID_VALUE);
   }
 
 //  @Test

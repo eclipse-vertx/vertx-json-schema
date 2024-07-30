@@ -104,6 +104,12 @@ To validate a schema:
 {@link examples.JsonSchemaExamples#validate}
 ----
 
+If a validation fails, you can retrieve the `OutputErrorType` to help determine the cause of the failure. Currently there are 3 `OutputErrorType`:
+
+- NONE, This is used when there are no errors found.
+- INVALID_VALUE, This is used when a value is provided, but the value does not match the given schema.
+- MISSING_VALUE, This is used when a value is not present, or not enough of the value is present but the schema requires it.
+
 == Defining a custom JSON format
 
 By default, the schema validator will perform an NOOP on unknown formats, so they will be treated as valid inputs.
