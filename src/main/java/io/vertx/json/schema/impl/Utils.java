@@ -333,7 +333,7 @@ public class Utils {
         return (Boolean) instance;
       }
       if (instance instanceof String) {
-        return ((String) instance).length() > 0;
+        return !((String) instance).isEmpty();
       }
       if (instance instanceof Number) {
         return Numbers.ze((Number) instance);

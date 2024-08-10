@@ -105,46 +105,12 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
     final String dynamicAnchor;
 
     // push $dynamicAnchor with current "__absolute_uri__"
-    if (schema.containsKey("$dynamicAnchor")) {
-      dynamicAnchor = "#" + schema.get("$dynamicAnchor");
-      dynamicContext
-        .computeIfAbsent(dynamicAnchor, k -> new LinkedList<>())
-        .add(schema);
-    } else {
-      dynamicAnchor = null;
-    }
+    dynamicAnchor = getDynamicAnchor(schema, dynamicContext);
 
     // Lock (recursive anchor to the current schema, is dealing with $recursiveAnchor)
-    final JsonSchema recursiveAnchor;
-    if (_recursiveAnchor == null && schema.<Boolean>get("$recursiveAnchor", false)) {
-      recursiveAnchor = schema;
-    } else {
-      recursiveAnchor = _recursiveAnchor;
-    }
+    final JsonSchema recursiveAnchor = getRecursiveAnchor(schema, _recursiveAnchor);
 
-    if ("#".equals(schema.get("$recursiveRef"))) {
-      assert schema.containsKey("__absolute_recursive_ref__");
-      final JsonSchema refSchema =
-        recursiveAnchor == null
-          ? lookup.get(schema.<String>get("__absolute_recursive_ref__"))
-          : recursiveAnchor;
-      final OutputUnit result = validate(
-        instance,
-        recursiveAnchor == null ? schema : recursiveAnchor,
-        refSchema,
-        instanceLocation,
-        schemaLocation + "/$recursiveRef",
-        baseLocation + "/$recursiveRef",
-        evaluated,
-        dynamicContext
-      );
-      if (!result.getValid()) {
-        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/$recursiveRef"), baseLocation + "/$recursiveRef", "A sub-schema had errors", result.getErrorType()));
-        if (result.getErrors() != null) {
-          errors.addAll(result.getErrors());
-        }
-      }
-    }
+    validateRecursiveRef(schema, instanceLocation, schemaLocation, baseLocation, evaluated, dynamicContext, recursiveAnchor, instance, errors);
 
     if (schema.containsKey("$dynamicRef")) {
       Deque<JsonSchema> deque = dynamicContext.get(schema.<String>get("$dynamicRef"));
@@ -224,212 +190,22 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       }
     }
 
-    if (schema.get("type") instanceof JsonArray) {
-      final JsonArray type = schema.get("type");
-      int length = type.size();
-      boolean valid = false;
-      for (int i = 0; i < length; i++) {
-        if (
-          instanceType.equals(type.getString(i)) ||
-            ("integer".equals(type.getString(i)) && "number".equals(instanceType) && Numbers.isInteger(instance))) {
-          valid = true;
-          break;
-        }
-      }
-      if (!valid) {
-        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/type"), baseLocation + "/type", "Instance type " + instanceType + " is invalid. Expected " + String.join(", ", type.getList()), OutputErrorType.INVALID_VALUE));
-      }
-    } else if ("integer".equals(schema.get("type"))) {
-      if (!"number".equals(instanceType) || !Numbers.isInteger(instance)) {
-        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/type"), baseLocation + "/type", "Instance type " + instanceType + " is invalid. Expected " + schema.get("type"), OutputErrorType.INVALID_VALUE));
-      }
-    } else if (schema.containsKey("type") && !instanceType.equals(schema.get("type"))) {
-      errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/type"), baseLocation + "/type", "Instance type " + instanceType + " is invalid. Expected " + schema.get("type"), OutputErrorType.INVALID_VALUE));
-    }
-
-    if (schema.containsKey("const")) {
-      if ("object".equals(instanceType) || "array".equals(instanceType)) {
-        if (!JSON.deepCompare(instance, schema.get("const"))) {
-          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/const"), baseLocation + "/const", "Instance does not match " + Json.encode(schema.get("const")), OutputErrorType.INVALID_VALUE));
-        }
-      } else if (!Utils.Objects.equals(schema.get("const"), instance)) {
-        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/const"), baseLocation + "/const", "Instance does not match " + Json.encode(schema.get("const")), OutputErrorType.INVALID_VALUE));
-      }
-    }
-
-    if (schema.containsKey("enum")) {
-      if ("object".equals(instanceType) || "array".equals(instanceType)) {
-        if (schema.<JsonArray>get("enum").stream().noneMatch(value -> JSON.deepCompare(instance, value))) {
-          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/enum"), baseLocation + "/enum", "Instance does not match any of " + Json.encode(schema.get("enum")), OutputErrorType.INVALID_VALUE));
-        }
-      } else if (schema.<JsonArray>get("enum").stream().noneMatch(value -> Utils.Objects.equals(instance, value))) {
-        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/enum"), baseLocation + "/enum", "Instance does not match any of " + Json.encode(schema.get("enum")), OutputErrorType.INVALID_VALUE));
-      }
-    }
-
-    if (schema.containsKey("not")) {
-      final OutputUnit result = validate(
-        instance,
-        Schemas.wrap((JsonObject) schema, "not"),
-        recursiveAnchor,
-        instanceLocation,
-        schemaLocation + "/not",
-        baseLocation + "/not",
-        new HashSet<>(),
-        dynamicContext
-      );
-      if (result.getValid()) {
-        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/not"), baseLocation + "/not", "Instance matched \"not\" schema", result.getErrorType()));
-      }
-    }
+    validateSchemaType(schema, instanceLocation, schemaLocation, baseLocation, instanceType, instance, errors);
+    validateConst(schema, instanceLocation, schemaLocation, baseLocation, instanceType, instance, errors);
+    validateEnum(schema, instanceLocation, schemaLocation, baseLocation, instanceType, instance, errors);
+    validateNot(schema, instanceLocation, schemaLocation, baseLocation, dynamicContext, instance, recursiveAnchor, errors);
 
     Set<Object> subEvaluateds = new HashSet<>();
 
-    if (schema.containsKey("anyOf")) {
-      final int errorsLength = errors.size();
-      boolean anyValid = false;
-      for (int i = 0; i < schema.<JsonArray>get("anyOf").size(); i++) {
-        final Set<Object> subEvaluated = new HashSet<>(evaluated);
-        final OutputUnit result = validate(
-          instance,
-          Schemas.wrap(schema.get("anyOf"), i),
-          schema.<Boolean>get("$recursiveAnchor", false) ? recursiveAnchor : null,
-          instanceLocation,
-          schemaLocation + "/anyOf/" + i,
-          baseLocation + "/anyOf/" + i,
-          subEvaluated,
-          dynamicContext
-        );
-        if (result.getErrors() != null) {
-          errors.addAll(result.getErrors());
-        }
-        anyValid = anyValid || result.getValid();
-        if (result.getValid()) {
-          subEvaluateds.addAll(subEvaluated);
-        }
-      }
-      if (anyValid) {
-        errors = errors.subList(0, Math.min(errors.size(), errorsLength));
-      } else {
-        errors.add(errorsLength, new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/anyOf"), baseLocation + "/anyOf", "Instance does not match any subschemas", OutputErrorType.INVALID_VALUE));
-      }
-    }
-
-    if (schema.containsKey("allOf")) {
-      final int errorsLength = errors.size();
-      boolean allValid = true;
-      for (int i = 0; i < schema.<JsonArray>get("allOf").size(); i++) {
-        final Set<Object> subEvaluated = new HashSet<>(evaluated);
-        final OutputUnit result = validate(
-          instance,
-          Schemas.wrap(schema.get("allOf"), i),
-          schema.<Boolean>get("$recursiveAnchor", false) ? recursiveAnchor : null,
-          instanceLocation,
-          schemaLocation + "/allOf/" + i,
-          baseLocation + "/allOf/" + i,
-          subEvaluated,
-          dynamicContext
-        );
-        if (result.getErrors() != null) {
-          errors.addAll(result.getErrors());
-        }
-        allValid = allValid && result.getValid();
-        if (result.getValid()) {
-          subEvaluateds.addAll(subEvaluated);
-        }
-      }
-      if (allValid) {
-        errors = errors.subList(0, Math.min(errors.size(), errorsLength));
-      } else {
-        errors.add(errorsLength, new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/allOf"), baseLocation + "/allOf", "Instance does not match every subschema", OutputErrorType.INVALID_VALUE));
-      }
-    }
-
-    if (schema.containsKey("oneOf")) {
-      final int errorsLength = errors.size();
-      int matches = 0;
-      for (int i = 0; i < schema.<JsonArray>get("oneOf").size(); i++) {
-        final Set<Object> subEvaluated = new HashSet<>(evaluated);
-        final OutputUnit result = validate(
-          instance,
-          Schemas.wrap(schema.get("oneOf"), i),
-          schema.<Boolean>get("$recursiveAnchor", false) ? recursiveAnchor : null,
-          instanceLocation,
-          schemaLocation + "/oneOf/" + i,
-          baseLocation + "/oneOf/" + i,
-          subEvaluated,
-          dynamicContext
-        );
-        if (result.getErrors() != null) {
-          errors.addAll(result.getErrors());
-        }
-        if (result.getValid()) {
-          subEvaluateds.addAll(subEvaluated);
-        }
-        if (result.getValid()) {
-          matches++;
-        }
-      }
-      if (matches == 1) {
-        errors = errors.subList(0, Math.min(errors.size(), errorsLength));
-      } else {
-        errors.add(errorsLength, new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/oneOf"), baseLocation + "/oneOf", "Instance does not match exactly one subschema (" + matches + " matches)", OutputErrorType.INVALID_VALUE));
-      }
-    }
+    errors = validateAnyOf(schema, instanceLocation, schemaLocation, baseLocation, evaluated, dynamicContext, errors, instance, recursiveAnchor, subEvaluateds);
+    errors = validateAllOf(schema, instanceLocation, schemaLocation, baseLocation, evaluated, dynamicContext, errors, instance, recursiveAnchor, subEvaluateds);
+    errors = validateOneOf(schema, instanceLocation, schemaLocation, baseLocation, evaluated, dynamicContext, errors, instance, recursiveAnchor, subEvaluateds);
 
     if ("object".equals(instanceType) || "array".equals(instanceType)) {
       evaluated.addAll(subEvaluateds);
     }
 
-    if (schema.containsKey("if")) {
-      final OutputUnit conditionResult = validate(
-        instance,
-        Schemas.wrap((JsonObject) schema, "if"),
-        recursiveAnchor,
-        instanceLocation,
-        schemaLocation + "/if",
-        baseLocation + "/if",
-        evaluated,
-        dynamicContext
-      );
-      if (conditionResult.getValid()) {
-        if (schema.containsKey("then")) {
-          final OutputUnit thenResult = validate(
-            instance,
-            Schemas.wrap((JsonObject) schema, "then"),
-            recursiveAnchor,
-            instanceLocation,
-            schemaLocation + "/then",
-            baseLocation + "/then",
-            evaluated,
-            dynamicContext
-          );
-          if (!thenResult.getValid()) {
-            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/if"), baseLocation + "/if", "Instance does not match \"then\" schema", thenResult.getErrorType()));
-            if (thenResult.getErrors() != null) {
-              errors.addAll(thenResult.getErrors());
-            }
-          }
-        }
-      } else if (schema.containsKey("else")) {
-        final OutputUnit elseResult = validate(
-          instance,
-          Schemas.wrap((JsonObject) schema, "else"),
-          recursiveAnchor,
-          instanceLocation,
-          schemaLocation + "/else",
-          baseLocation + "/else",
-          evaluated,
-          dynamicContext
-        );
-        if (!elseResult.getValid()) {
-          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/else"), baseLocation + "/else", "Instance does not match \"else\" schema", elseResult.getErrorType()));
-          if (elseResult.getErrors() != null) {
-            errors.addAll(elseResult.getErrors());
-          }
-        }
-      }
-    }
+    checkIf(schema, instanceLocation, schemaLocation, baseLocation, evaluated, dynamicContext, instance, recursiveAnchor, errors);
 
     switch (instanceType) {
       case "object": {
@@ -666,13 +442,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         break;
       }
       case "array": {
-        if (schema.containsKey("maxItems") && ((JsonArray) instance).size() > schema.<Integer>get("maxItems")) {
-          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/maxItems"), baseLocation + "/maxItems", "Array has too many items ( + " + ((JsonArray) instance).size() + " > " + schema.get("maxItems") + ")", OutputErrorType.INVALID_VALUE));
-        }
-
-        if (schema.containsKey("minItems") && ((JsonArray) instance).size() < schema.<Integer>get("minItems")) {
-          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minItems"), baseLocation + "/minItems", "Array has too few items ( + " + ((JsonArray) instance).size() + " < " + schema.get("minItems") + ")", OutputErrorType.MISSING_VALUE));
-        }
+        validateMaxItems(schema, instanceLocation, schemaLocation, baseLocation, (JsonArray) instance, errors);
+        validateMinItems(schema, instanceLocation, schemaLocation, baseLocation, (JsonArray) instance, errors);
 
         final int length = ((JsonArray) instance).size();
         int i = 0;
@@ -854,7 +625,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
           }
         }
 
-        if (schema.containsKey("uniqueItems") && Utils.Objects.truthy(schema.get("uniqueItems"))) {
+        if (Utils.Objects.truthy(schema.get("uniqueItems"))) {
           outer:
           for (int j = 0; j < length; j++) {
             final Object a = ((JsonArray) instance).getValue(j);
@@ -891,49 +662,24 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
             errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/maximum"), baseLocation + "/maximum", instance + " is greater than " + (schema.<Boolean>get("exclusiveMaximum", false) ? "or equal to " : "") + schema.get("maximum"), OutputErrorType.INVALID_VALUE));
           }
         } else {
-          if (schema.containsKey("minimum") && Numbers.lt((Number) instance, schema.get("minimum"))) {
-            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minimum"), baseLocation + "/minimum", instance + " is less than " + schema.get("minimum"), OutputErrorType.INVALID_VALUE));
-          }
-          if (schema.containsKey("maximum") && Numbers.gt((Number) instance, schema.get("maximum"))) {
-            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/maximum"), baseLocation + "/maximum", instance + " is greater than " + schema.get("maximum"), OutputErrorType.INVALID_VALUE));
-          }
-          if (schema.containsKey("exclusiveMinimum") && Numbers.lte((Number) instance, schema.get("exclusiveMinimum"))) {
-            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/exclusiveMinimum"), baseLocation + "/exclusiveMinimum", instance + " is less than or equal to " + schema.get("exclusiveMinimum"), OutputErrorType.INVALID_VALUE));
-          }
-          if (schema.containsKey("exclusiveMaximum") && Numbers.gte((Number) instance, schema.get("exclusiveMaximum"))) {
-            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/exclusiveMaximum"), baseLocation + "/exclusiveMaximum", instance + " is greater than or equal to " + schema.get("exclusiveMaximum"), OutputErrorType.INVALID_VALUE));
-          }
+          validateMinValue(schema, instanceLocation, schemaLocation, baseLocation, instance, errors);
+          validateMaxValue(schema, instanceLocation, schemaLocation, baseLocation, instance, errors);
+          validateExclusiveMin(schema, instanceLocation, schemaLocation, baseLocation, instance, errors);
+          validateExclusiveMax(schema, instanceLocation, schemaLocation, baseLocation, instance, errors);
         }
-        if (schema.containsKey("multipleOf")) {
-          final double remainder = Numbers.remainder((Number) instance, schema.get("multipleOf"));
-          if (
-            Math.abs(0 - remainder) >= 1.1920929e-7 &&
-              Math.abs(schema.<Number>get("multipleOf").doubleValue() - remainder) >= 1.1920929e-7
-          ) {
-            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/multipleOf"), baseLocation + "/multipleOf", instance + " is not a multiple of " + schema.get("multipleOf"), OutputErrorType.INVALID_VALUE));
-          }
-        }
+
+        validateMultipleOf(schema, instanceLocation, schemaLocation, baseLocation, instance, errors);
         break;
       case "string": {
-        final int length =
-          !schema.containsKey("minLength") && !schema.containsKey("maxLength")
-            ? 0
-            : Strings.ucs2length((String) instance);
-        if (schema.containsKey("minLength") && Numbers.lt(length, schema.get("minLength"))) {
-          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minLength"), baseLocation + "/minLength", "String is too short (" + length + " < " + schema.get("minLength") + ")", OutputErrorType.INVALID_VALUE));
-        }
-        if (schema.containsKey("maxLength") && Numbers.gt(length, schema.get("maxLength"))) {
-          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/maxLength"), baseLocation + "/maxLength", "String is too long (" + length + " > " + schema.get("maxLength") + ")", OutputErrorType.INVALID_VALUE));
-        }
-        if (schema.containsKey("pattern") && !Pattern.compile(schema.get("pattern")).matcher((String) instance).find()) {
-          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/pattern"), baseLocation + "/pattern", "String does not match pattern", OutputErrorType.INVALID_VALUE));
-        }
-        if (
-          schema.containsKey("format") &&
-            !Format.fastFormat(schema.get("format"), (String) instance)
-        ) {
-          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"), baseLocation + "/format", "String does not match format \"" + schema.get("format") + "\"", OutputErrorType.INVALID_VALUE));
-        }
+        Object minLength = schema.get("minLength");
+        Object maxLength = schema.get("maxLength");
+        final int length = (minLength == null && maxLength == null) ? 0 : Strings.ucs2length((String) instance);
+
+        validateMinLength(schema, instanceLocation, schemaLocation, baseLocation, length, minLength, errors);
+        validateMaxLength(schema, instanceLocation, schemaLocation, baseLocation, length, maxLength, errors);
+        validatePattern(schema, instanceLocation, schemaLocation, baseLocation, (String) instance, errors);
+        validateFormat(schema, instanceLocation, schemaLocation, baseLocation, (String) instance, errors);
+
         break;
       }
     }
@@ -955,6 +701,348 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       .setAnnotations(outputFormat == OutputFormat.Flag ? null : annotations.isEmpty() ? null : annotations)
       .setErrorType((outputFormat == OutputFormat.Flag ? OutputErrorType.NONE :
         errors.isEmpty() ? OutputErrorType.NONE : errors.get(0).getErrorType()));
+  }
+
+  private void validateMultipleOf(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Object instance, List<OutputUnit> errors) {
+    if (schema.containsKey("multipleOf")) {
+      final double remainder = Numbers.remainder((Number) instance, schema.get("multipleOf"));
+      if (
+        Math.abs(0 - remainder) >= 1.1920929e-7 &&
+          Math.abs(schema.<Number>get("multipleOf").doubleValue() - remainder) >= 1.1920929e-7
+      ) {
+        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/multipleOf"), baseLocation + "/multipleOf", instance + " is not a multiple of " + schema.get("multipleOf"), OutputErrorType.INVALID_VALUE));
+      }
+    }
+  }
+
+  private void validateExclusiveMax(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Object instance, List<OutputUnit> errors) {
+    if (Numbers.gte((Number) instance, schema.get("exclusiveMaximum"))) {
+      errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/exclusiveMaximum"), baseLocation + "/exclusiveMaximum", instance + " is greater than or equal to " + schema.get("exclusiveMaximum"), OutputErrorType.INVALID_VALUE));
+    }
+  }
+
+  private void validateExclusiveMin(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Object instance, List<OutputUnit> errors) {
+    if (Numbers.lte((Number) instance, schema.get("exclusiveMinimum"))) {
+      errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/exclusiveMinimum"), baseLocation + "/exclusiveMinimum", instance + " is less than or equal to " + schema.get("exclusiveMinimum"), OutputErrorType.INVALID_VALUE));
+    }
+  }
+
+  //TODO This can probably be generalized with validateMaxLength
+  private void validateMaxValue(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Object instance, List<OutputUnit> errors) {
+    if (Numbers.gt((Number) instance, schema.get("maximum"))) {
+      errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/maximum"), baseLocation + "/maximum", instance + " is greater than " + schema.get("maximum"), OutputErrorType.INVALID_VALUE));
+    }
+  }
+
+  //TODO This can probably be generalized with validateMinLength
+  private void validateMinValue(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Object instance, List<OutputUnit> errors) {
+    if (Numbers.lt((Number) instance, schema.get("minimum"))) {
+      errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minimum"), baseLocation + "/minimum", instance + " is less than " + schema.get("minimum"), OutputErrorType.INVALID_VALUE));
+    }
+  }
+
+  private void validateFormat(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, String instance, List<OutputUnit> errors) {
+    if (schema.containsKey("format") && !Format.fastFormat(schema.get("format"), instance)) {
+      errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"), baseLocation + "/format", "String does not match format \"" + schema.get("format") + "\"", OutputErrorType.INVALID_VALUE));
+    }
+  }
+
+  private void validatePattern(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, String instance, List<OutputUnit> errors) {
+    if (schema.containsKey("pattern") && !Pattern.compile(schema.get("pattern")).matcher(instance).find()) {
+      errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/pattern"), baseLocation + "/pattern", "String does not match pattern", OutputErrorType.INVALID_VALUE));
+    }
+  }
+
+  private void validateMaxLength(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, int length, Object maxLength, List<OutputUnit> errors) {
+    if (Numbers.gt(length, maxLength)) {
+      errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/maxLength"), baseLocation + "/maxLength", "String is too long (" + length + " > " + schema.get("maxLength") + ")", OutputErrorType.INVALID_VALUE));
+    }
+  }
+
+  private void validateMinLength(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, int length, Object minLength, List<OutputUnit> errors) {
+    if (Numbers.lt(length, minLength)) {
+      errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minLength"), baseLocation + "/minLength", "String is too short (" + length + " < " + schema.get("minLength") + ")", OutputErrorType.INVALID_VALUE));
+    }
+  }
+
+  private void validateMinItems(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, JsonArray instance, List<OutputUnit> errors) {
+    if (schema.containsKey("minItems") && instance.size() < schema.<Integer>get("minItems")) {
+      errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minItems"), baseLocation + "/minItems", "Array has too few items ( + " + instance.size() + " < " + schema.get("minItems") + ")", OutputErrorType.MISSING_VALUE));
+    }
+  }
+
+  private void validateMaxItems(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, JsonArray instance, List<OutputUnit> errors) {
+    if (schema.containsKey("maxItems") && instance.size() > schema.<Integer>get("maxItems")) {
+      errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/maxItems"), baseLocation + "/maxItems", "Array has too many items ( + " + instance.size() + " > " + schema.get("maxItems") + ")", OutputErrorType.INVALID_VALUE));
+    }
+  }
+
+  private void checkIf(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Set<Object> evaluated, Map<String, Deque<JsonSchema>> dynamicContext, Object instance, JsonSchema recursiveAnchor, List<OutputUnit> errors) {
+    if (schema.containsKey("if")) {
+      final OutputUnit conditionResult = validate(
+        instance,
+        Schemas.wrap((JsonObject) schema, "if"),
+        recursiveAnchor,
+        instanceLocation,
+        schemaLocation + "/if",
+        baseLocation + "/if",
+        evaluated,
+        dynamicContext
+      );
+      if (conditionResult.getValid()) {
+        if (schema.containsKey("then")) {
+          final OutputUnit thenResult = validate(
+            instance,
+            Schemas.wrap((JsonObject) schema, "then"),
+            recursiveAnchor,
+            instanceLocation,
+            schemaLocation + "/then",
+            baseLocation + "/then",
+            evaluated,
+            dynamicContext
+          );
+          if (!thenResult.getValid()) {
+            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/if"), baseLocation + "/if", "Instance does not match \"then\" schema", thenResult.getErrorType()));
+            if (thenResult.getErrors() != null) {
+              errors.addAll(thenResult.getErrors());
+            }
+          }
+        }
+      } else if (schema.containsKey("else")) {
+        final OutputUnit elseResult = validate(
+          instance,
+          Schemas.wrap((JsonObject) schema, "else"),
+          recursiveAnchor,
+          instanceLocation,
+          schemaLocation + "/else",
+          baseLocation + "/else",
+          evaluated,
+          dynamicContext
+        );
+        if (!elseResult.getValid()) {
+          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/else"), baseLocation + "/else", "Instance does not match \"else\" schema", elseResult.getErrorType()));
+          if (elseResult.getErrors() != null) {
+            errors.addAll(elseResult.getErrors());
+          }
+        }
+      }
+    }
+  }
+
+  private List<OutputUnit> validateOneOf(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Set<Object> evaluated, Map<String, Deque<JsonSchema>> dynamicContext, List<OutputUnit> errors, Object instance, JsonSchema recursiveAnchor, Set<Object> subEvaluateds) {
+    if (schema.containsKey("oneOf")) {
+      final int errorsLength = errors.size();
+      int matches = 0;
+      for (int i = 0; i < schema.<JsonArray>get("oneOf").size(); i++) {
+        final Set<Object> subEvaluated = new HashSet<>(evaluated);
+        final OutputUnit result = validate(
+          instance,
+          Schemas.wrap(schema.get("oneOf"), i),
+          schema.<Boolean>get("$recursiveAnchor", false) ? recursiveAnchor : null,
+          instanceLocation,
+          schemaLocation + "/oneOf/" + i,
+          baseLocation + "/oneOf/" + i,
+          subEvaluated,
+          dynamicContext
+        );
+        if (result.getErrors() != null) {
+          errors.addAll(result.getErrors());
+        }
+        if (result.getValid()) {
+          subEvaluateds.addAll(subEvaluated);
+        }
+        if (result.getValid()) {
+          matches++;
+        }
+      }
+      if (matches == 1) {
+        errors = errors.subList(0, Math.min(errors.size(), errorsLength));
+      } else {
+        errors.add(errorsLength, new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/oneOf"), baseLocation + "/oneOf", "Instance does not match exactly one subschema (" + matches + " matches)", OutputErrorType.INVALID_VALUE));
+      }
+    }
+    return errors;
+  }
+
+  private List<OutputUnit> validateAllOf(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Set<Object> evaluated, Map<String, Deque<JsonSchema>> dynamicContext, List<OutputUnit> errors, Object instance, JsonSchema recursiveAnchor, Set<Object> subEvaluateds) {
+    if (schema.containsKey("allOf")) {
+      final int errorsLength = errors.size();
+      boolean allValid = true;
+      for (int i = 0; i < schema.<JsonArray>get("allOf").size(); i++) {
+        final Set<Object> subEvaluated = new HashSet<>(evaluated);
+        final OutputUnit result = validate(
+          instance,
+          Schemas.wrap(schema.get("allOf"), i),
+          schema.<Boolean>get("$recursiveAnchor", false) ? recursiveAnchor : null,
+          instanceLocation,
+          schemaLocation + "/allOf/" + i,
+          baseLocation + "/allOf/" + i,
+          subEvaluated,
+          dynamicContext
+        );
+        if (result.getErrors() != null) {
+          errors.addAll(result.getErrors());
+        }
+        allValid = allValid && result.getValid();
+        if (result.getValid()) {
+          subEvaluateds.addAll(subEvaluated);
+        }
+      }
+      if (allValid) {
+        errors = errors.subList(0, Math.min(errors.size(), errorsLength));
+      } else {
+        errors.add(errorsLength, new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/allOf"), baseLocation + "/allOf", "Instance does not match every subschema", OutputErrorType.INVALID_VALUE));
+      }
+    }
+    return errors;
+  }
+
+  private List<OutputUnit> validateAnyOf(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Set<Object> evaluated, Map<String, Deque<JsonSchema>> dynamicContext, List<OutputUnit> errors, Object instance, JsonSchema recursiveAnchor, Set<Object> subEvaluateds) {
+    if (schema.containsKey("anyOf")) {
+      final int errorsLength = errors.size();
+      boolean anyValid = false;
+      for (int i = 0; i < schema.<JsonArray>get("anyOf").size(); i++) {
+        final Set<Object> subEvaluated = new HashSet<>(evaluated);
+        final OutputUnit result = validate(
+          instance,
+          Schemas.wrap(schema.get("anyOf"), i),
+          schema.<Boolean>get("$recursiveAnchor", false) ? recursiveAnchor : null,
+          instanceLocation,
+          schemaLocation + "/anyOf/" + i,
+          baseLocation + "/anyOf/" + i,
+          subEvaluated,
+          dynamicContext
+        );
+        if (result.getErrors() != null) {
+          errors.addAll(result.getErrors());
+        }
+        anyValid = anyValid || result.getValid();
+        if (result.getValid()) {
+          subEvaluateds.addAll(subEvaluated);
+        }
+      }
+      if (anyValid) {
+        errors = errors.subList(0, Math.min(errors.size(), errorsLength));
+      } else {
+        errors.add(errorsLength, new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/anyOf"), baseLocation + "/anyOf", "Instance does not match any subschemas", OutputErrorType.INVALID_VALUE));
+      }
+    }
+    return errors;
+  }
+
+  private void validateNot(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Map<String, Deque<JsonSchema>> dynamicContext, Object instance, JsonSchema recursiveAnchor, List<OutputUnit> errors) {
+    if (schema.containsKey("not")) {
+      final OutputUnit result = validate(
+        instance,
+        Schemas.wrap((JsonObject) schema, "not"),
+        recursiveAnchor,
+        instanceLocation,
+        schemaLocation + "/not",
+        baseLocation + "/not",
+        new HashSet<>(),
+        dynamicContext
+      );
+      if (result.getValid()) {
+        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/not"), baseLocation + "/not", "Instance matched \"not\" schema", result.getErrorType()));
+      }
+    }
+  }
+
+  private void validateEnum(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, String instanceType, Object instance, List<OutputUnit> errors) {
+    if (schema.containsKey("enum")) {
+      if ("object".equals(instanceType) || "array".equals(instanceType)) {
+        if (schema.<JsonArray>get("enum").stream().noneMatch(value -> JSON.deepCompare(instance, value))) {
+          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/enum"), baseLocation + "/enum", "Instance does not match any of " + Json.encode(schema.get("enum")), OutputErrorType.INVALID_VALUE));
+        }
+      } else if (schema.<JsonArray>get("enum").stream().noneMatch(value -> Utils.Objects.equals(instance, value))) {
+        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/enum"), baseLocation + "/enum", "Instance does not match any of " + Json.encode(schema.get("enum")), OutputErrorType.INVALID_VALUE));
+      }
+    }
+  }
+
+  private void validateConst(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, String instanceType, Object instance, List<OutputUnit> errors) {
+    if (schema.containsKey("const")) {
+      if ("object".equals(instanceType) || "array".equals(instanceType)) {
+        if (!JSON.deepCompare(instance, schema.get("const"))) {
+          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/const"), baseLocation + "/const", "Instance does not match " + Json.encode(schema.get("const")), OutputErrorType.INVALID_VALUE));
+        }
+      } else if (!Utils.Objects.equals(schema.get("const"), instance)) {
+        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/const"), baseLocation + "/const", "Instance does not match " + Json.encode(schema.get("const")), OutputErrorType.INVALID_VALUE));
+      }
+    }
+  }
+
+  private void validateSchemaType(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, String instanceType, Object instance, List<OutputUnit> errors) {
+    Object schemaType = schema.get("type");
+    if (schemaType instanceof JsonArray) {
+      final JsonArray type = schema.get("type");
+      int length = type.size();
+      boolean valid = false;
+      for (int i = 0; i < length; i++) {
+        if (
+          instanceType.equals(type.getString(i)) ||
+            ("integer".equals(type.getString(i)) && "number".equals(instanceType) && Numbers.isInteger(instance))) {
+          valid = true;
+          break;
+        }
+      }
+      if (!valid) {
+        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/type"), baseLocation + "/type", "Instance type " + instanceType + " is invalid. Expected " + String.join(", ", type.getList()), OutputErrorType.INVALID_VALUE));
+      }
+    } else if ("integer".equals(schemaType)) {
+      if (!"number".equals(instanceType) || !Numbers.isInteger(instance)) {
+        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/type"), baseLocation + "/type", "Instance type " + instanceType + " is invalid. Expected " + schemaType, OutputErrorType.INVALID_VALUE));
+      }
+    } else if (schemaType != null && !instanceType.equals(schemaType)) {
+      errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/type"), baseLocation + "/type", "Instance type " + instanceType + " is invalid. Expected " + schemaType, OutputErrorType.INVALID_VALUE));
+    }
+  }
+
+  private void validateRecursiveRef(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Set<Object> evaluated, Map<String, Deque<JsonSchema>> dynamicContext, JsonSchema recursiveAnchor, Object instance, List<OutputUnit> errors) {
+    if ("#".equals(schema.get("$recursiveRef"))) {
+      assert schema.containsKey("__absolute_recursive_ref__");
+      final JsonSchema refSchema =
+        recursiveAnchor == null
+          ? lookup.get(schema.<String>get("__absolute_recursive_ref__"))
+          : recursiveAnchor;
+      final OutputUnit result = validate(
+        instance,
+        recursiveAnchor == null ? schema : recursiveAnchor,
+        refSchema,
+        instanceLocation,
+        schemaLocation + "/$recursiveRef",
+        baseLocation + "/$recursiveRef",
+        evaluated,
+        dynamicContext
+      );
+      if (!result.getValid()) {
+        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/$recursiveRef"), baseLocation + "/$recursiveRef", "A sub-schema had errors", result.getErrorType()));
+        if (result.getErrors() != null) {
+          errors.addAll(result.getErrors());
+        }
+      }
+    }
+  }
+
+  private static JsonSchema getRecursiveAnchor(JsonSchema schema, JsonSchema _recursiveAnchor) {
+    final JsonSchema recursiveAnchor;
+    if (_recursiveAnchor == null && schema.<Boolean>get("$recursiveAnchor", false)) {
+      recursiveAnchor = schema;
+    } else {
+      recursiveAnchor = _recursiveAnchor;
+    }
+    return recursiveAnchor;
+  }
+
+  private static String getDynamicAnchor(JsonSchema schema, Map<String, Deque<JsonSchema>> dynamicContext) {
+    if (schema.containsKey("$dynamicAnchor")) {
+      String dynamicAnchor = "#" + schema.get("$dynamicAnchor");
+      dynamicContext
+        .computeIfAbsent(dynamicAnchor, k -> new LinkedList<>())
+        .add(schema);
+      return dynamicAnchor;
+    }
+    return null;
   }
 
   private String computeAbsoluteKeywordLocation(JsonSchema schema, String schemaKeywordLocation) {
