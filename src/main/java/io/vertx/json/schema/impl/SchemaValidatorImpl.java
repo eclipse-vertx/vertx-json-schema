@@ -928,12 +928,18 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         if (schema.containsKey("pattern") && !Pattern.compile(schema.get("pattern")).matcher((String) instance).find()) {
           errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/pattern"), baseLocation + "/pattern", "String does not match pattern", OutputErrorType.INVALID_VALUE));
         }
-        if (
-          schema.containsKey("format") &&
-            !Format.fastFormat(schema.get("format"), (String) instance)
-        ) {
+        if (schema.containsKey("format") &&
+            !Format.fastFormat(schema.get("format"), (String) instance)) {
           errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"), baseLocation + "/format", "String does not match format \"" + schema.get("format") + "\"", OutputErrorType.INVALID_VALUE));
         }
+
+        //Content encoding was introduced in Draft7, but was turned into annotated only in draft 2019 and after.
+        if(draft == Draft.DRAFT7 &&
+          schema.containsKey("contentEncoding") &&
+          !Format.testContentEncoding(schema.get("contentEncoding"), (String) instance)) {
+          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/contentEncoding"), baseLocation + "/contentEncoding", "String does not match the content encoding \"" + schema.get("contentEncoding") + "\"", OutputErrorType.INVALID_VALUE));
+        }
+
         break;
       }
     }

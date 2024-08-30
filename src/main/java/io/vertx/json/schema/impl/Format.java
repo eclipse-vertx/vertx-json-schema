@@ -9,10 +9,70 @@ import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
 public class Format {
 
+  private static final Pattern BASE16 = Pattern.compile("[0-9a-f]", CASE_INSENSITIVE);
+  private static final Pattern BASE32 = Pattern.compile("^(?:[A-Z2-7]{8})*(?:[A-Z2-7]{2}={6}|[A-Z2-7]{4}={4}|[A-Z2-7]{5}={3}|[A-Z2-7]{7}=)?$");
+  private static final Pattern BASE64 = Pattern.compile("^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A" +
+    "-Za-z0-9+/]{2}==)$");
+  private static final Pattern RELATIVE_JSON_POINTER = Pattern.compile("^(?:0|[1-9][0-9]*)(?:#|(?:\\/(?:[^~/]|~0|~1)" +
+    "*)*)$");
+  private static final Pattern JSON_POINTER_URI_FRAGMENT = Pattern.compile("^#(?:\\/(?:[a-z0-9_\\-.!$&'()*+,;" +
+    ":=@]|%[0-9a-f]{2}|~0|~1)*)*$", CASE_INSENSITIVE);
+  private static final Pattern JSON_POINTER = Pattern.compile("^(?:\\/(?:[^~/]|~0|~1)*)*$");
+  private static final Pattern UUID = Pattern.compile("^(?:urn:uuid:)?[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$", CASE_INSENSITIVE);
+  private static final Pattern Z_ANCHOR = Pattern.compile("[^\\\\]\\\\Z");
+  // optimized http://stackoverflow.com/questions/53497/regular-expression-that-matches-valid-ipv6-addresses
+  private static final Pattern IPV6 = Pattern.compile("^((([0-9a-f]{1,4}:){7}([0-9a-f]{1,4}|:))|(([0-9a-f]{1,4}:){6}(:[0-9a-f]{1,4}|((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9a-f]{1,4}:){5}(((:[0-9a-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9a-f]{1,4}:){4}(((:[0-9a-f]{1,4}){1,3})|((:[0-9a-f]{1,4})?:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9a-f]{1,4}:){3}(((:[0-9a-f]{1,4}){1,4})|((:[0-9a-f]{1,4}){0,2}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9a-f]{1,4}:){2}(((:[0-9a-f]{1,4}){1,5})|((:[0-9a-f]{1,4}){0,3}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9a-f]{1,4}:){1}(((:[0-9a-f]{1,4}){1,6})|((:[0-9a-f]{1,4}){0,4}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(:(((:[0-9a-f]{1,4}){1,7})|((:[0-9a-f]{1,4}){0,5}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:)))$", CASE_INSENSITIVE);
+
+  // optimized https://www.safaribooksonline.com/library/view/regular-expressions-cookbook/9780596802837/ch07s16.html
+  private static final Pattern IPV4 = Pattern.compile("^(?:(?:25[0-5]|2[0-4]\\d|[1]?\\d\\d?)\\.){3}(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)$");
+  private static final Pattern HOSTNAME = Pattern.compile("^(?=.{1,253}\\.?$)[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\\.[a-z0-9](?:[-0-9a-z]{0,61}[0-9a-z])?)*\\.?$", CASE_INSENSITIVE);
+
+  // https://github.com/ExodusMovement/schemasafe/blob/master/src/formats.js
+  private static final Pattern EMAIL_HOST = Pattern.compile("^[a-z0-9.-]+$", CASE_INSENSITIVE);
+  private static final Pattern EMAIL_NAME = Pattern.compile("^[a-z0-9.!#$%&'*+/=?^_`\\{|\\}~-]+$", CASE_INSENSITIVE);
+  private static final Pattern EMAIL_HOST_PART = Pattern.compile("^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$", CASE_INSENSITIVE);
+  // For the source: https://gist.github.com/dperini/729294
+  // For test cases: https://mathiasbynens.be/demo/url-regex
+  private static final Pattern URL_ = Pattern.compile("^(?:(?:https?|ftp):\\/\\/)(?:\\S+(?::\\S*)?@)?(?:(?!10(?:\\.\\d{1,3}){3})(?!127(?:\\.\\d{1,3}){3})(?!169\\.254(?:\\.\\d{1,3}){2})(?!192\\.168(?:\\.\\d{1,3}){2})(?!172\\.(?:1[6-9]|2\\d|3[0-1])(?:\\.\\d{1,3}){2})(?:[1-9]\\d?|1\\d\\d|2[01]\\d|22[0-3])(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}(?:\\.(?:[1-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))|(?:(?:[a-z\\u00a1-\\uffff0-9]+-?)*[a-z\\u00a1-\\uffff0-9]+)(?:\\.(?:[a-z\\u00a1-\\uffff0-9]+-?)*[a-z\\u00a1-\\uffff0-9]+)*(?:\\.(?:[a-z\\u00a1-\\uffff]{2,})))(?::\\d{2,5})?(?:\\/[^\\s]*)?$", CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+  //IDN emails can have - and . throughout unlike a normal email address. The email host part can also have the same.
+  private static final Pattern IDN_EMAIL_PUNY = Pattern.compile("^xn--[a-z0-9-.]*@[a-z0-9-.]*$");
+  private static final Pattern IDN_EMAIL_HOST = Pattern.compile("^[a-z0-9-.]*");
+  private static final Pattern IDN_EMAIL_NAME = Pattern.compile("^xn--[a-z0-9-.]*$");
+  private static final Pattern IDN_EMAIL_HOST_PART = Pattern.compile("^[a-z0-9-]([a-z0-9-]{0,61}[a-z0-9-])?$");
+  private static final Pattern NOT_URI_FRAGMENT = Pattern.compile("\\/|:");
+  private static final Pattern URI_PATTERN = Pattern.compile("^(?:[a-z][a-z0-9+\\-.]*:)(?:\\/?\\/(?:(?:[a-z0-9\\-._~!$&'()*+,;=:]|%[0-9a-f]{2})*@)?(?:\\[(?:(?:(?:(?:[0-9a-f]{1,4}:){6}|::(?:[0-9a-f]{1,4}:){5}|(?:[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){4}|(?:(?:[0-9a-f]{1,4}:){0,1}[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){3}|(?:(?:[0-9a-f]{1,4}:){0,2}[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){2}|(?:(?:[0-9a-f]{1,4}:){0,3}[0-9a-f]{1,4})?::[0-9a-f]{1,4}:|(?:(?:[0-9a-f]{1,4}:){0,4}[0-9a-f]{1,4})?::)(?:[0-9a-f]{1,4}:[0-9a-f]{1,4}|(?:(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\.){3}(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?))|(?:(?:[0-9a-f]{1,4}:){0,5}[0-9a-f]{1,4})?::[0-9a-f]{1,4}|(?:(?:[0-9a-f]{1,4}:){0,6}[0-9a-f]{1,4})?::)|[Vv][0-9a-f]+\\.[a-z0-9\\-._~!$&'()*+,;=:]+)\\]|(?:(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\.){3}(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)|(?:[a-z0-9\\-._~!$&'()*+,;=]|%[0-9a-f]{2})*)(?::\\d*)?(?:\\/(?:[a-z0-9\\-._~!$&'()*+,;=:@]|%[0-9a-f]{2})*)*|\\/(?:(?:[a-z0-9\\-._~!$&'()*+,;=:@]|%[0-9a-f]{2})+(?:\\/(?:[a-z0-9\\-._~!$&'()*+,;=:@]|%[0-9a-f]{2})*)*)?|(?:[a-z0-9\\-._~!$&'()*+,;=:@]|%[0-9a-f]{2})+(?:\\/(?:[a-z0-9\\-._~!$&'()*+,;=:@]|%[0-9a-f]{2})*)*)(?:\\?(?:[a-z0-9\\-._~!$&'()*+,;=:@/?]|%[0-9a-f]{2})*)?(?:#(?:[a-z0-9\\-._~!$&'()*+,;=:@/?]|%[0-9a-f]{2})*)?$", CASE_INSENSITIVE);
+  private static final Pattern URIREF = Pattern.compile("^(?:[a-z][a-z0-9+\\-.]*:)?(?:\\/?\\/(?:(?:[a-z0-9\\-._~!$&'()*+,;=:]|%[0-9a-f]{2})*@)?(?:\\[(?:(?:(?:(?:[0-9a-f]{1,4}:){6}|::(?:[0-9a-f]{1,4}:){5}|(?:[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){4}|(?:(?:[0-9a-f]{1,4}:){0,1}[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){3}|(?:(?:[0-9a-f]{1,4}:){0,2}[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){2}|(?:(?:[0-9a-f]{1,4}:){0,3}[0-9a-f]{1,4})?::[0-9a-f]{1,4}:|(?:(?:[0-9a-f]{1,4}:){0,4}[0-9a-f]{1,4})?::)(?:[0-9a-f]{1,4}:[0-9a-f]{1,4}|(?:(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\.){3}(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?))|(?:(?:[0-9a-f]{1,4}:){0,5}[0-9a-f]{1,4})?::[0-9a-f]{1,4}|(?:(?:[0-9a-f]{1,4}:){0,6}[0-9a-f]{1,4})?::)|[Vv][0-9a-f]+\\.[a-z0-9\\-._~!$&'()*+,;=:]+)\\]|(?:(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\.){3}(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)|(?:[a-z0-9\\-._~!$&'\"()*+,;=]|%[0-9a-f]{2})*)(?::\\d*)?(?:\\/(?:[a-z0-9\\-._~!$&'\"()*+,;=:@]|%[0-9a-f]{2})*)*|\\/(?:(?:[a-z0-9\\-._~!$&'\"()*+,;=:@]|%[0-9a-f]{2})+(?:\\/(?:[a-z0-9\\-._~!$&'\"()*+,;=:@]|%[0-9a-f]{2})*)*)?|(?:[a-z0-9\\-._~!$&'\"()*+,;=:@]|%[0-9a-f]{2})+(?:\\/(?:[a-z0-9\\-._~!$&'\"()*+,;=:@]|%[0-9a-f]{2})*)*)?(?:\\?(?:[a-z0-9\\-._~!$&'\"()*+,;=:@/?]|%[0-9a-f]{2})*)?(?:#(?:[a-z0-9\\-._~!$&'\"()*+,;=:@/?]|%[0-9a-f]{2})*)?$", CASE_INSENSITIVE);
+  // uri-template: https://tools.ietf.org/html/rfc6570
+  private static final Pattern URITEMPLATE = Pattern.compile("^(?:(?:[^\\x00-\\x20\"'<>%\\\\^`\\{|\\}]|%[0-9a-f]{2})|\\{[+#./;?&=,!@|]?(?:[a-z0-9_]|%[0-9a-f]{2})+(?::[1-9][0-9]{0,3}|\\*)?(?:,(?:[a-z0-9_]|%[0-9a-f]{2})+(?::[1-9][0-9]{0,3}|\\*)?)*\\})*$", CASE_INSENSITIVE);
+  private static final Pattern DURATION_A = Pattern.compile("^P\\d+([.,]\\d+)?W$");
+  private static final Pattern DURATION_B = Pattern.compile("^P[\\dYMDTHS]*(\\d[.,]\\d+)?[YMDHS]$");
+  private static final Pattern DURATION_C = Pattern.compile("^P([.,\\d]+Y)?([.,\\d]+M)?([.,\\d]+D)?(T([.,\\d]+H)?([.,\\d]+M)?([.,\\d]+S)?)?$");
+  private static final Pattern FASTDATETIME = Pattern.compile("^\\d\\d\\d\\d-[0-1]\\d-[0-3]\\d[t\\s](?:[0-2]\\d:[0-5]\\d:[0-5]\\d|23:59:60)(?:\\.\\d+)?(?:z?|[+-]\\d\\d(?::?\\d\\d)?)$", CASE_INSENSITIVE);
+  //IDN Puny code is only ever in this format. xn--abc.xyz
+  private static final Pattern IDN_HOSTNAME_PUNY = Pattern.compile("^xn--[a-z0-9-.]*$");
+
+  // This is checking various other combinations of invalid characters/combinations of invalid characters.
+  private static final Pattern IDN_HOSTNAME_UNICODE = Pattern
+    .compile("^.*\\u302e.*|(^.*?[^l]\\u00b7.|.*l\\u00b7[^l]|\\u00b7$|^\\u00b7.)|(.*\\u30fB[^\\u3041\\u30A1\\u4e08].*|^\\u30fB$)|(^[\\u05f3\\u05f4].*)$"
+      , Pattern.UNICODE_CHARACTER_CLASS);
+
+  // This is checking the start of the word for Mc,Me or Mn characters.
+  // Mc -> Spacing_Combining_Mark
+  // Me -> Enclosing_Mark
+  // Mn -> Non_Spacing_Mark (excluding if Virma \\u094d follows
+  private static final Pattern IDN_HOSTNAME_STARTING_ERRORS = Pattern
+    .compile("^\\p{gc=Mc}|^\\p{gc=Me}|^\\p{gc=Mn}(?!\\u094d)", Pattern.UNICODE_CHARACTER_CLASS);
+  // date-time: http://tools.ietf.org/html/rfc3339#section-5.6
+  private static final Pattern FASTTIME = Pattern.compile("^(?:[0-2]\\d:[0-5]\\d:[0-5]\\d|23:59:60)(?:\\.\\d+)?(?:z|[+-]\\d\\d(?::?\\d\\d)?)?$", CASE_INSENSITIVE);
+  private static final Pattern VALID_LEAP_SECONDS = Pattern.compile("^23:59:60(?:\\.\\d+)?(?:z|[+-]00(?::?00)?)?$", CASE_INSENSITIVE);
+
+  // date: http://tools.ietf.org/html/rfc3339#section-5.6
+  private static final Pattern FASTDATE = Pattern.compile("^\\d\\d\\d\\d-[0-1]\\d-[0-3]\\d$");
+
   public static boolean fastFormat(String format, String value) {
     switch (format) {
       case "byte":
-        return testByte(value);
+        return checkPattern(value, BASE64);
       case "date":
         return testDate(value);
       case "time":
@@ -22,31 +82,32 @@ public class Format {
       case "duration":
         return testDuration(value);
       case "uri":
-        return testUri(value);
+        // http://jmrware.com/articles/2009/uri_regexp/URI_regex.html + optional protocol + required "."
+        return checkPattern(value, NOT_URI_FRAGMENT) && checkPattern(value, URI_PATTERN);
       case "uri-reference":
-        return testUriReference(value);
+        return checkPattern(value, URIREF);
       case "uri-template":
-        return testUriTemplate(value);
+        return checkPattern(value, URITEMPLATE);
       case "url":
-        return testUrl(value);
+        return checkPattern(value,URL_);
       case "email":
         return testEmail(value);
       case "hostname":
-        return testHostname(value);
+        return checkPattern(value, HOSTNAME);
       case "ipv4":
-        return testIpv4(value);
+        return checkPattern(value, IPV4);
       case "ipv6":
-        return testIpv6(value);
+        return checkPattern(value, IPV6);
       case "regex":
         return testRegex(value);
       case "uuid":
-        return testUuid(value);
+        return checkPattern(value, UUID);
       case "json-pointer":
-        return testJsonPointer(value);
+        return checkPattern(value, JSON_POINTER);
       case "json-pointer-uri-fragment":
-        return testJsonPointerUriFragment(value);
+        return checkPattern(value, JSON_POINTER_URI_FRAGMENT);
       case "relative-json-pointer":
-        return testRelativeJsonPointer(value);
+        return checkPattern(value, RELATIVE_JSON_POINTER);
       case "idn-hostname":
         return testIdnHostname(value);
       case "idn-email":
@@ -57,43 +118,25 @@ public class Format {
     }
   }
 
-  private static final Pattern BASE64 = Pattern.compile("^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A" +
-    "-Za-z0-9+/]{2}==)$");
-
-  private static boolean testByte(String value) {
-    return BASE64.matcher(value).find();
+  public static boolean testContentEncoding(String format, String value) {
+    switch(format) {
+      case "base64":
+        return checkPattern(value, BASE64);
+      case "base32":
+        return checkPattern(value, BASE32);
+      case "base16":
+        return checkPattern(value, BASE16);
+      default:
+        return true;
+    }
   }
 
-  private static final Pattern RELATIVE_JSON_POINTER = Pattern.compile("^(?:0|[1-9][0-9]*)(?:#|(?:\\/(?:[^~/]|~0|~1)" +
-    "*)*)$");
-
-  private static boolean testRelativeJsonPointer(String value) {
-    return RELATIVE_JSON_POINTER.matcher(value).find();
+  private static boolean checkPattern(String value, Pattern p) {
+    return p.matcher(value).find();
   }
-
-  private static final Pattern JSON_POINTER_URI_FRAGMENT = Pattern.compile("^#(?:\\/(?:[a-z0-9_\\-.!$&'()*+,;" +
-    ":=@]|%[0-9a-f]{2}|~0|~1)*)*$", CASE_INSENSITIVE);
-
-  private static boolean testJsonPointerUriFragment(String value) {
-    return JSON_POINTER_URI_FRAGMENT.matcher(value).find();
-  }
-
-  private static final Pattern JSON_POINTER = Pattern.compile("^(?:\\/(?:[^~/]|~0|~1)*)*$");
-
-  private static boolean testJsonPointer(String value) {
-    return JSON_POINTER.matcher(value).find();
-  }
-
-  private static final Pattern UUID = Pattern.compile("^(?:urn:uuid:)?[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$", CASE_INSENSITIVE);
-
-  private static boolean testUuid(String value) {
-    return UUID.matcher(value).find();
-  }
-
-  private static final Pattern Z_ANCHOR = Pattern.compile("[^\\\\]\\\\Z");
 
   private static boolean testRegex(String value) {
-    if (Z_ANCHOR.matcher(value).find()) {
+    if (checkPattern(value, Z_ANCHOR)) {
       return false;
     }
     try {
@@ -104,31 +147,6 @@ public class Format {
     }
   }
 
-  // optimized http://stackoverflow.com/questions/53497/regular-expression-that-matches-valid-ipv6-addresses
-  private static final Pattern IPV6 = Pattern.compile("^((([0-9a-f]{1,4}:){7}([0-9a-f]{1,4}|:))|(([0-9a-f]{1,4}:){6}(:[0-9a-f]{1,4}|((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9a-f]{1,4}:){5}(((:[0-9a-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9a-f]{1,4}:){4}(((:[0-9a-f]{1,4}){1,3})|((:[0-9a-f]{1,4})?:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9a-f]{1,4}:){3}(((:[0-9a-f]{1,4}){1,4})|((:[0-9a-f]{1,4}){0,2}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9a-f]{1,4}:){2}(((:[0-9a-f]{1,4}){1,5})|((:[0-9a-f]{1,4}){0,3}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9a-f]{1,4}:){1}(((:[0-9a-f]{1,4}){1,6})|((:[0-9a-f]{1,4}){0,4}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(:(((:[0-9a-f]{1,4}){1,7})|((:[0-9a-f]{1,4}){0,5}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:)))$", CASE_INSENSITIVE);
-
-  private static boolean testIpv6(String value) {
-    return IPV6.matcher(value).find();
-  }
-
-  // optimized https://www.safaribooksonline.com/library/view/regular-expressions-cookbook/9780596802837/ch07s16.html
-  private static final Pattern IPV4 = Pattern.compile("^(?:(?:25[0-5]|2[0-4]\\d|[1]?\\d\\d?)\\.){3}(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)$");
-
-  private static boolean testIpv4(String value) {
-    return IPV4.matcher(value).find();
-  }
-
-  private static final Pattern HOSTNAME = Pattern.compile("^(?=.{1,253}\\.?$)[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\\.[a-z0-9](?:[-0-9a-z]{0,61}[0-9a-z])?)*\\.?$", CASE_INSENSITIVE);
-
-  private static boolean testHostname(String value) {
-    return HOSTNAME.matcher(value).find();
-  }
-
-  private static final Pattern EMAIL_HOST = Pattern.compile("^[a-z0-9.-]+$", CASE_INSENSITIVE);
-  private static final Pattern EMAIL_NAME = Pattern.compile("^[a-z0-9.!#$%&'*+/=?^_`\\{|\\}~-]+$", CASE_INSENSITIVE);
-  private static final Pattern EMAIL_HOST_PART = Pattern.compile("^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$", CASE_INSENSITIVE);
-
-  // https://github.com/ExodusMovement/schemasafe/blob/master/src/formats.js
   private static boolean testEmail(String value) {
     return testEmail(value, EMAIL_HOST, EMAIL_NAME, EMAIL_HOST_PART);
   }
@@ -151,91 +169,50 @@ public class Format {
       return false;
     }
     if (
-      !emailHostMatcher.matcher(parts[1]).find() ||
-        !emailNameMatcher.matcher(parts[0]).find()
+      !checkPattern( parts[1], emailHostMatcher)||
+        !checkPattern(parts[0], emailNameMatcher)
     ) {
       return false;
     }
     for (String part : parts[1].split("\\.")) {
-      if (!emailHostPartMatcher.matcher(part).find()) {
+      if (!checkPattern(part, emailHostPartMatcher)) {
         return false;
       }
     }
     return true;
   }
 
-  // For the source: https://gist.github.com/dperini/729294
-  // For test cases: https://mathiasbynens.be/demo/url-regex
-  private static final Pattern URL_ = Pattern.compile("^(?:(?:https?|ftp):\\/\\/)(?:\\S+(?::\\S*)?@)?(?:(?!10(?:\\.\\d{1,3}){3})(?!127(?:\\.\\d{1,3}){3})(?!169\\.254(?:\\.\\d{1,3}){2})(?!192\\.168(?:\\.\\d{1,3}){2})(?!172\\.(?:1[6-9]|2\\d|3[0-1])(?:\\.\\d{1,3}){2})(?:[1-9]\\d?|1\\d\\d|2[01]\\d|22[0-3])(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}(?:\\.(?:[1-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))|(?:(?:[a-z\\u00a1-\\uffff0-9]+-?)*[a-z\\u00a1-\\uffff0-9]+)(?:\\.(?:[a-z\\u00a1-\\uffff0-9]+-?)*[a-z\\u00a1-\\uffff0-9]+)*(?:\\.(?:[a-z\\u00a1-\\uffff]{2,})))(?::\\d{2,5})?(?:\\/[^\\s]*)?$", CASE_INSENSITIVE | Pattern.UNICODE_CASE);
-
-  private static boolean testUrl(String value) {
-    return URL_.matcher(value).find();
-  }
-
-  // uri-template: https://tools.ietf.org/html/rfc6570
-  private static final Pattern URITEMPLATE = Pattern.compile("^(?:(?:[^\\x00-\\x20\"'<>%\\\\^`\\{|\\}]|%[0-9a-f]{2})|\\{[+#./;?&=,!@|]?(?:[a-z0-9_]|%[0-9a-f]{2})+(?::[1-9][0-9]{0,3}|\\*)?(?:,(?:[a-z0-9_]|%[0-9a-f]{2})+(?::[1-9][0-9]{0,3}|\\*)?)*\\})*$", CASE_INSENSITIVE);
-
-  private static boolean testUriTemplate(String value) {
-    return URITEMPLATE.matcher(value).find();
-  }
-
-  private static final Pattern URIREF = Pattern.compile("^(?:[a-z][a-z0-9+\\-.]*:)?(?:\\/?\\/(?:(?:[a-z0-9\\-._~!$&'()*+,;=:]|%[0-9a-f]{2})*@)?(?:\\[(?:(?:(?:(?:[0-9a-f]{1,4}:){6}|::(?:[0-9a-f]{1,4}:){5}|(?:[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){4}|(?:(?:[0-9a-f]{1,4}:){0,1}[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){3}|(?:(?:[0-9a-f]{1,4}:){0,2}[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){2}|(?:(?:[0-9a-f]{1,4}:){0,3}[0-9a-f]{1,4})?::[0-9a-f]{1,4}:|(?:(?:[0-9a-f]{1,4}:){0,4}[0-9a-f]{1,4})?::)(?:[0-9a-f]{1,4}:[0-9a-f]{1,4}|(?:(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\.){3}(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?))|(?:(?:[0-9a-f]{1,4}:){0,5}[0-9a-f]{1,4})?::[0-9a-f]{1,4}|(?:(?:[0-9a-f]{1,4}:){0,6}[0-9a-f]{1,4})?::)|[Vv][0-9a-f]+\\.[a-z0-9\\-._~!$&'()*+,;=:]+)\\]|(?:(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\.){3}(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)|(?:[a-z0-9\\-._~!$&'\"()*+,;=]|%[0-9a-f]{2})*)(?::\\d*)?(?:\\/(?:[a-z0-9\\-._~!$&'\"()*+,;=:@]|%[0-9a-f]{2})*)*|\\/(?:(?:[a-z0-9\\-._~!$&'\"()*+,;=:@]|%[0-9a-f]{2})+(?:\\/(?:[a-z0-9\\-._~!$&'\"()*+,;=:@]|%[0-9a-f]{2})*)*)?|(?:[a-z0-9\\-._~!$&'\"()*+,;=:@]|%[0-9a-f]{2})+(?:\\/(?:[a-z0-9\\-._~!$&'\"()*+,;=:@]|%[0-9a-f]{2})*)*)?(?:\\?(?:[a-z0-9\\-._~!$&'\"()*+,;=:@/?]|%[0-9a-f]{2})*)?(?:#(?:[a-z0-9\\-._~!$&'\"()*+,;=:@/?]|%[0-9a-f]{2})*)?$", CASE_INSENSITIVE);
-
-  private static boolean testUriReference(String value) {
-    return URIREF.matcher(value).find();
-  }
-
-  private static final Pattern NOT_URI_FRAGMENT = Pattern.compile("\\/|:");
-  private static final Pattern URI_PATTERN = Pattern.compile("^(?:[a-z][a-z0-9+\\-.]*:)(?:\\/?\\/(?:(?:[a-z0-9\\-._~!$&'()*+,;=:]|%[0-9a-f]{2})*@)?(?:\\[(?:(?:(?:(?:[0-9a-f]{1,4}:){6}|::(?:[0-9a-f]{1,4}:){5}|(?:[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){4}|(?:(?:[0-9a-f]{1,4}:){0,1}[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){3}|(?:(?:[0-9a-f]{1,4}:){0,2}[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){2}|(?:(?:[0-9a-f]{1,4}:){0,3}[0-9a-f]{1,4})?::[0-9a-f]{1,4}:|(?:(?:[0-9a-f]{1,4}:){0,4}[0-9a-f]{1,4})?::)(?:[0-9a-f]{1,4}:[0-9a-f]{1,4}|(?:(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\.){3}(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?))|(?:(?:[0-9a-f]{1,4}:){0,5}[0-9a-f]{1,4})?::[0-9a-f]{1,4}|(?:(?:[0-9a-f]{1,4}:){0,6}[0-9a-f]{1,4})?::)|[Vv][0-9a-f]+\\.[a-z0-9\\-._~!$&'()*+,;=:]+)\\]|(?:(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\.){3}(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)|(?:[a-z0-9\\-._~!$&'()*+,;=]|%[0-9a-f]{2})*)(?::\\d*)?(?:\\/(?:[a-z0-9\\-._~!$&'()*+,;=:@]|%[0-9a-f]{2})*)*|\\/(?:(?:[a-z0-9\\-._~!$&'()*+,;=:@]|%[0-9a-f]{2})+(?:\\/(?:[a-z0-9\\-._~!$&'()*+,;=:@]|%[0-9a-f]{2})*)*)?|(?:[a-z0-9\\-._~!$&'()*+,;=:@]|%[0-9a-f]{2})+(?:\\/(?:[a-z0-9\\-._~!$&'()*+,;=:@]|%[0-9a-f]{2})*)*)(?:\\?(?:[a-z0-9\\-._~!$&'()*+,;=:@/?]|%[0-9a-f]{2})*)?(?:#(?:[a-z0-9\\-._~!$&'()*+,;=:@/?]|%[0-9a-f]{2})*)?$", CASE_INSENSITIVE);
-
-  private static boolean testUri(String value) {
-    // http://jmrware.com/articles/2009/uri_regexp/URI_regex.html + optional protocol + required "."
-    return NOT_URI_FRAGMENT.matcher(value).find() && URI_PATTERN.matcher(value).find();
-  }
-
-  private static final Pattern DURATION_A = Pattern.compile("^P\\d+([.,]\\d+)?W$");
-  private static final Pattern DURATIION_B = Pattern.compile("^P[\\dYMDTHS]*(\\d[.,]\\d+)?[YMDHS]$");
-  private static final Pattern DURATIION_C = Pattern.compile("^P([.,\\d]+Y)?([.,\\d]+M)?([.,\\d]+D)?(T([.,\\d]+H)?([.,\\d]+M)?([.,\\d]+S)?)?$");
-
   private static boolean testDuration(String value) {
     return value.length() > 1 &&
       value.length() < 80 &&
-      (DURATION_A.matcher(value).find() ||
-        (DURATIION_B.matcher(value).find() &&
-          DURATIION_C.matcher(value).find()));
+      (checkPattern(value, DURATION_A) ||
+        (checkPattern(value, DURATION_B) &&
+          checkPattern(value, DURATION_C)));
   }
 
-  private static final Pattern FASTDATETIME = Pattern.compile("^\\d\\d\\d\\d-[0-1]\\d-[0-3]\\d[t\\s](?:[0-2]\\d:[0-5]\\d:[0-5]\\d|23:59:60)(?:\\.\\d+)?(?:z?|[+-]\\d\\d(?::?\\d\\d)?)$", CASE_INSENSITIVE);
-
   private static boolean testDateTime(String value) {
-    if(!FASTDATETIME.matcher(value).find()) {
+    if(!checkPattern(value, FASTDATETIME)) {
       return false;
     }
     return validateISOTime(DateTimeFormatter.ISO_DATE_TIME, value);
   }
 
-  // date-time: http://tools.ietf.org/html/rfc3339#section-5.6
-  private static final Pattern FASTTIME = Pattern.compile("^(?:[0-2]\\d:[0-5]\\d:[0-5]\\d|23:59:60)(?:\\.\\d+)?(?:z|[+-]\\d\\d(?::?\\d\\d)?)?$", CASE_INSENSITIVE);
-  private static final Pattern VALID_LEAP_SECONDS = Pattern.compile("^23:59:60(?:\\.\\d+)?(?:z|[+-]00(?::?00)?)?$", CASE_INSENSITIVE);
   private static boolean testTime(String value) {
-    if(!FASTTIME.matcher(value).find()) {
+    if(!checkPattern(value, FASTTIME)) {
       return false;
     }
 
     //The built-in ISO_TIME does not account for leap seconds.
     // So if it IS a leap second (or matches) just assume that it's OK
-    if(VALID_LEAP_SECONDS.matcher(value).find()) {
+    if(checkPattern(value, VALID_LEAP_SECONDS)) {
       return true;
     }
 
     return validateISOTime(DateTimeFormatter.ISO_TIME, value);
   }
 
-  // date: http://tools.ietf.org/html/rfc3339#section-5.6
-  private static final Pattern FASTDATE = Pattern.compile("^\\d\\d\\d\\d-[0-1]\\d-[0-3]\\d$");
-
   private static boolean testDate(String value) {
-    if (!FASTDATE.matcher(value).matches()) {
+    if (!checkPattern(value, FASTDATE)) {
       return false;
     }
 
@@ -251,35 +228,13 @@ public class Format {
     }
   }
 
-  //IDN Puny code is only ever in this format. xn--abc.xyz
-  private static final Pattern IDN_HOSTNAME_PUNY = Pattern.compile("^xn--[a-z0-9-.]*$");
-
-  // This is checking various other combinations of invalid characters/combinations of invalid characters.
-  private static final Pattern IDN_HOSTNAME_UNICODE = Pattern
-    .compile("^.*\\u302e.*|(^.*?[^l]\\u00b7.|.*l\\u00b7[^l]|\\u00b7$|^\\u00b7.)|(.*\\u30fB[^\\u3041\\u30A1\\u4e08].*|^\\u30fB$)|(^[\\u05f3\\u05f4].*)$"
-      , Pattern.UNICODE_CHARACTER_CLASS);
-
-  // This is checking the start of the word for Mc,Me or Mn characters.
-  // Mc -> Spacing_Combining_Mark
-  // Me -> Enclosing_Mark
-  // Mn -> Non_Spacing_Mark (excluding if Virma \\u094d follows
-  private static final Pattern IDN_HOSTNAME_STARTING_ERRORS = Pattern
-    .compile("^\\p{gc=Mc}|^\\p{gc=Me}|^\\p{gc=Mn}(?!\\u094d)", Pattern.UNICODE_CHARACTER_CLASS);
-
-
   private static boolean testIdnHostname(String value) {
     try {
-      return !IDN_HOSTNAME_STARTING_ERRORS.matcher(value).find() && !IDN_HOSTNAME_UNICODE.matcher(value).find() && IDN_HOSTNAME_PUNY.matcher(IDN.toASCII(value)).find();
+      return !checkPattern(value, IDN_HOSTNAME_STARTING_ERRORS) && !checkPattern(value, IDN_HOSTNAME_UNICODE) && checkPattern(IDN.toASCII(value), IDN_HOSTNAME_PUNY);
     } catch(Exception e) {
       return false;
     }
   }
-
-  //IDN emails can have - and . throughout unlike a normal email address. The email host part can also have the same.
-  private static final Pattern IDN_EMAIL_PUNY = Pattern.compile("^xn--[a-z0-9-.]*@[a-z0-9-.]*$");
-  private static final Pattern IDN_EMAIL_HOST = Pattern.compile("^[a-z0-9-.]*");
-  private static final Pattern IDN_EMAIL_NAME = Pattern.compile("^xn--[a-z0-9-.]*$");
-  private static final Pattern IDN_EMAIL_HOST_PART = Pattern.compile("^[a-z0-9-]([a-z0-9-]{0,61}[a-z0-9-])?$");
 
   private static boolean testIdnEmail(String value) {
     try {
@@ -289,7 +244,7 @@ public class Format {
         return testEmail(asciiVersion);
       }
 
-      return IDN_EMAIL_PUNY.matcher(asciiVersion).find() && testEmail(asciiVersion, IDN_EMAIL_HOST, IDN_EMAIL_NAME, IDN_EMAIL_HOST_PART);
+      return checkPattern(asciiVersion, IDN_EMAIL_PUNY) && testEmail(asciiVersion, IDN_EMAIL_HOST, IDN_EMAIL_NAME, IDN_EMAIL_HOST_PART);
     } catch(Exception e) {
       return false;
     }
