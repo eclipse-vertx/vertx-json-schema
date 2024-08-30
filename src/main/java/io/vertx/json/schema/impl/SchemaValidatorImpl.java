@@ -209,113 +209,16 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
 
     switch (instanceType) {
       case "object": {
-        if (schema.containsKey("required")) {
-          for (final Object key : schema.<JsonArray>get("required")) {
-            if (!((JsonObject) instance).containsKey((String) key)) {
-              errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/required"), baseLocation + "/required", "Instance does not have required property \"" + key + "\"", OutputErrorType.MISSING_VALUE));
-            }
-          }
-        }
+        validateRequired(schema, instanceLocation, schemaLocation, baseLocation, (JsonObject) instance, errors);
 
         final Set<String> keys = ((JsonObject) instance).fieldNames();
 
-        if (schema.containsKey("minProperties") && keys.size() < schema.<Integer>get("minProperties")) {
-          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minProperties"), baseLocation + "/minProperties", "Instance does not have at least " + schema.get("minProperties") + " properties", OutputErrorType.MISSING_VALUE));
-        }
-
-        if (schema.containsKey("maxProperties") && keys.size() > schema.<Integer>get("maxProperties")) {
-          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/maxProperties"), baseLocation + "/maxProperties", "Instance does not have at least " + schema.get("maxProperties") + " properties", OutputErrorType.INVALID_VALUE));
-        }
-
-        if (schema.containsKey("propertyNames")) {
-          for (final String key : ((JsonObject) instance).fieldNames()) {
-            final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
-            final OutputUnit result = validate(
-              key,
-              Schemas.wrap((JsonObject) schema, "propertyNames"),
-              recursiveAnchor,
-              subInstancePointer,
-              schemaLocation + "/propertyNames",
-              baseLocation + "/propertyNames",
-              new HashSet<>(),
-              dynamicContext
-            );
-            if (!result.getValid()) {
-              errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/propertyNames"), baseLocation + "/propertyNames", "Property name \"" + key + "\" does not match schema", OutputErrorType.INVALID_VALUE));
-              if (result.getErrors() != null) {
-                errors.addAll(result.getErrors());
-              }
-            }
-          }
-        }
-
-        if (schema.containsKey("dependentRequired")) {
-          for (final String key : schema.<JsonObject>get("dependentRequired").fieldNames()) {
-            if (((JsonObject) instance).containsKey(key)) {
-              final JsonArray required = schema.<JsonObject>get("dependentRequired").getJsonArray(key);
-              for (final Object dependantKey : required) {
-                if (!(((JsonObject) instance).containsKey((String) dependantKey))) {
-                  errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/dependentRequired"), baseLocation + "/dependentRequired", "Instance has \"" + key + "\" but does not have \"" + dependantKey + "\"", OutputErrorType.MISSING_VALUE));
-                }
-              }
-            }
-          }
-        }
-
-        if (schema.containsKey("dependentSchemas")) {
-          for (final String key : schema.<JsonObject>get("dependentSchemas").fieldNames()) {
-            if (((JsonObject) instance).containsKey(key)) {
-              final OutputUnit result = validate(
-                instance,
-                Schemas.wrap(schema.get("dependentSchemas"), key),
-                recursiveAnchor,
-                instanceLocation,
-                schemaLocation + "/dependentSchemas/" + Pointers.encode(key),
-                baseLocation + "/dependentSchemas/" + Pointers.encode(key),
-                evaluated,
-                dynamicContext
-              );
-              if (!result.getValid()) {
-                errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/dependentSchemas"), baseLocation + "/dependentSchemas", "Instance has \"" + key + "\" but does not match dependant schema", OutputErrorType.MISSING_VALUE));
-                if (result.getErrors() != null) {
-                  errors.addAll(result.getErrors());
-                }
-              }
-            }
-          }
-        }
-
-        if (schema.containsKey("dependencies")) {
-          for (final String key : schema.<JsonObject>get("dependencies").fieldNames()) {
-            if (((JsonObject) instance).containsKey(key)) {
-              final Object propsOrSchema = schema.<JsonObject>get("dependencies").getValue(key);
-              if (propsOrSchema instanceof JsonArray) {
-                for (final Object dependantKey : ((JsonArray) propsOrSchema)) {
-                  if (!((JsonObject) instance).containsKey((String) dependantKey)) {
-                    errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/dependencies"), baseLocation + "/dependencies", "Instance has \"" + key + "\" but does not have \"" + dependantKey + "\"", OutputErrorType.MISSING_VALUE));
-                  }
-                }
-              } else {
-                final OutputUnit result = validate(
-                  instance,
-                  Schemas.wrap(schema.get("dependencies"), key),
-                  recursiveAnchor,
-                  instanceLocation,
-                  schemaLocation + "/dependencies/" + Pointers.encode(key),
-                  baseLocation + "/dependencies/" + Pointers.encode(key),
-                  new HashSet<>(),
-                  dynamicContext
-                );
-                if (!result.getValid()) {
-                  errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/dependencies"), baseLocation + "/dependencies", "Instance has \"" + key + "\" but does not match dependant schema", OutputErrorType.MISSING_VALUE));
-                  if (result.getErrors() != null) {
-                    errors.addAll(result.getErrors());
-                  }
-                }
-              }
-            }
-          }
-        }
+        validateMinProperties(schema, instanceLocation, schemaLocation, baseLocation, keys, errors);
+        validateMaxProperties(schema, instanceLocation, schemaLocation, baseLocation, keys, errors);
+        validatePropertyNames(schema, instanceLocation, schemaLocation, baseLocation, dynamicContext, (JsonObject) instance, recursiveAnchor, errors);
+        validateDependentRequired(schema, instanceLocation, schemaLocation, baseLocation, (JsonObject) instance, errors);
+        validateDependentSchemas(schema, instanceLocation, schemaLocation, baseLocation, evaluated, dynamicContext, instance, recursiveAnchor, errors);
+        validateDependencies(schema, instanceLocation, schemaLocation, baseLocation, dynamicContext, instance, errors, recursiveAnchor);
 
         final Set<Object> thisEvaluated = new HashSet<>();
 
@@ -701,6 +604,128 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       .setAnnotations(outputFormat == OutputFormat.Flag ? null : annotations.isEmpty() ? null : annotations)
       .setErrorType((outputFormat == OutputFormat.Flag ? OutputErrorType.NONE :
         errors.isEmpty() ? OutputErrorType.NONE : errors.get(0).getErrorType()));
+  }
+
+  private void validateDependencies(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Map<String, Deque<JsonSchema>> dynamicContext, Object instance, List<OutputUnit> errors, JsonSchema recursiveAnchor) {
+    if (schema.containsKey("dependencies")) {
+      for (final String key : schema.<JsonObject>get("dependencies").fieldNames()) {
+        if (((JsonObject) instance).containsKey(key)) {
+          final Object propsOrSchema = schema.<JsonObject>get("dependencies").getValue(key);
+          if (propsOrSchema instanceof JsonArray) {
+            for (final Object dependantKey : ((JsonArray) propsOrSchema)) {
+              if (!((JsonObject) instance).containsKey((String) dependantKey)) {
+                errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/dependencies"), baseLocation + "/dependencies", "Instance has \"" + key + "\" but does not have \"" + dependantKey + "\"", OutputErrorType.MISSING_VALUE));
+              }
+            }
+          } else {
+            final OutputUnit result = validate(
+              instance,
+              Schemas.wrap(schema.get("dependencies"), key),
+              recursiveAnchor,
+              instanceLocation,
+              schemaLocation + "/dependencies/" + Pointers.encode(key),
+              baseLocation + "/dependencies/" + Pointers.encode(key),
+              new HashSet<>(),
+              dynamicContext
+            );
+            if (!result.getValid()) {
+              errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/dependencies"), baseLocation + "/dependencies", "Instance has \"" + key + "\" but does not match dependant schema", OutputErrorType.MISSING_VALUE));
+              if (result.getErrors() != null) {
+                errors.addAll(result.getErrors());
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private void validateDependentSchemas(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Set<Object> evaluated, Map<String, Deque<JsonSchema>> dynamicContext, Object instance, JsonSchema recursiveAnchor, List<OutputUnit> errors) {
+    if (schema.containsKey("dependentSchemas")) {
+      for (final String key : schema.<JsonObject>get("dependentSchemas").fieldNames()) {
+        if (((JsonObject) instance).containsKey(key)) {
+          final OutputUnit result = validate(
+            instance,
+            Schemas.wrap(schema.get("dependentSchemas"), key),
+            recursiveAnchor,
+            instanceLocation,
+            schemaLocation + "/dependentSchemas/" + Pointers.encode(key),
+            baseLocation + "/dependentSchemas/" + Pointers.encode(key),
+            evaluated,
+            dynamicContext
+          );
+          if (!result.getValid()) {
+            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/dependentSchemas"), baseLocation + "/dependentSchemas", "Instance has \"" + key + "\" but does not match dependant schema", OutputErrorType.MISSING_VALUE));
+            if (result.getErrors() != null) {
+              errors.addAll(result.getErrors());
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private void validateDependentRequired(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, JsonObject instance, List<OutputUnit> errors) {
+    if (schema.containsKey("dependentRequired")) {
+      for (final String key : schema.<JsonObject>get("dependentRequired").fieldNames()) {
+        if (instance.containsKey(key)) {
+          final JsonArray required = schema.<JsonObject>get("dependentRequired").getJsonArray(key);
+          for (final Object dependantKey : required) {
+            if (!(instance.containsKey((String) dependantKey))) {
+              errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/dependentRequired"), baseLocation + "/dependentRequired", "Instance has \"" + key + "\" but does not have \"" + dependantKey + "\"", OutputErrorType.MISSING_VALUE));
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private void validatePropertyNames(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Map<String, Deque<JsonSchema>> dynamicContext, JsonObject instance, JsonSchema recursiveAnchor, List<OutputUnit> errors) {
+    if (schema.containsKey("propertyNames")) {
+      for (final String key : instance.fieldNames()) {
+        final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
+        final OutputUnit result = validate(
+          key,
+          Schemas.wrap((JsonObject) schema, "propertyNames"),
+          recursiveAnchor,
+          subInstancePointer,
+          schemaLocation + "/propertyNames",
+          baseLocation + "/propertyNames",
+          new HashSet<>(),
+          dynamicContext
+        );
+        if (!result.getValid()) {
+          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/propertyNames"), baseLocation + "/propertyNames", "Property name \"" + key + "\" does not match schema", OutputErrorType.INVALID_VALUE));
+          if (result.getErrors() != null) {
+            errors.addAll(result.getErrors());
+          }
+        }
+      }
+    }
+  }
+
+  //TODO This can probably be generalized with validateMaxLength
+  private void validateMaxProperties(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Set<String> keys, List<OutputUnit> errors) {
+    if (schema.containsKey("maxProperties") && keys.size() > schema.<Integer>get("maxProperties")) {
+      errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/maxProperties"), baseLocation + "/maxProperties", "Instance does not have at least " + schema.get("maxProperties") + " properties", OutputErrorType.INVALID_VALUE));
+    }
+  }
+
+  //TODO This can probably be generalized with validateMinLength
+  private void validateMinProperties(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Set<String> keys, List<OutputUnit> errors) {
+    if (schema.containsKey("minProperties") && keys.size() < schema.<Integer>get("minProperties")) {
+      errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minProperties"), baseLocation + "/minProperties", "Instance does not have at least " + schema.get("minProperties") + " properties", OutputErrorType.MISSING_VALUE));
+    }
+  }
+
+  private void validateRequired(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, JsonObject instance, List<OutputUnit> errors) {
+    if (schema.containsKey("required")) {
+      for (final Object key : schema.<JsonArray>get("required")) {
+        if (!instance.containsKey((String) key)) {
+          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/required"), baseLocation + "/required", "Instance does not have required property \"" + key + "\"", OutputErrorType.MISSING_VALUE));
+        }
+      }
+    }
   }
 
   private void validateMultipleOf(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Object instance, List<OutputUnit> errors) {
