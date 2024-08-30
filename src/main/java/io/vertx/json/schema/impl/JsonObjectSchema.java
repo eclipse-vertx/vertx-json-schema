@@ -42,7 +42,12 @@ public final class JsonObjectSchema extends JsonObject implements JsonSchema {
   @Override
   @SuppressWarnings("unchecked")
   public <R> R get(String key, R fallback) {
-    return (R) getValue(key, fallback);
+    R val = get(key);
+    if(val == null) {
+      return fallback;
+    }
+
+    return val;
   }
 
   @Override

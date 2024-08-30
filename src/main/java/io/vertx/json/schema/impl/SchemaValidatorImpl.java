@@ -4,6 +4,7 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.*;
+import io.vertx.json.schema.internal.SchemaValidatorState;
 
 import java.util.Objects;
 import java.util.*;
@@ -112,82 +113,16 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
 
     validateRecursiveRef(schema, instanceLocation, schemaLocation, baseLocation, evaluated, dynamicContext, recursiveAnchor, instance, errors);
 
-    if (schema.containsKey("$dynamicRef")) {
-      Deque<JsonSchema> deque = dynamicContext.get(schema.<String>get("$dynamicRef"));
-      if (deque != null) {
-        JsonSchema head = deque.peekFirst();
-        if (head != null) {
-          // compute the dynamic reference uri
-          String uri = new URL(schema.<String>get("$dynamicRef"), head.<String>get("__absolute_uri__")).href();
-
-          if (!lookup.containsKey(uri)) {
-            String message = "Unresolved $dynamicRef " + schema.<String>get("$dynamicRef");
-            message += "\nKnown schemas:\n- " + String.join("\n- ", lookup.keySet());
-            throw new SchemaException(schema, message);
-          }
-
-          final JsonSchema refSchema = lookup.get(uri);
-          final OutputUnit result = validate(
-            instance,
-            recursiveAnchor == null ? schema : recursiveAnchor,
-            refSchema,
-            instanceLocation,
-            schemaLocation + "/$dynamicRef",
-            baseLocation + "/$dynamicRef",
-            evaluated,
-            dynamicContext
-          );
-          if (!result.getValid()) {
-            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/$dynamicRef"), baseLocation + "/$dynamicRef", "A sub-schema had errors", result.getErrorType()));
-            if (result.getErrors() != null) {
-              errors.addAll(result.getErrors());
-            }
-          }
-          if (draft == Draft.DRAFT4 || draft == Draft.DRAFT7) {
-            if (dynamicAnchor != null) {
-              dynamicContext
-                .get(dynamicAnchor)
-                .removeLast();
-            }
-            return new OutputUnit(errors.isEmpty()).setErrors(errors).setErrorType(errors.isEmpty() ? OutputErrorType.NONE : errors.get(0).getErrorType());
-          }
-        }
-      }
+    if (checkDynamicRef(schema, instanceLocation, schemaLocation, baseLocation, evaluated, dynamicContext, instance, recursiveAnchor, errors, dynamicAnchor)) {
+      return new OutputUnit(errors.isEmpty())
+        .setErrors(errors)
+        .setErrorType(errors.isEmpty() ? OutputErrorType.NONE : errors.get(0).getErrorType());
     }
 
-    if (schema.containsKey("$ref")) {
-      final String uri = schema.get("__absolute_ref__", schema.get("$ref"));
-      if (!lookup.containsKey(uri)) {
-        String message = "Unresolved $ref " + schema.<String>get("$ref");
-        if (schema.containsKey("__absolute_ref__") && !schema.get("__absolute_ref__").equals(schema.<String>get("$ref"))) {
-          message += ": Absolute URI " + schema.get("__absolute_ref__");
-        }
-        message += "\nKnown schemas:\n- " + String.join("\n- ", lookup.keySet());
-        throw new SchemaException(schema, message);
-      }
-
-      final JsonSchema refSchema = lookup.get(uri);
-      final OutputUnit result = validate(
-        instance,
-        refSchema,
-        recursiveAnchor,
-        instanceLocation,
-        schema.get("$ref"),
-        baseLocation + "/$ref",
-        evaluated,
-        dynamicContext
-      );
-      if (!result.getValid()) {
-        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/$ref"), baseLocation + "/$ref", "A subschema had errors", result.getErrorType()));
-        if (result.getErrors() != null) {
-          errors.addAll(result.getErrors());
-        }
-      }
-      if (draft == Draft.DRAFT4 || draft == Draft.DRAFT7) {
-        return new OutputUnit(errors.isEmpty())
-          .setErrors(outputFormat == OutputFormat.Flag ? null : errors.isEmpty() ? null : errors)
-          .setErrorType(outputFormat == OutputFormat.Flag ? null : errors.isEmpty() ? OutputErrorType.NONE : errors.get(0).getErrorType());
-      }
+    if (checkRef(schema, instanceLocation, schemaLocation, baseLocation, evaluated, dynamicContext, instance, recursiveAnchor, errors)) {
+      return new OutputUnit(errors.isEmpty())
+        .setErrors(outputFormat == OutputFormat.Flag || errors.isEmpty() ? null : errors)
+        .setErrorType(outputFormat == OutputFormat.Flag ||  errors.isEmpty() ? OutputErrorType.NONE : errors.get(0).getErrorType());
     }
 
     validateSchemaType(schema, instanceLocation, schemaLocation, baseLocation, instanceType, instance, errors);
@@ -222,126 +157,10 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
 
         final Set<Object> thisEvaluated = new HashSet<>();
 
-        boolean stop = false;
+        boolean stop = checkPropertiesAndStop(schema, instanceLocation, schemaLocation, baseLocation, evaluated, dynamicContext, (JsonObject) instance, recursiveAnchor, thisEvaluated, false, errors);;
+        stop = checkPatternPropertiesAndStop(schema, instanceLocation, schemaLocation, baseLocation, evaluated, dynamicContext, stop, (JsonObject) instance, recursiveAnchor, thisEvaluated, errors);
+        checkRemainingProperties(schema, instanceLocation, schemaLocation, baseLocation, evaluated, dynamicContext, stop, (JsonObject) instance, thisEvaluated, recursiveAnchor, errors);
 
-        if (schema.containsKey("properties")) {
-          for (final String key : schema.<JsonObject>get("properties").fieldNames()) {
-            if (!((JsonObject) instance).containsKey(key)) {
-              continue;
-            }
-            final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
-            final OutputUnit result = validate(
-              ((JsonObject) instance).getValue(key),
-              Schemas.wrap(schema.get("properties"), key),
-              recursiveAnchor,
-              subInstancePointer,
-              schemaLocation + "/properties/" + Pointers.encode(key),
-              baseLocation + "/properties/" + Pointers.encode(key),
-              new HashSet<>(),
-              dynamicContext
-            );
-            if (result.getValid()) {
-              evaluated.add(key);
-              thisEvaluated.add(key);
-            } else {
-              stop = outputFormat == OutputFormat.Flag;
-              errors.add(new OutputUnit(subInstancePointer, computeAbsoluteKeywordLocation(schema, schemaLocation + "/properties"), baseLocation + "/properties", "Property \"" + key + "\" does not match schema", result.getErrorType()));
-              if (result.getErrors() != null) {
-                errors.addAll(result.getErrors());
-              }
-              if (stop) {
-                break;
-              }
-            }
-          }
-        }
-
-        if (!stop && schema.containsKey("patternProperties")) {
-          for (final String pattern : schema.<JsonObject>get("patternProperties").fieldNames()) {
-            final Pattern regex = Pattern.compile(pattern);
-            for (final String key : ((JsonObject) instance).fieldNames()) {
-              if (!regex.matcher(key).find()) {
-                continue;
-              }
-              final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
-              final OutputUnit result = validate(
-                ((JsonObject) instance).getValue(key),
-                Schemas.wrap(schema.get("patternProperties"), pattern),
-                recursiveAnchor,
-                subInstancePointer,
-                schemaLocation + "/patternProperties/" + Pointers.encode(pattern),
-                baseLocation + "/patternProperties/" + Pointers.encode(pattern),
-                new HashSet<>(),
-                dynamicContext
-              );
-              if (result.getValid()) {
-                evaluated.add(key);
-                thisEvaluated.add(key);
-              } else {
-                stop = outputFormat == OutputFormat.Flag;
-                errors.add(new OutputUnit(subInstancePointer, computeAbsoluteKeywordLocation(schema, schemaLocation + "/patternProperties"), baseLocation + "/patternProperties", "Property \"" + key + "\" matches pattern \"" + pattern + "\" but does not match associated schema", OutputErrorType.INVALID_VALUE));
-                if (result.getErrors() != null) {
-                  errors.addAll(result.getErrors());
-                }
-              }
-            }
-          }
-        }
-
-        if (!stop && schema.containsKey("additionalProperties")) {
-          for (final String key : ((JsonObject) instance).fieldNames()) {
-            if (thisEvaluated.contains(key)) {
-              continue;
-            }
-            final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
-            final OutputUnit result = validate(
-              ((JsonObject) instance).getValue(key),
-              Schemas.wrap((JsonObject) schema, "additionalProperties"),
-              recursiveAnchor,
-              subInstancePointer,
-              schemaLocation + "/additionalProperties",
-              baseLocation + "/additionalProperties",
-              new HashSet<>(),
-              dynamicContext
-            );
-            if (result.getValid()) {
-              evaluated.add(key);
-            } else {
-              stop = outputFormat == OutputFormat.Flag;
-              errors.add(new OutputUnit(subInstancePointer, computeAbsoluteKeywordLocation(schema, schemaLocation + "/additionalProperties"), baseLocation + "/additionalProperties", "Property \"" + key + "\" does not match additional properties schema", result.getErrorType()));
-              if (result.getErrors() != null) {
-                errors.addAll(result.getErrors());
-              }
-              if (stop) {
-                break;
-              }
-            }
-          }
-        } else if (!stop && schema.containsKey("unevaluatedProperties")) {
-          for (final String key : ((JsonObject) instance).fieldNames()) {
-            if (!evaluated.contains(key)) {
-              final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
-              final OutputUnit result = validate(
-                ((JsonObject) instance).getValue(key),
-                Schemas.wrap((JsonObject) schema, "unevaluatedProperties"),
-                recursiveAnchor,
-                subInstancePointer,
-                schemaLocation + "/unevaluatedProperties",
-                baseLocation + "/unevaluatedProperties",
-                new HashSet<>(),
-                dynamicContext
-              );
-              if (result.getValid()) {
-                evaluated.add(key);
-              } else {
-                errors.add(new OutputUnit(subInstancePointer, computeAbsoluteKeywordLocation(schema, schemaLocation + "/unevaluatedProperties"), baseLocation + "/unevaluatedProperties", "Property \"" + key + "\" does not match unevaluated properties schema", result.getErrorType()));
-                if (result.getErrors() != null) {
-                  errors.addAll(result.getErrors());
-                }
-              }
-            }
-          }
-        }
         break;
       }
       case "array": {
@@ -349,219 +168,29 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         validateMinItems(schema, instanceLocation, schemaLocation, baseLocation, (JsonArray) instance, errors);
 
         final int length = ((JsonArray) instance).size();
-        int i = 0;
-        boolean stop = false;
+        SchemaValidatorState state = new SchemaValidatorState(0, false);
 
-        if (schema.containsKey("prefixItems")) {
-          final int length2 = Math.min(schema.<JsonArray>get("prefixItems").size(), length);
-          for (; i < length2; i++) {
-            final OutputUnit result = validate(
-              ((JsonArray) instance).getValue(i),
-              Schemas.wrap(schema.get("prefixItems"), i),
-              recursiveAnchor,
-              instanceLocation + "/" + i,
-              schemaLocation + "/prefixItems/" + i,
-              baseLocation + "/prefixItems/" + i,
-              new HashSet<>(),
-              dynamicContext
-            );
-            evaluated.add(i);
-            if (!result.getValid()) {
-              stop = outputFormat == OutputFormat.Flag;
-              errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/prefixItems"), baseLocation + "/prefixItems", "Items did not match schema", result.getErrorType()));
-              if (result.getErrors() != null) {
-                errors.addAll(result.getErrors());
-              }
-              if (stop) {
-                break;
-              }
-            }
-          }
-        }
 
-        if (schema.containsKey("items")) {
-          if (schema.get("items") instanceof JsonArray) {
-            final int length2 = Math.min(schema.<JsonArray>get("items").size(), length);
-            for (; i < length2; i++) {
-              final OutputUnit result = validate(
-                ((JsonArray) instance).getValue(i),
-                Schemas.wrap(schema.get("items"), i),
-                recursiveAnchor,
-                instanceLocation + "/" + i,
-                schemaLocation + "/items/" + i,
-                baseLocation + "/items/" + i,
-                new HashSet<>(),
-                dynamicContext
-              );
-              evaluated.add(i);
-              if (!result.getValid()) {
-                stop = outputFormat == OutputFormat.Flag;
-                errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/items"), baseLocation + "/items", "Items did not match schema", result.getErrorType()));
-                if (result.getErrors() != null) {
-                  errors.addAll(result.getErrors());
-                }
-                if (stop) {
-                  break;
-                }
-              }
-            }
-          } else {
-            for (; i < length; i++) {
-              final OutputUnit result = validate(
-                ((JsonArray) instance).getValue(i),
-                Schemas.wrap((JsonObject) schema, "items"),
-                recursiveAnchor,
-                instanceLocation + "/" + i,
-                schemaLocation + "/items",
-                baseLocation + "/items",
-                new HashSet<>(),
-                dynamicContext
-              );
-              evaluated.add(i);
-              if (!result.getValid()) {
-                stop = outputFormat == OutputFormat.Flag;
-                errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/items"), baseLocation + "/items", "Items did not match schema", result.getErrorType()));
-                if (result.getErrors() != null) {
-                  errors.addAll(result.getErrors());
-                }
-                if (stop) {
-                  break;
-                }
-              }
-            }
-          }
+        validatePrefixItems(schema, instanceLocation, schemaLocation, baseLocation, evaluated, dynamicContext, length, state, (JsonArray) instance, recursiveAnchor, errors);
+        validateItems(schema, instanceLocation, schemaLocation, baseLocation, evaluated, dynamicContext, length, state, (JsonArray) instance, recursiveAnchor, errors);
 
-          if (!stop && schema.containsKey("additionalItems")) {
-            final String keywordLocation2 = schemaLocation + "/additionalItems";
-            for (; i < length; i++) {
-              final OutputUnit result = validate(
-                ((JsonArray) instance).getValue(i),
-                Schemas.wrap((JsonObject) schema, "additionalItems"),
-                recursiveAnchor,
-                instanceLocation + "/" + i,
-                keywordLocation2,
-                baseLocation + "/additionalItems",
-                new HashSet<>(),
-                dynamicContext
-              );
-              evaluated.add(i);
-              if (!result.getValid()) {
-                stop = outputFormat == OutputFormat.Flag;
-                errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/additionalItems"), schemaLocation + "/additionalItems", "Items did not match additional items schema", result.getErrorType()));
-                if (result.getErrors() != null) {
-                  errors.addAll(result.getErrors());
-                }
-              }
-            }
-          }
-        }
+        errors = validateContains(schema, instanceLocation, schemaLocation, baseLocation, evaluated, dynamicContext, length, errors, (JsonArray) instance, recursiveAnchor, state);
 
-        if (schema.containsKey("contains")) {
-          if (length == 0 && !schema.containsKey("minContains")) {
-            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/contains"), baseLocation + "/contains", "Array is empty. It must contain at least one item matching the schema", OutputErrorType.MISSING_VALUE));
-          } else if (schema.containsKey("minContains") && length < schema.<Integer>get("minContains")) {
-            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minContains"), baseLocation + "/minContains", "Array has less items (" + length + ") than minContains (" + schema.get("minContains") + ")", OutputErrorType.MISSING_VALUE));
-          } else {
-            final int errorsLength = errors.size();
-            int contained = 0;
-            for (int j = 0; j < length; j++) {
-              final OutputUnit result = validate(
-                ((JsonArray) instance).getValue(j),
-                Schemas.wrap((JsonObject) schema, "contains"),
-                recursiveAnchor,
-                instanceLocation + "/" + i,
-                schemaLocation + "/contains",
-                baseLocation + "/contains",
-                new HashSet<>(),
-                dynamicContext
-              );
-              if (result.getValid()) {
-                evaluated.add(j);
-                contained++;
-              } else {
-                if (result.getErrors() != null) {
-                  errors.addAll(result.getErrors());
-                }
-              }
-            }
+        validateUnevaluatedItems(schema, instanceLocation, schemaLocation, baseLocation, evaluated, dynamicContext, state, length, (JsonArray) instance, recursiveAnchor, errors);
+        validateUniqueItems(schema, instanceLocation, schemaLocation, baseLocation, length, (JsonArray) instance, errors);
 
-            if (contained >= schema.<Integer>get("minContains", 0)) {
-              errors = errors.subList(0, Math.min(errors.size(), errorsLength));
-            }
-
-            if (
-              !schema.containsKey("minContains") &&
-                !schema.containsKey("maxContains") &&
-                contained == 0
-            ) {
-              errors.add(errorsLength, new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/contains"), baseLocation + "/contains", "Array does not contain item matching schema", OutputErrorType.INVALID_VALUE));
-            } else if (schema.containsKey("minContains") && contained < schema.<Integer>get("minContains")) {
-              errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minContains"), baseLocation + "/minContains", "Array must contain at least " + schema.get("minContains") + " items matching schema. Only " + contained + " items were found", OutputErrorType.MISSING_VALUE));
-            } else if (schema.containsKey("maxContains") && contained > schema.<Integer>get("maxContains")) {
-              errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/maxContains"), baseLocation + "/maxContains", "Array may contain at most " + schema.get("minContains") + " items matching schema. " + contained + " items were found", OutputErrorType.INVALID_VALUE));
-            }
-          }
-        }
-
-        if (!stop && schema.containsKey("unevaluatedItems")) {
-          for (; i < length; i++) {
-            if (evaluated.contains(i)) {
-              continue;
-            }
-            final OutputUnit result = validate(
-              ((JsonArray) instance).getValue(i),
-              Schemas.wrap((JsonObject) schema, "unevaluatedItems"),
-              recursiveAnchor,
-              instanceLocation + "/" + i,
-              schemaLocation + "/unevaluatedItems",
-              baseLocation + "/unevaluatedItems",
-              new HashSet<>(),
-              dynamicContext
-            );
-            evaluated.add(i);
-            if (!result.getValid()) {
-              errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/unevaluatedItems"), baseLocation + "/unevaluatedItems", "Items did not match unevaluated items schema", result.getErrorType()));
-              if (result.getErrors() != null) {
-                errors.addAll(result.getErrors());
-              }
-            }
-          }
-        }
-
-        if (Utils.Objects.truthy(schema.get("uniqueItems"))) {
-          outer:
-          for (int j = 0; j < length; j++) {
-            final Object a = ((JsonArray) instance).getValue(j);
-            final boolean ao = "object".equals(JSON.typeOf(a)) && a != null;
-            for (int k = 0; k < length; k++) {
-              if (j == k) {
-                continue;
-              }
-              final Object b = ((JsonArray) instance).getValue(k);
-              final boolean bo = "object".equals(JSON.typeOf(b)) && b != null;
-              if (Utils.Objects.equals(a, b) || (ao && bo && JSON.deepCompare(a, b))) {
-                errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/uniqueItems"), baseLocation + "/uniqueItems", "Duplicate items at indexes " + j + " and " + k, OutputErrorType.INVALID_VALUE));
-                break outer;
-              }
-            }
-          }
-        }
         break;
       }
       case "number":
         if (draft == Draft.DRAFT4) {
-          if (
-            schema.containsKey("minimum") &&
+          if (schema.containsKey("minimum") &&
               ((schema.<Boolean>get("exclusiveMinimum", false) && Numbers.lte((Number) instance, schema.get("minimum"))) ||
-                Numbers.lt((Number) instance, schema.get("minimum")))
-          ) {
+                Numbers.lt((Number) instance, schema.get("minimum")))) {
             errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minimum"), baseLocation + "/minimum", instance + " is less than " + (schema.<Boolean>get("exclusiveMinimum", false) ? "or equal to " : "") + schema.get("minimum"), OutputErrorType.INVALID_VALUE));
           }
-          if (
-            schema.containsKey("maximum") &&
+          if (schema.containsKey("maximum") &&
               ((schema.<Boolean>get("exclusiveMaximum", false) && Numbers.gte((Number) instance, schema.get("maximum"))) ||
-                Numbers.gt((Number) instance, schema.get("maximum")))
-          ) {
+                Numbers.gt((Number) instance, schema.get("maximum")))) {
             errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/maximum"), baseLocation + "/maximum", instance + " is greater than " + (schema.<Boolean>get("exclusiveMaximum", false) ? "or equal to " : "") + schema.get("maximum"), OutputErrorType.INVALID_VALUE));
           }
         } else {
@@ -600,10 +229,420 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
     }
 
     return new OutputUnit(errors.isEmpty())
-      .setErrors(outputFormat == OutputFormat.Flag ? null : errors.isEmpty() ? null : errors)
-      .setAnnotations(outputFormat == OutputFormat.Flag ? null : annotations.isEmpty() ? null : annotations)
-      .setErrorType((outputFormat == OutputFormat.Flag ? OutputErrorType.NONE :
-        errors.isEmpty() ? OutputErrorType.NONE : errors.get(0).getErrorType()));
+      .setErrors(outputFormat == OutputFormat.Flag || errors.isEmpty() ? null : errors)
+      .setAnnotations(outputFormat == OutputFormat.Flag || annotations.isEmpty() ? null : annotations)
+      .setErrorType((outputFormat == OutputFormat.Flag || errors.isEmpty() ? OutputErrorType.NONE : errors.get(0).getErrorType()));
+  }
+
+  private void validateUnevaluatedItems(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Set<Object> evaluated, Map<String, Deque<JsonSchema>> dynamicContext, SchemaValidatorState state, int length, JsonArray instance, JsonSchema recursiveAnchor, List<OutputUnit> errors) {
+    if (!state.stop && schema.containsKey("unevaluatedItems")) {
+      for (; state.currentIndex < length; state.currentIndex++) {
+        if (evaluated.contains(state.currentIndex)) {
+          continue;
+        }
+        final OutputUnit result = validate(
+          instance.getValue(state.currentIndex),
+          Schemas.wrap((JsonObject) schema, "unevaluatedItems"),
+          recursiveAnchor,
+          instanceLocation + "/" + state.currentIndex,
+          schemaLocation + "/unevaluatedItems",
+          baseLocation + "/unevaluatedItems",
+          new HashSet<>(),
+          dynamicContext
+        );
+        evaluated.add(state.currentIndex);
+        if (!result.getValid()) {
+          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/unevaluatedItems"), baseLocation + "/unevaluatedItems", "Items did not match unevaluated items schema", result.getErrorType()));
+          if (result.getErrors() != null) {
+            errors.addAll(result.getErrors());
+          }
+        }
+      }
+    }
+  }
+
+  private List<OutputUnit> validateContains(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Set<Object> evaluated, Map<String, Deque<JsonSchema>> dynamicContext, int length, List<OutputUnit> errors, JsonArray instance, JsonSchema recursiveAnchor, SchemaValidatorState state) {
+    if (schema.containsKey("contains")) {
+      if (length < schema.<Integer>get("minContains", 1)) {
+        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minContains"), baseLocation + "/minContains", "Array has less items (" + length + ") than minContains (" + schema.get("minContains", 1) + ")", OutputErrorType.MISSING_VALUE));
+      } else {
+        final int errorsLength = errors.size();
+        int contained = 0;
+        for (int j = 0; j < length; j++) {
+          final OutputUnit result = validate(
+            instance.getValue(j),
+            Schemas.wrap((JsonObject) schema, "contains"),
+            recursiveAnchor,
+            instanceLocation + "/" + state.currentIndex,
+            schemaLocation + "/contains",
+            baseLocation + "/contains",
+            new HashSet<>(),
+            dynamicContext
+          );
+          if (result.getValid()) {
+            evaluated.add(j);
+            contained++;
+          } else {
+            if (result.getErrors() != null) {
+              errors.addAll(result.getErrors());
+            }
+          }
+        }
+
+        if (contained >= schema.<Integer>get("minContains", 0)) {
+          errors = errors.subList(0, Math.min(errors.size(), errorsLength));
+        }
+
+        if (!schema.containsKey("minContains") &&
+            !schema.containsKey("maxContains") &&
+            contained == 0) {
+          errors.add(errorsLength, new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/contains"), baseLocation + "/contains", "Array does not contain item matching schema", OutputErrorType.INVALID_VALUE));
+        } else if (contained < schema.<Integer>get("minContains", -1)) {
+          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minContains"), baseLocation + "/minContains", "Array must contain at least " + schema.get("minContains") + " items matching schema. Only " + contained + " items were found", OutputErrorType.MISSING_VALUE));
+        } else if (contained > schema.<Integer>get("maxContains", Integer.MAX_VALUE)) {
+          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/maxContains"), baseLocation + "/maxContains", "Array may contain at most " + schema.get("minContains") + " items matching schema. " + contained + " items were found", OutputErrorType.INVALID_VALUE));
+        }
+      }
+    }
+    return errors;
+  }
+
+  private void validateItems(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Set<Object> evaluated, Map<String, Deque<JsonSchema>> dynamicContext, int length, SchemaValidatorState state, JsonArray instance, JsonSchema recursiveAnchor, List<OutputUnit> errors) {
+    if (schema.containsKey("items")) {
+      if (schema.get("items") instanceof JsonArray) {
+        final int length2 = Math.min(schema.<JsonArray>get("items").size(), length);
+        for (; state.currentIndex < length2; state.currentIndex++) {
+          final OutputUnit result = validate(
+            instance.getValue(state.currentIndex),
+            Schemas.wrap(schema.get("items"), state.currentIndex),
+            recursiveAnchor,
+            instanceLocation + "/" + state.currentIndex,
+            schemaLocation + "/items/" + state.currentIndex,
+            baseLocation + "/items/" + state.currentIndex,
+            new HashSet<>(),
+            dynamicContext
+          );
+          evaluated.add(state.currentIndex);
+          if (!result.getValid()) {
+            state.stop = outputFormat == OutputFormat.Flag;
+            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/items"), baseLocation + "/items", "Items did not match schema", result.getErrorType()));
+            if (result.getErrors() != null) {
+              errors.addAll(result.getErrors());
+            }
+            if (state.stop) {
+              break;
+            }
+          }
+        }
+      } else {
+        for (; state.currentIndex < length; state.currentIndex++) {
+          final OutputUnit result = validate(
+            instance.getValue(state.currentIndex),
+            Schemas.wrap((JsonObject) schema, "items"),
+            recursiveAnchor,
+            instanceLocation + "/" + state.currentIndex,
+            schemaLocation + "/items",
+            baseLocation + "/items",
+            new HashSet<>(),
+            dynamicContext
+          );
+          evaluated.add(state.currentIndex);
+          if (!result.getValid()) {
+            state.stop = outputFormat == OutputFormat.Flag;
+            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/items"), baseLocation + "/items", "Items did not match schema", result.getErrorType()));
+            if (result.getErrors() != null) {
+              errors.addAll(result.getErrors());
+            }
+            if (state.stop) {
+              break;
+            }
+          }
+        }
+      }
+
+      if (!state.stop && schema.containsKey("additionalItems")) {
+        final String keywordLocation2 = schemaLocation + "/additionalItems";
+        for (; state.currentIndex < length; state.currentIndex++) {
+          final OutputUnit result = validate(
+            instance.getValue(state.currentIndex),
+            Schemas.wrap((JsonObject) schema, "additionalItems"),
+            recursiveAnchor,
+            instanceLocation + "/" + state.currentIndex,
+            keywordLocation2,
+            baseLocation + "/additionalItems",
+            new HashSet<>(),
+            dynamicContext
+          );
+          evaluated.add(state.currentIndex);
+          if (!result.getValid()) {
+            state.stop = outputFormat == OutputFormat.Flag;
+            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/additionalItems"), schemaLocation + "/additionalItems", "Items did not match additional items schema", result.getErrorType()));
+            if (result.getErrors() != null) {
+              errors.addAll(result.getErrors());
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private void validatePrefixItems(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Set<Object> evaluated, Map<String, Deque<JsonSchema>> dynamicContext, int length, SchemaValidatorState state, JsonArray instance, JsonSchema recursiveAnchor, List<OutputUnit> errors) {
+    if (schema.containsKey("prefixItems")) {
+      final int length2 = Math.min(schema.<JsonArray>get("prefixItems").size(), length);
+      for (; state.currentIndex < length2; state.currentIndex++) {
+        final OutputUnit result = validate(
+          instance.getValue(state.currentIndex),
+          Schemas.wrap(schema.get("prefixItems"), state.currentIndex),
+          recursiveAnchor,
+          instanceLocation + "/" + state.currentIndex,
+          schemaLocation + "/prefixItems/" + state.currentIndex,
+          baseLocation + "/prefixItems/" + state.currentIndex,
+          new HashSet<>(),
+          dynamicContext
+        );
+        evaluated.add(state.currentIndex);
+        if (!result.getValid()) {
+          state.stop = outputFormat == OutputFormat.Flag;
+          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/prefixItems"), baseLocation + "/prefixItems", "Items did not match schema", result.getErrorType()));
+          if (result.getErrors() != null) {
+            errors.addAll(result.getErrors());
+          }
+          if (state.stop) {
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  private void checkRemainingProperties(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Set<Object> evaluated, Map<String, Deque<JsonSchema>> dynamicContext, boolean stop, JsonObject instance, Set<Object> thisEvaluated, JsonSchema recursiveAnchor, List<OutputUnit> errors) {
+    if (!stop && schema.containsKey("additionalProperties")) {
+      for (final String key : instance.fieldNames()) {
+        if (thisEvaluated.contains(key)) {
+          continue;
+        }
+        final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
+        final OutputUnit result = validate(
+          instance.getValue(key),
+          Schemas.wrap((JsonObject) schema, "additionalProperties"),
+          recursiveAnchor,
+          subInstancePointer,
+          schemaLocation + "/additionalProperties",
+          baseLocation + "/additionalProperties",
+          new HashSet<>(),
+          dynamicContext
+        );
+        if (result.getValid()) {
+          evaluated.add(key);
+        } else {
+          stop = outputFormat == OutputFormat.Flag;
+          errors.add(new OutputUnit(subInstancePointer, computeAbsoluteKeywordLocation(schema, schemaLocation + "/additionalProperties"), baseLocation + "/additionalProperties", "Property \"" + key + "\" does not match additional properties schema", result.getErrorType()));
+          if (result.getErrors() != null) {
+            errors.addAll(result.getErrors());
+          }
+          if (stop) {
+            break;
+          }
+        }
+      }
+    } else if (!stop && schema.containsKey("unevaluatedProperties")) {
+      for (final String key : instance.fieldNames()) {
+        if (!evaluated.contains(key)) {
+          final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
+          final OutputUnit result = validate(
+            instance.getValue(key),
+            Schemas.wrap((JsonObject) schema, "unevaluatedProperties"),
+            recursiveAnchor,
+            subInstancePointer,
+            schemaLocation + "/unevaluatedProperties",
+            baseLocation + "/unevaluatedProperties",
+            new HashSet<>(),
+            dynamicContext
+          );
+          if (result.getValid()) {
+            evaluated.add(key);
+          } else {
+            errors.add(new OutputUnit(subInstancePointer, computeAbsoluteKeywordLocation(schema, schemaLocation + "/unevaluatedProperties"), baseLocation + "/unevaluatedProperties", "Property \"" + key + "\" does not match unevaluated properties schema", result.getErrorType()));
+            if (result.getErrors() != null) {
+              errors.addAll(result.getErrors());
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private boolean checkPatternPropertiesAndStop(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Set<Object> evaluated, Map<String, Deque<JsonSchema>> dynamicContext, boolean stop, JsonObject instance, JsonSchema recursiveAnchor, Set<Object> thisEvaluated, List<OutputUnit> errors) {
+    Object patternPropertiesObj = schema.get("patternProperties");
+    if (!stop && patternPropertiesObj instanceof JsonObject) {
+      JsonObject patternProperties = (JsonObject) patternPropertiesObj;
+      for (final String pattern : patternProperties.fieldNames()) {
+        final Pattern regex = Pattern.compile(pattern);
+        for (final String key : instance.fieldNames()) {
+          if (!regex.matcher(key).find()) {
+            continue;
+          }
+          final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
+          final OutputUnit result = validate(
+            instance.getValue(key),
+            Schemas.wrap(patternProperties, pattern),
+            recursiveAnchor,
+            subInstancePointer,
+            schemaLocation + "/patternProperties/" + Pointers.encode(pattern),
+            baseLocation + "/patternProperties/" + Pointers.encode(pattern),
+            new HashSet<>(),
+            dynamicContext
+          );
+          if (result.getValid()) {
+            evaluated.add(key);
+            thisEvaluated.add(key);
+          } else {
+            stop = outputFormat == OutputFormat.Flag;
+            errors.add(new OutputUnit(subInstancePointer, computeAbsoluteKeywordLocation(schema, schemaLocation + "/patternProperties"), baseLocation + "/patternProperties", "Property \"" + key + "\" matches pattern \"" + pattern + "\" but does not match associated schema", OutputErrorType.INVALID_VALUE));
+            if (result.getErrors() != null) {
+              errors.addAll(result.getErrors());
+            }
+          }
+        }
+      }
+    }
+    return stop;
+  }
+
+  private boolean checkPropertiesAndStop(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Set<Object> evaluated, Map<String, Deque<JsonSchema>> dynamicContext, JsonObject instance, JsonSchema recursiveAnchor, Set<Object> thisEvaluated, boolean stop, List<OutputUnit> errors) {
+    if (schema.containsKey("properties")) {
+      for (final String key : schema.<JsonObject>get("properties").fieldNames()) {
+        if (!instance.containsKey(key)) {
+          continue;
+        }
+        final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
+        final OutputUnit result = validate(
+          instance.getValue(key),
+          Schemas.wrap(schema.get("properties"), key),
+          recursiveAnchor,
+          subInstancePointer,
+          schemaLocation + "/properties/" + Pointers.encode(key),
+          baseLocation + "/properties/" + Pointers.encode(key),
+          new HashSet<>(),
+          dynamicContext
+        );
+        if (result.getValid()) {
+          evaluated.add(key);
+          thisEvaluated.add(key);
+        } else {
+          stop = outputFormat == OutputFormat.Flag;
+          errors.add(new OutputUnit(subInstancePointer, computeAbsoluteKeywordLocation(schema, schemaLocation + "/properties"), baseLocation + "/properties", "Property \"" + key + "\" does not match schema", result.getErrorType()));
+          if (result.getErrors() != null) {
+            errors.addAll(result.getErrors());
+          }
+          if (stop) {
+            break;
+          }
+        }
+      }
+    }
+    return stop;
+  }
+
+  private boolean checkDynamicRef(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Set<Object> evaluated, Map<String, Deque<JsonSchema>> dynamicContext, Object instance, JsonSchema recursiveAnchor, List<OutputUnit> errors, String dynamicAnchor) {
+    if (schema.containsKey("$dynamicRef")) {
+      Deque<JsonSchema> deque = dynamicContext.get(schema.<String>get("$dynamicRef"));
+      if (deque != null) {
+        JsonSchema head = deque.peekFirst();
+        if (head != null) {
+          // compute the dynamic reference uri
+          String uri = new URL(schema.<String>get("$dynamicRef"), head.<String>get("__absolute_uri__")).href();
+
+          if (!lookup.containsKey(uri)) {
+            String message = "Unresolved $dynamicRef " + schema.<String>get("$dynamicRef");
+            message += "\nKnown schemas:\n- " + String.join("\n- ", lookup.keySet());
+            throw new SchemaException(schema, message);
+          }
+
+          final JsonSchema refSchema = lookup.get(uri);
+          final OutputUnit result = validate(
+            instance,
+            recursiveAnchor == null ? schema : recursiveAnchor,
+            refSchema,
+            instanceLocation,
+            schemaLocation + "/$dynamicRef",
+            baseLocation + "/$dynamicRef",
+            evaluated,
+            dynamicContext
+          );
+          if (!result.getValid()) {
+            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/$dynamicRef"), baseLocation + "/$dynamicRef", "A sub-schema had errors", result.getErrorType()));
+            if (result.getErrors() != null) {
+              errors.addAll(result.getErrors());
+            }
+          }
+          if (draft == Draft.DRAFT4 || draft == Draft.DRAFT7) {
+            if (dynamicAnchor != null) {
+              dynamicContext
+                .get(dynamicAnchor)
+                .removeLast();
+            }
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  private boolean checkRef(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Set<Object> evaluated, Map<String, Deque<JsonSchema>> dynamicContext, Object instance, JsonSchema recursiveAnchor, List<OutputUnit> errors) {
+    if (schema.containsKey("$ref")) {
+      final String uri = schema.get("__absolute_ref__", schema.get("$ref"));
+      if (!lookup.containsKey(uri)) {
+        String message = "Unresolved $ref " + schema.<String>get("$ref");
+        if (schema.containsKey("__absolute_ref__") && !schema.get("__absolute_ref__").equals(schema.<String>get("$ref"))) {
+          message += ": Absolute URI " + schema.get("__absolute_ref__");
+        }
+        message += "\nKnown schemas:\n- " + String.join("\n- ", lookup.keySet());
+        throw new SchemaException(schema, message);
+      }
+
+      final JsonSchema refSchema = lookup.get(uri);
+      final OutputUnit result = validate(
+        instance,
+        refSchema,
+        recursiveAnchor,
+        instanceLocation,
+        schema.get("$ref"),
+        baseLocation + "/$ref",
+        evaluated,
+        dynamicContext
+      );
+      if (!result.getValid()) {
+        errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/$ref"), baseLocation + "/$ref", "A subschema had errors", result.getErrorType()));
+        if (result.getErrors() != null) {
+          errors.addAll(result.getErrors());
+        }
+      }
+      return draft == Draft.DRAFT4 || draft == Draft.DRAFT7;
+    }
+
+    return false;
+  }
+
+  private void validateUniqueItems(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, int length, JsonArray instance, List<OutputUnit> errors) {
+    if (Utils.Objects.truthy(schema.get("uniqueItems"))) {
+      for (int j = 0; j < length; j++) {
+        final Object a = instance.getValue(j);
+        final boolean ao = "object".equals(JSON.typeOf(a)) && a != null;
+        for (int k = 0; k < length; k++) {
+          if (j == k) {
+            continue;
+          }
+          final Object b = instance.getValue(k);
+          final boolean bo = "object".equals(JSON.typeOf(b)) && b != null;
+          if (Utils.Objects.equals(a, b) || (ao && bo && JSON.deepCompare(a, b))) {
+            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/uniqueItems"), baseLocation + "/uniqueItems", "Duplicate items at indexes " + j + " and " + k, OutputErrorType.INVALID_VALUE));
+            return;
+          }
+        }
+      }
+    }
   }
 
   private void validateDependencies(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Map<String, Deque<JsonSchema>> dynamicContext, Object instance, List<OutputUnit> errors, JsonSchema recursiveAnchor) {
@@ -855,14 +894,15 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
   }
 
   private List<OutputUnit> validateOneOf(JsonSchema schema, String instanceLocation, String schemaLocation, String baseLocation, Set<Object> evaluated, Map<String, Deque<JsonSchema>> dynamicContext, List<OutputUnit> errors, Object instance, JsonSchema recursiveAnchor, Set<Object> subEvaluateds) {
-    if (schema.containsKey("oneOf")) {
+    JsonArray arr = schema.get("oneOf");
+    if (arr != null) {
       final int errorsLength = errors.size();
       int matches = 0;
-      for (int i = 0; i < schema.<JsonArray>get("oneOf").size(); i++) {
+      for (int i = 0; i < arr.size(); i++) {
         final Set<Object> subEvaluated = new HashSet<>(evaluated);
         final OutputUnit result = validate(
           instance,
-          Schemas.wrap(schema.get("oneOf"), i),
+          Schemas.wrap(arr, i),
           schema.<Boolean>get("$recursiveAnchor", false) ? recursiveAnchor : null,
           instanceLocation,
           schemaLocation + "/oneOf/" + i,
@@ -1050,18 +1090,17 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
   }
 
   private static JsonSchema getRecursiveAnchor(JsonSchema schema, JsonSchema _recursiveAnchor) {
-    final JsonSchema recursiveAnchor;
     if (_recursiveAnchor == null && schema.<Boolean>get("$recursiveAnchor", false)) {
-      recursiveAnchor = schema;
+      return schema;
     } else {
-      recursiveAnchor = _recursiveAnchor;
+      return _recursiveAnchor;
     }
-    return recursiveAnchor;
   }
 
   private static String getDynamicAnchor(JsonSchema schema, Map<String, Deque<JsonSchema>> dynamicContext) {
-    if (schema.containsKey("$dynamicAnchor")) {
-      String dynamicAnchor = "#" + schema.get("$dynamicAnchor");
+    Object dynamicAnchorObj = schema.get("$dynamicAnchor");
+    if (dynamicAnchorObj != null) {
+      String dynamicAnchor = "#" + dynamicAnchorObj;
       dynamicContext
         .computeIfAbsent(dynamicAnchor, k -> new LinkedList<>())
         .add(schema);
