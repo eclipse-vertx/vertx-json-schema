@@ -13,7 +13,7 @@ module io.vertx.jsonschema {
   requires com.fasterxml.jackson.core;
   requires transitive io.vertx.core;
 
-  requires static vertx.docgen;
+  requires static io.vertx.docgen;
   requires static io.vertx.codegen.api;
   requires static io.vertx.codegen.json;
 
