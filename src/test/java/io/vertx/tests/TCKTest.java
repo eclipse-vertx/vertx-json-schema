@@ -173,7 +173,7 @@ public class TCKTest {
         }
       } else {
         if (unsupported) {
-          fail("Test should be marked as supported : " + suiteName + "/" + suiteDescription + "/" + testDescription);
+          fail("Test should be marked as supported : " + (suiteName + "/" + suiteDescription + "/" + testDescription).replace(" ", "\\ "));
 //          UNSUPPORTED.remove(suiteName + "/" + suiteDescription + "/" + testDescription);
         }
       }

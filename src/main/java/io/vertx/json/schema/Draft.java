@@ -27,33 +27,35 @@ public enum Draft {
    *
    * Usually used by OpenAPI 3.0
    */
-  DRAFT4("http://json-schema.org/draft-04/schema#"),
+  DRAFT4("http://json-schema.org/draft-04/schema#", 0),
 
   /**
    * Draft 7 - <a href="http://json-schema.org/draft-07/schema#">http://json-schema.org/draft-07/schema#</a>
    *
    * Commonly used by many projects
    */
-  DRAFT7("http://json-schema.org/draft-07/schema#"),
+  DRAFT7("http://json-schema.org/draft-07/schema#", 1),
 
   /**
    * Draft 2019-09 - <a href="https://json-schema.org/draft/2019-09/schema">https://json-schema.org/draft/2019-09/schema</a>
    *
    * Commonly used by many projects
    */
-  DRAFT201909("https://json-schema.org/draft/2019-09/schema"),
+  DRAFT201909("https://json-schema.org/draft/2019-09/schema", 2),
 
   /**
    * Draft 2020-12 - <a href="https://json-schema.org/draft/2020-12/schema">https://json-schema.org/draft/2020-12/schema</a>
    *
    * Usually used by OpenAPI 3.1
    */
-  DRAFT202012("https://json-schema.org/draft/2020-12/schema");
+  DRAFT202012("https://json-schema.org/draft/2020-12/schema", 3);
 
   private final String identifier;
+  private final int order;
 
-  Draft(String identifier) {
+  Draft(String identifier, int order) {
     this.identifier = identifier;
+    this.order = order;
   }
 
   /**
@@ -108,4 +110,21 @@ public enum Draft {
       throw new IllegalArgumentException("Unsupported draft identifier: " + string);
     }
   }
+
+  /**
+   * @param draft to check against
+   * @return true if the draft instance was released after the draft provided.
+   */
+  public boolean isAfter(Draft draft) {
+    return draft.order < this.order;
+  }
+
+  /**
+   * @param draft to check against
+   * @return true if the draft instance was released before the draft provided.
+   */
+  public boolean isBefore(Draft draft) {
+    return draft.order > this.order;
+  }
+
 }
