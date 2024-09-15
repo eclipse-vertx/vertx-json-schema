@@ -934,7 +934,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         }
 
         //Content encoding was introduced in Draft7, but was turned into annotated only in draft 2019 and after.
-        if(draft.isAfter(Draft.DRAFT4) &&
+        if (draft.isAfter(Draft.DRAFT4) &&
           schema.containsKey("contentEncoding") &&
           !Format.testContentEncoding(schema.get("contentEncoding"), (String) instance)) {
           OutputUnit errorUnit = new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/contentEncoding"), baseLocation + "/contentEncoding", "String does not match the content encoding \"" + schema.get("contentEncoding") + "\"", OutputErrorType.INVALID_VALUE);
