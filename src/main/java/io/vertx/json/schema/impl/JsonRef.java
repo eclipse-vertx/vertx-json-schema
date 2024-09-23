@@ -8,7 +8,7 @@ import io.vertx.json.schema.internal.JsonObjectProxy;
 
 import java.util.*;
 
-import static io.vertx.core.internal.net.URIDecoder.decodeURIComponent;
+import static io.vertx.core.internal.net.RFC3986.decodeURIComponent;
 import static io.vertx.json.schema.impl.Utils.Objects.isObject;
 
 /**
