@@ -8,7 +8,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
  */
-@ModuleGen(name = "vertx-json-schema", groupPackage = "io.vertx", useFutures = true)
+@ModuleGen(name = "vertx-json-schema", groupPackage = "io.vertx")
 package io.vertx.json.schema;
 
 import io.vertx.codegen.annotations.ModuleGen;
