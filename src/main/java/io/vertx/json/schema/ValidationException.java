@@ -48,30 +48,6 @@ public abstract class ValidationException extends VertxException {
     this.input = input;
   }
 
-  /**
-   * @deprecated just use {@link #create(String, String, Object, Collection)}
-   */
-  @Deprecated
-  public static ValidationException createException(String message, String keyword, Object input, Collection<Throwable> causes) {
-    return new ValidationExceptionImpl(message, causes, keyword, input);
-  }
-
-  /**
-   * @deprecated just use {@link #create(String, String, Object, Throwable)}
-   */
-  @Deprecated
-  public static ValidationException createException(String message, String keyword, Object input, Throwable cause) {
-    return new ValidationExceptionImpl(message, cause, keyword, input);
-  }
-
-  /**
-   * @deprecated just use {@link #create(String, String, Object)}
-   */
-  @Deprecated
-  public static ValidationException createException(String message, String keyword, Object input) {
-    return new ValidationExceptionImpl(message, keyword, input);
-  }
-
   public static ValidationException create(String message, String keyword, Object input, Collection<Throwable> causes) {
     return new ValidationExceptionImpl(message, causes, keyword, input);
   }

@@ -11,8 +11,6 @@
 package io.vertx.json.schema.common.dsl;
 
 public enum SchemaType {
-  @Deprecated
-  INT("integer"),
   INTEGER("integer"),
   NUMBER("number"),
   BOOLEAN("boolean"),
