@@ -23,10 +23,4 @@ public final class NumberSchemaBuilder extends SchemaBuilder<NumberSchemaBuilder
     type(SchemaType.INTEGER);
     return this;
   }
-
-  public boolean isIntegerSchema() {
-    // for legacy, while the deprecation is still in place
-    return this.type.equals(SchemaType.INT) || this.type.equals(SchemaType.INTEGER);
-  }
-
 }
