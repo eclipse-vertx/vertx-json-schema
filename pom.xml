@@ -28,6 +28,12 @@
 
   <name>Vert.x JSON Schema</name>
 
+  <scm>
+    <connection>scm:git:git@github.com:eclipse-vertx/vertx-json-schema.git</connection>
+    <developerConnection>scm:git:git@github.com:eclipse-vertx/vertx-json-schema.git</developerConnection>
+    <url>git@github.com:eclipse-vertx/vertx-json-schema.git</url>
+  </scm>
+
   <properties>
     <mockito.version>3.3.0</mockito.version>
     <assertj.version>3.15.0</assertj.version>
