@@ -24,7 +24,7 @@
   </parent>
 
   <artifactId>vertx-json-schema</artifactId>
-  <version>5.0.2-SNAPSHOT</version>
+  <version>5.0.2</version>
 
   <name>Vert.x JSON Schema</name>
 
