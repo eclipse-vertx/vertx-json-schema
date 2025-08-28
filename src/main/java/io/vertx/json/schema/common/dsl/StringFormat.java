@@ -23,7 +23,7 @@ public enum StringFormat {
   REGEX("regex"),
   JSON_POINTER("json-pointer"),
   RELATIVE_JSON_POINTER("relative-json-pointer"),
-  URI_TEMPLATE("uti-template"),
+  URI_TEMPLATE("uri-template"),
   TIME("time");
 
   private final String name;
