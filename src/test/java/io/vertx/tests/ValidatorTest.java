@@ -4,9 +4,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.*;
 import io.vertx.json.schema.common.dsl.Schemas;
-import io.vertx.json.schema.common.dsl.StringSchemaBuilder;
 import io.vertx.junit5.Timeout;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.TimeUnit;
