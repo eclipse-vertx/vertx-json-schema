@@ -204,6 +204,83 @@ class RefTest {
   }
 
   @Test
+  public void testRefToRoot() {
+    JsonObject schema = new JsonObject()
+      .put("type", "object")
+      .put("properties", new JsonObject()
+        .put("children", new JsonObject()
+          .put("type", "array")
+          .put("items", new JsonObject()
+            .put("$ref", "#"))));
+
+    JsonObject resolved = JsonRef.resolve(schema);
+
+    JsonObject items = resolved
+      .getJsonObject("properties")
+      .getJsonObject("children")
+      .getJsonObject("items");
+    assertEquals("object", items.getString("type"));
+    // the ref points back to the root schema itself
+    assertNotNull(
+      items
+        .getJsonObject("properties")
+        .getJsonObject("children")
+        .getJsonObject("items"));
+  }
+
+  @Test
+  public void testRefToRootWithId() {
+    JsonObject schema = new JsonObject()
+      .put("$id", "http://www.example.com/tree/")
+      .put("type", "object")
+      .put("properties", new JsonObject()
+        .put("children", new JsonObject()
+          .put("type", "array")
+          .put("items", new JsonObject()
+            .put("$ref", "#"))));
+
+    JsonObject resolved = JsonRef.resolve(schema);
+
+    JsonObject items = resolved
+      .getJsonObject("properties")
+      .getJsonObject("children")
+      .getJsonObject("items");
+    assertEquals("object", items.getString("type"));
+    assertNotNull(
+      items
+        .getJsonObject("properties")
+        .getJsonObject("children")
+        .getJsonObject("items"));
+  }
+
+  @Test
+  public void testRefToRootThroughRepository() {
+    SchemaRepository repo =
+      SchemaRepository.create(new JsonSchemaOptions().setBaseUri("http://vertx.io").setDraft(Draft.DRAFT4));
+    JsonObject schema = new JsonObject()
+      .put("type", "object")
+      .put("properties", new JsonObject()
+        .put("children", new JsonObject()
+          .put("type", "array")
+          .put("items", new JsonObject()
+            .put("$ref", "#"))));
+    repo.dereference(JsonSchema.of(schema.copy()));
+
+    JsonObject resolved = repo.resolve(schema);
+
+    JsonObject items = resolved
+      .getJsonObject("properties")
+      .getJsonObject("children")
+      .getJsonObject("items");
+    assertEquals("object", items.getString("type"));
+    assertNotNull(
+      items
+        .getJsonObject("properties")
+        .getJsonObject("children")
+        .getJsonObject("items"));
+  }
+
+  @Test
   void testSerialization() {
     SchemaRepository repo =
       SchemaRepository.create(new JsonSchemaOptions().setBaseUri("http://vertx.io").setDraft(Draft.DRAFT202012));

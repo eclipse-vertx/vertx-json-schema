@@ -320,7 +320,9 @@ public final class JsonRef {
     //  [prefix, path]
     final String[] parts = uri.split("#", 2);
 
-    final boolean hashPresent = parts.length == 2 && parts[1] != null;
+    // an empty fragment ("#" or "id#") is equivalent to no fragment at all: the uri refers
+    // to the schema identified by the prefix, e.g.: the root schema when the prefix is empty
+    final boolean hashPresent = parts.length == 2 && parts[1] != null && !parts[1].isEmpty();
 
     final String prefix = parts[0];
     final String path = hashPresent ? parts[1] : null;
