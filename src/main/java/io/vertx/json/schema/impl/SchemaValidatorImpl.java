@@ -288,6 +288,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
     if (schema.containsKey("anyOf")) {
       final int errorsLength = errors.size();
       boolean anyValid = false;
+      final String anyOfSchemaLocation = schemaLocation + "/anyOf/";
+      final String anyOfBaseLocation = baseLocation + "/anyOf/";
       for (int i = 0; i < schema.<JsonArray>get("anyOf").size(); i++) {
         final Set<Object> subEvaluated = new HashSet<>(evaluated);
         final OutputUnit result = validate(
@@ -295,8 +297,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
           Schemas.wrap(schema.get("anyOf"), i),
           schema.<Boolean>get("$recursiveAnchor", false) ? recursiveAnchor : null,
           instanceLocation,
-          schemaLocation + "/anyOf/" + i,
-          baseLocation + "/anyOf/" + i,
+          anyOfSchemaLocation + i,
+          anyOfBaseLocation + i,
           subEvaluated,
           dynamicContext
         );
@@ -318,6 +320,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
     if (schema.containsKey("allOf")) {
       final int errorsLength = errors.size();
       boolean allValid = true;
+      final String allOfSchemaLocation = schemaLocation + "/allOf/";
+      final String allOfBaseLocation = baseLocation + "/allOf/";
       for (int i = 0; i < schema.<JsonArray>get("allOf").size(); i++) {
         final Set<Object> subEvaluated = new HashSet<>(evaluated);
         final OutputUnit result = validate(
@@ -325,8 +329,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
           Schemas.wrap(schema.get("allOf"), i),
           schema.<Boolean>get("$recursiveAnchor", false) ? recursiveAnchor : null,
           instanceLocation,
-          schemaLocation + "/allOf/" + i,
-          baseLocation + "/allOf/" + i,
+          allOfSchemaLocation + i,
+          allOfBaseLocation + i,
           subEvaluated,
           dynamicContext
         );
@@ -348,6 +352,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
     if (schema.containsKey("oneOf")) {
       final int errorsLength = errors.size();
       int matches = 0;
+      final String oneOfSchemaLocation = schemaLocation + "/oneOf/";
+      final String oneOfBaseLocation = baseLocation + "/oneOf/";
       for (int i = 0; i < schema.<JsonArray>get("oneOf").size(); i++) {
         final Set<Object> subEvaluated = new HashSet<>(evaluated);
         final OutputUnit result = validate(
@@ -355,8 +361,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
           Schemas.wrap(schema.get("oneOf"), i),
           schema.<Boolean>get("$recursiveAnchor", false) ? recursiveAnchor : null,
           instanceLocation,
-          schemaLocation + "/oneOf/" + i,
-          baseLocation + "/oneOf/" + i,
+          oneOfSchemaLocation + i,
+          oneOfBaseLocation + i,
           subEvaluated,
           dynamicContext
         );
@@ -442,6 +448,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         }
 
         final Set<String> keys = ((JsonObject) instance).fieldNames();
+        final String instanceLocationPrefix = instanceLocation + "/";
 
         if (schema.containsKey("minProperties") && keys.size() < schema.<Integer>get("minProperties")) {
           errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minProperties"), baseLocation + "/minProperties", "Instance does not have at least " + schema.get("minProperties") + " properties", OutputErrorType.MISSING_VALUE));
@@ -452,15 +459,17 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         }
 
         if (schema.containsKey("propertyNames")) {
+          final String propertyNamesSchemaLocation = schemaLocation + "/propertyNames";
+          final String propertyNamesBaseLocation = baseLocation + "/propertyNames";
           for (final String key : ((JsonObject) instance).fieldNames()) {
-            final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
+            final String subInstancePointer = instanceLocationPrefix + Pointers.encode(key);
             final OutputUnit result = validate(
               key,
               Schemas.wrap((JsonObject) schema, "propertyNames"),
               recursiveAnchor,
               subInstancePointer,
-              schemaLocation + "/propertyNames",
-              baseLocation + "/propertyNames",
+              propertyNamesSchemaLocation,
+              propertyNamesBaseLocation,
               new HashSet<>(),
               dynamicContext
             );
@@ -487,15 +496,18 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         }
 
         if (schema.containsKey("dependentSchemas")) {
+          final String dependentSchemasSchemaLocation = schemaLocation + "/dependentSchemas/";
+          final String dependentSchemasBaseLocation = baseLocation + "/dependentSchemas/";
           for (final String key : schema.<JsonObject>get("dependentSchemas").fieldNames()) {
             if (((JsonObject) instance).containsKey(key)) {
+              final String encodedKey = Pointers.encode(key);
               final OutputUnit result = validate(
                 instance,
                 Schemas.wrap(schema.get("dependentSchemas"), key),
                 recursiveAnchor,
                 instanceLocation,
-                schemaLocation + "/dependentSchemas/" + Pointers.encode(key),
-                baseLocation + "/dependentSchemas/" + Pointers.encode(key),
+                dependentSchemasSchemaLocation + encodedKey,
+                dependentSchemasBaseLocation + encodedKey,
                 evaluated,
                 dynamicContext
               );
@@ -510,6 +522,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         }
 
         if (schema.containsKey("dependencies")) {
+          final String dependenciesSchemaLocation = schemaLocation + "/dependencies/";
+          final String dependenciesBaseLocation = baseLocation + "/dependencies/";
           for (final String key : schema.<JsonObject>get("dependencies").fieldNames()) {
             if (((JsonObject) instance).containsKey(key)) {
               final Object propsOrSchema = schema.<JsonObject>get("dependencies").getValue(key);
@@ -520,13 +534,14 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                   }
                 }
               } else {
+                final String encodedKey = Pointers.encode(key);
                 final OutputUnit result = validate(
                   instance,
                   Schemas.wrap(schema.get("dependencies"), key),
                   recursiveAnchor,
                   instanceLocation,
-                  schemaLocation + "/dependencies/" + Pointers.encode(key),
-                  baseLocation + "/dependencies/" + Pointers.encode(key),
+                  dependenciesSchemaLocation + encodedKey,
+                  dependenciesBaseLocation + encodedKey,
                   new HashSet<>(),
                   dynamicContext
                 );
@@ -546,18 +561,21 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         boolean stop = false;
 
         if (schema.containsKey("properties")) {
+          final String propertiesSchemaLocation = schemaLocation + "/properties/";
+          final String propertiesBaseLocation = baseLocation + "/properties/";
           for (final String key : schema.<JsonObject>get("properties").fieldNames()) {
             if (!((JsonObject) instance).containsKey(key)) {
               continue;
             }
-            final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
+            final String encodedKey = Pointers.encode(key);
+            final String subInstancePointer = instanceLocationPrefix + encodedKey;
             final OutputUnit result = validate(
               ((JsonObject) instance).getValue(key),
               Schemas.wrap(schema.get("properties"), key),
               recursiveAnchor,
               subInstancePointer,
-              schemaLocation + "/properties/" + Pointers.encode(key),
-              baseLocation + "/properties/" + Pointers.encode(key),
+              propertiesSchemaLocation + encodedKey,
+              propertiesBaseLocation + encodedKey,
               new HashSet<>(),
               dynamicContext
             );
@@ -580,18 +598,21 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         if (!stop && schema.containsKey("patternProperties")) {
           for (final String pattern : schema.<JsonObject>get("patternProperties").fieldNames()) {
             final Pattern regex = Pattern.compile(pattern);
+            final String encodedPattern = Pointers.encode(pattern);
+            final String patternPropertiesSchemaLocation = schemaLocation + "/patternProperties/" + encodedPattern;
+            final String patternPropertiesBaseLocation = baseLocation + "/patternProperties/" + encodedPattern;
             for (final String key : ((JsonObject) instance).fieldNames()) {
               if (!regex.matcher(key).find()) {
                 continue;
               }
-              final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
+              final String subInstancePointer = instanceLocationPrefix + Pointers.encode(key);
               final OutputUnit result = validate(
                 ((JsonObject) instance).getValue(key),
                 Schemas.wrap(schema.get("patternProperties"), pattern),
                 recursiveAnchor,
                 subInstancePointer,
-                schemaLocation + "/patternProperties/" + Pointers.encode(pattern),
-                baseLocation + "/patternProperties/" + Pointers.encode(pattern),
+                patternPropertiesSchemaLocation,
+                patternPropertiesBaseLocation,
                 new HashSet<>(),
                 dynamicContext
               );
@@ -610,18 +631,20 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         }
 
         if (!stop && schema.containsKey("additionalProperties")) {
+          final String additionalPropertiesSchemaLocation = schemaLocation + "/additionalProperties";
+          final String additionalPropertiesBaseLocation = baseLocation + "/additionalProperties";
           for (final String key : ((JsonObject) instance).fieldNames()) {
             if (thisEvaluated.contains(key)) {
               continue;
             }
-            final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
+            final String subInstancePointer = instanceLocationPrefix + Pointers.encode(key);
             final OutputUnit result = validate(
               ((JsonObject) instance).getValue(key),
               Schemas.wrap((JsonObject) schema, "additionalProperties"),
               recursiveAnchor,
               subInstancePointer,
-              schemaLocation + "/additionalProperties",
-              baseLocation + "/additionalProperties",
+              additionalPropertiesSchemaLocation,
+              additionalPropertiesBaseLocation,
               new HashSet<>(),
               dynamicContext
             );
@@ -639,16 +662,18 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
             }
           }
         } else if (!stop && schema.containsKey("unevaluatedProperties")) {
+          final String unevaluatedPropertiesSchemaLocation = schemaLocation + "/unevaluatedProperties";
+          final String unevaluatedPropertiesBaseLocation = baseLocation + "/unevaluatedProperties";
           for (final String key : ((JsonObject) instance).fieldNames()) {
             if (!evaluated.contains(key)) {
-              final String subInstancePointer = instanceLocation + "/" + Pointers.encode(key);
+              final String subInstancePointer = instanceLocationPrefix + Pointers.encode(key);
               final OutputUnit result = validate(
                 ((JsonObject) instance).getValue(key),
                 Schemas.wrap((JsonObject) schema, "unevaluatedProperties"),
                 recursiveAnchor,
                 subInstancePointer,
-                schemaLocation + "/unevaluatedProperties",
-                baseLocation + "/unevaluatedProperties",
+                unevaluatedPropertiesSchemaLocation,
+                unevaluatedPropertiesBaseLocation,
                 new HashSet<>(),
                 dynamicContext
               );
@@ -675,19 +700,22 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         }
 
         final int length = ((JsonArray) instance).size();
+        final String instanceLocationPrefix = instanceLocation + "/";
         int i = 0;
         boolean stop = false;
 
         if (schema.containsKey("prefixItems")) {
           final int length2 = Math.min(schema.<JsonArray>get("prefixItems").size(), length);
+          final String prefixItemsSchemaLocation = schemaLocation + "/prefixItems/";
+          final String prefixItemsBaseLocation = baseLocation + "/prefixItems/";
           for (; i < length2; i++) {
             final OutputUnit result = validate(
               ((JsonArray) instance).getValue(i),
               Schemas.wrap(schema.get("prefixItems"), i),
               recursiveAnchor,
-              instanceLocation + "/" + i,
-              schemaLocation + "/prefixItems/" + i,
-              baseLocation + "/prefixItems/" + i,
+              instanceLocationPrefix + i,
+              prefixItemsSchemaLocation + i,
+              prefixItemsBaseLocation + i,
               new HashSet<>(),
               dynamicContext
             );
@@ -708,14 +736,16 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         if (schema.containsKey("items")) {
           if (schema.get("items") instanceof JsonArray) {
             final int length2 = Math.min(schema.<JsonArray>get("items").size(), length);
+            final String itemsSchemaLocation = schemaLocation + "/items/";
+            final String itemsBaseLocation = baseLocation + "/items/";
             for (; i < length2; i++) {
               final OutputUnit result = validate(
                 ((JsonArray) instance).getValue(i),
                 Schemas.wrap(schema.get("items"), i),
                 recursiveAnchor,
-                instanceLocation + "/" + i,
-                schemaLocation + "/items/" + i,
-                baseLocation + "/items/" + i,
+                instanceLocationPrefix + i,
+                itemsSchemaLocation + i,
+                itemsBaseLocation + i,
                 new HashSet<>(),
                 dynamicContext
               );
@@ -732,14 +762,16 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               }
             }
           } else {
+            final String itemsSchemaLocation = schemaLocation + "/items";
+            final String itemsBaseLocation = baseLocation + "/items";
             for (; i < length; i++) {
               final OutputUnit result = validate(
                 ((JsonArray) instance).getValue(i),
                 Schemas.wrap((JsonObject) schema, "items"),
                 recursiveAnchor,
-                instanceLocation + "/" + i,
-                schemaLocation + "/items",
-                baseLocation + "/items",
+                instanceLocationPrefix + i,
+                itemsSchemaLocation,
+                itemsBaseLocation,
                 new HashSet<>(),
                 dynamicContext
               );
@@ -758,15 +790,16 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
           }
 
           if (!stop && schema.containsKey("additionalItems")) {
-            final String keywordLocation2 = schemaLocation + "/additionalItems";
+            final String additionalItemsSchemaLocation = schemaLocation + "/additionalItems";
+            final String additionalItemsBaseLocation = baseLocation + "/additionalItems";
             for (; i < length; i++) {
               final OutputUnit result = validate(
                 ((JsonArray) instance).getValue(i),
                 Schemas.wrap((JsonObject) schema, "additionalItems"),
                 recursiveAnchor,
-                instanceLocation + "/" + i,
-                keywordLocation2,
-                baseLocation + "/additionalItems",
+                instanceLocationPrefix + i,
+                additionalItemsSchemaLocation,
+                additionalItemsBaseLocation,
                 new HashSet<>(),
                 dynamicContext
               );
@@ -790,14 +823,16 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
           } else {
             final int errorsLength = errors.size();
             int contained = 0;
+            final String containsSchemaLocation = schemaLocation + "/contains";
+            final String containsBaseLocation = baseLocation + "/contains";
             for (int j = 0; j < length; j++) {
               final OutputUnit result = validate(
                 ((JsonArray) instance).getValue(j),
                 Schemas.wrap((JsonObject) schema, "contains"),
                 recursiveAnchor,
-                instanceLocation + "/" + i,
-                schemaLocation + "/contains",
-                baseLocation + "/contains",
+                instanceLocationPrefix + i,
+                containsSchemaLocation,
+                containsBaseLocation,
                 new HashSet<>(),
                 dynamicContext
               );
@@ -830,6 +865,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         }
 
         if (!stop && schema.containsKey("unevaluatedItems")) {
+          final String unevaluatedItemsSchemaLocation = schemaLocation + "/unevaluatedItems";
+          final String unevaluatedItemsBaseLocation = baseLocation + "/unevaluatedItems";
           for (; i < length; i++) {
             if (evaluated.contains(i)) {
               continue;
@@ -838,9 +875,9 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               ((JsonArray) instance).getValue(i),
               Schemas.wrap((JsonObject) schema, "unevaluatedItems"),
               recursiveAnchor,
-              instanceLocation + "/" + i,
-              schemaLocation + "/unevaluatedItems",
-              baseLocation + "/unevaluatedItems",
+              instanceLocationPrefix + i,
+              unevaluatedItemsSchemaLocation,
+              unevaluatedItemsBaseLocation,
               new HashSet<>(),
               dynamicContext
             );
