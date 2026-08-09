@@ -795,7 +795,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                 ((JsonArray) instance).getValue(j),
                 Schemas.wrap((JsonObject) schema, "contains"),
                 recursiveAnchor,
-                instanceLocation + "/" + i,
+                instanceLocation + "/" + j,
                 schemaLocation + "/contains",
                 baseLocation + "/contains",
                 new HashSet<>(),
