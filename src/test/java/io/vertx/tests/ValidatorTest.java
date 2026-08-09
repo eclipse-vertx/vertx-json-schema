@@ -33,6 +33,46 @@ public class ValidatorTest {
 
   @Test
   @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
+  public void testNumericKeywordsAsLongs() {
+    final JsonObject schema = new JsonObject()
+      .put("type", "object")
+      .put("minProperties", 1L)
+      .put("maxProperties", 2L)
+      .put("properties", new JsonObject()
+        .put("tags", new JsonObject()
+          .put("type", "array")
+          .put("minItems", 1L)
+          .put("maxItems", 3L)
+          .put("contains", new JsonObject().put("type", "string"))
+          .put("minContains", 1L)
+          .put("maxContains", 2L)));
+
+    final Validator validator = Validator.create(
+      JsonSchema.of(schema),
+      new JsonSchemaOptions()
+        .setBaseUri("https://vertx.io")
+        .setDraft(Draft.DRAFT202012));
+
+    assertThat(validator.validate(new JsonObject().put("tags", new JsonArray().add("a"))).getValid())
+      .isEqualTo(true);
+
+    // violations are still detected when the keyword value is a Long
+    // minProperties
+    assertThat(validator.validate(new JsonObject()).getValid())
+      .isEqualTo(false);
+    // minItems
+    assertThat(validator.validate(new JsonObject().put("tags", new JsonArray())).getValid())
+      .isEqualTo(false);
+    // maxItems
+    assertThat(validator.validate(new JsonObject().put("tags", new JsonArray().add("a").add("b").add("c").add("d"))).getValid())
+      .isEqualTo(false);
+    // maxContains
+    assertThat(validator.validate(new JsonObject().put("tags", new JsonArray().add("a").add("b").add("c"))).getValid())
+      .isEqualTo(false);
+  }
+
+  @Test
+  @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
   public void testAddsSchema() {
     final SchemaRepository repository = SchemaRepository
       .create(

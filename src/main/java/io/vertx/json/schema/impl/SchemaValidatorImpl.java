@@ -443,11 +443,11 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
 
         final Set<String> keys = ((JsonObject) instance).fieldNames();
 
-        if (schema.containsKey("minProperties") && keys.size() < schema.<Integer>get("minProperties")) {
+        if (schema.containsKey("minProperties") && Numbers.lt(keys.size(), schema.get("minProperties"))) {
           errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minProperties"), baseLocation + "/minProperties", "Instance does not have at least " + schema.get("minProperties") + " properties", OutputErrorType.MISSING_VALUE));
         }
 
-        if (schema.containsKey("maxProperties") && keys.size() > schema.<Integer>get("maxProperties")) {
+        if (schema.containsKey("maxProperties") && Numbers.gt(keys.size(), schema.get("maxProperties"))) {
           errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/maxProperties"), baseLocation + "/maxProperties", "Instance does not have at least " + schema.get("maxProperties") + " properties", OutputErrorType.INVALID_VALUE));
         }
 
@@ -666,11 +666,11 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         break;
       }
       case "array": {
-        if (schema.containsKey("maxItems") && ((JsonArray) instance).size() > schema.<Integer>get("maxItems")) {
+        if (schema.containsKey("maxItems") && Numbers.gt(((JsonArray) instance).size(), schema.get("maxItems"))) {
           errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/maxItems"), baseLocation + "/maxItems", "Array has too many items ( + " + ((JsonArray) instance).size() + " > " + schema.get("maxItems") + ")", OutputErrorType.INVALID_VALUE));
         }
 
-        if (schema.containsKey("minItems") && ((JsonArray) instance).size() < schema.<Integer>get("minItems")) {
+        if (schema.containsKey("minItems") && Numbers.lt(((JsonArray) instance).size(), schema.get("minItems"))) {
           errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minItems"), baseLocation + "/minItems", "Array has too few items ( + " + ((JsonArray) instance).size() + " < " + schema.get("minItems") + ")", OutputErrorType.MISSING_VALUE));
         }
 
@@ -785,7 +785,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         if (schema.containsKey("contains")) {
           if (length == 0 && !schema.containsKey("minContains")) {
             errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/contains"), baseLocation + "/contains", "Array is empty. It must contain at least one item matching the schema", OutputErrorType.MISSING_VALUE));
-          } else if (schema.containsKey("minContains") && length < schema.<Integer>get("minContains")) {
+          } else if (schema.containsKey("minContains") && Numbers.lt(length, schema.get("minContains"))) {
             errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minContains"), baseLocation + "/minContains", "Array has less items (" + length + ") than minContains (" + schema.get("minContains") + ")", OutputErrorType.MISSING_VALUE));
           } else {
             final int errorsLength = errors.size();
@@ -811,7 +811,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
               }
             }
 
-            if (contained >= schema.<Integer>get("minContains", 0)) {
+            if (Numbers.gte(contained, schema.get("minContains", 0))) {
               errors = errors.subList(0, Math.min(errors.size(), errorsLength));
             }
 
@@ -821,9 +821,9 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
                 contained == 0
             ) {
               errors.add(errorsLength, new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/contains"), baseLocation + "/contains", "Array does not contain item matching schema", OutputErrorType.INVALID_VALUE));
-            } else if (schema.containsKey("minContains") && contained < schema.<Integer>get("minContains")) {
+            } else if (schema.containsKey("minContains") && Numbers.lt(contained, schema.get("minContains"))) {
               errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/minContains"), baseLocation + "/minContains", "Array must contain at least " + schema.get("minContains") + " items matching schema. Only " + contained + " items were found", OutputErrorType.MISSING_VALUE));
-            } else if (schema.containsKey("maxContains") && contained > schema.<Integer>get("maxContains")) {
+            } else if (schema.containsKey("maxContains") && Numbers.gt(contained, schema.get("maxContains"))) {
               errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/maxContains"), baseLocation + "/maxContains", "Array may contain at most " + schema.get("minContains") + " items matching schema. " + contained + " items were found", OutputErrorType.INVALID_VALUE));
             }
           }
