@@ -73,6 +73,44 @@ public class ValidatorTest {
 
   @Test
   @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
+  public void testMultipleOfSmallNumbers() {
+    final Validator thousandths = Validator.create(
+      JsonSchema.of(new JsonObject().put("type", "number").put("multipleOf", 0.001)),
+      new JsonSchemaOptions()
+        .setBaseUri("https://vertx.io")
+        .setDraft(Draft.DRAFT202012));
+
+    for (double valid : new double[]{0.001, 0.002, 1.001, 1.01, 1.02, 123.456, 123456.789}) {
+      assertThat(thousandths.validate(valid).getValid())
+        .as("%s is a multiple of 0.001", valid)
+        .isEqualTo(true);
+    }
+    for (double invalid : new double[]{1.0015, 0.0005}) {
+      assertThat(thousandths.validate(invalid).getValid())
+        .as("%s is not a multiple of 0.001", invalid)
+        .isEqualTo(false);
+    }
+
+    // multiples smaller than a float ulp must still be enforced
+    final Validator tenMillionths = Validator.create(
+      JsonSchema.of(new JsonObject().put("type", "number").put("multipleOf", 0.0000001)),
+      new JsonSchemaOptions()
+        .setBaseUri("https://vertx.io")
+        .setDraft(Draft.DRAFT202012));
+
+    assertThat(tenMillionths.validate(0.0000002).getValid())
+      .as("0.0000002 is a multiple of 0.0000001")
+      .isEqualTo(true);
+    assertThat(tenMillionths.validate(0.00000015).getValid())
+      .as("0.00000015 is not a multiple of 0.0000001")
+      .isEqualTo(false);
+    assertThat(tenMillionths.validate(0.00000012345).getValid())
+      .as("0.00000012345 is not a multiple of 0.0000001")
+      .isEqualTo(false);
+  }
+
+  @Test
+  @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
   public void testAddsSchema() {
     final SchemaRepository repository = SchemaRepository
       .create(

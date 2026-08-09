@@ -905,11 +905,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
           }
         }
         if (schema.containsKey("multipleOf")) {
-          final double remainder = Numbers.remainder((Number) instance, schema.get("multipleOf"));
-          if (
-            Math.abs(0 - remainder) >= 1.1920929e-7 &&
-              Math.abs(schema.<Number>get("multipleOf").doubleValue() - remainder) >= 1.1920929e-7
-          ) {
+          if (!Numbers.isMultipleOf((Number) instance, schema.get("multipleOf"))) {
             errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/multipleOf"), baseLocation + "/multipleOf", instance + " is not a multiple of " + schema.get("multipleOf"), OutputErrorType.INVALID_VALUE));
           }
         }
