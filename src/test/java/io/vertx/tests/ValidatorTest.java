@@ -73,6 +73,28 @@ public class ValidatorTest {
 
   @Test
   @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
+  public void testContainsErrorsReportItemLocation() {
+    final Validator validator = Validator.create(
+      JsonSchema.of(new JsonObject()
+        .put("type", "array")
+        .put("contains", new JsonObject().put("type", "string"))
+        .put("minContains", 1)),
+      new JsonSchemaOptions()
+        .setBaseUri("https://vertx.io")
+        .setDraft(Draft.DRAFT202012)
+        .setOutputFormat(Basic));
+
+    final OutputUnit res = validator.validate(new JsonArray().add(1).add(2));
+
+    assertThat(res.getValid()).isFalse();
+    // each failing item is reported at its own location
+    assertThat(res.getErrors())
+      .anyMatch(e -> "#/0".equals(e.getInstanceLocation()))
+      .anyMatch(e -> "#/1".equals(e.getInstanceLocation()));
+  }
+
+  @Test
+  @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
   public void testAddsSchema() {
     final SchemaRepository repository = SchemaRepository
       .create(
