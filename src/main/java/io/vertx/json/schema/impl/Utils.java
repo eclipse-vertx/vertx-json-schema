@@ -109,17 +109,24 @@ public class Utils {
       return false;
     }
 
-    public static double remainder(Number instance, Number value) {
-      // for big numbers, go slow
-      if (instance instanceof BigDecimal || value instanceof BigDecimal || instance instanceof BigInteger || value instanceof BigInteger) {
-        return toBigDecimal(instance).remainder(toBigDecimal(value)).doubleValue();
+    public static boolean isMultipleOf(Number instance, Number value) {
+      // non finite values and a zero divisor cannot be checked meaningfully, raise no error
+      if (!isFinite(instance) || !isFinite(value)) {
+        return true;
       }
-      // for floating point use double
-      if (instance instanceof Double || value instanceof Double || instance instanceof Float || value instanceof Float) {
-        return instance.doubleValue() % value.doubleValue();
+      final BigDecimal divisor = toBigDecimal(value);
+      if (divisor.signum() == 0) {
+        return true;
       }
-      // for integer use long
-      return instance.longValue() % value.doubleValue();
+      // compare on the decimal representation to avoid binary floating point rounding artifacts
+      return toBigDecimal(instance).remainder(divisor).signum() == 0;
+    }
+
+    private static boolean isFinite(Number in) {
+      if (in instanceof Double || in instanceof Float) {
+        return Double.isFinite(in.doubleValue());
+      }
+      return true;
     }
 
     public static boolean equals(Number a, Number b) {
