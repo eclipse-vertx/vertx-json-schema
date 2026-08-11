@@ -95,9 +95,8 @@ sub-schemas should be provided to a repository object.
 Given the dynamic nature of json-schema and the conditional `if-then-else` it is not possible to validate in a streaming
 scenario. Validation is for this reason a blocking operation. If you are aware that validation will be a very expensive
 process, then it is advisable to run the validation on a dedicated thread pool or using `executeBlocking`.
-A schema could have two states:
 
-To validate a schema:
+To validate an object against a schema:
 
 [source,$lang]
 ----
