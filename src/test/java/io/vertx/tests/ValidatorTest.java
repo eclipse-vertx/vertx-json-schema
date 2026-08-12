@@ -95,6 +95,110 @@ public class ValidatorTest {
 
   @Test
   @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
+  public void testMaxPropertiesErrorMessage() {
+    final Validator validator = Validator.create(
+      JsonSchema.of(new JsonObject().put("type", "object").put("maxProperties", 1)),
+      new JsonSchemaOptions()
+        .setBaseUri("https://vertx.io")
+        .setDraft(Draft.DRAFT202012)
+        .setOutputFormat(Basic));
+
+    final OutputUnit res = validator.validate(new JsonObject().put("a", 1).put("b", 2));
+
+    assertThat(res.getValid()).isFalse();
+    assertThat(res.getErrors())
+      .anyMatch(e -> e.getError().contains("has more than 1 properties"));
+  }
+
+  @Test
+  @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
+  public void testItemsBoundsErrorMessages() {
+    final Validator validator = Validator.create(
+      JsonSchema.of(new JsonObject().put("type", "array").put("minItems", 1).put("maxItems", 2)),
+      new JsonSchemaOptions()
+        .setBaseUri("https://vertx.io")
+        .setDraft(Draft.DRAFT202012)
+        .setOutputFormat(Basic));
+
+    final OutputUnit tooMany = validator.validate(new JsonArray().add(1).add(2).add(3));
+    assertThat(tooMany.getValid()).isFalse();
+    assertThat(tooMany.getErrors())
+      .anyMatch(e -> e.getError().contains("Array has too many items (3 > 2)"));
+
+    final OutputUnit tooFew = validator.validate(new JsonArray());
+    assertThat(tooFew.getValid()).isFalse();
+    assertThat(tooFew.getErrors())
+      .anyMatch(e -> e.getError().contains("Array has too few items (0 < 1)"));
+  }
+
+  @Test
+  @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
+  public void testMaxContainsErrorMessage() {
+    final Validator validator = Validator.create(
+      JsonSchema.of(new JsonObject()
+        .put("type", "array")
+        .put("contains", new JsonObject().put("type", "string"))
+        .put("minContains", 1)
+        .put("maxContains", 2)),
+      new JsonSchemaOptions()
+        .setBaseUri("https://vertx.io")
+        .setDraft(Draft.DRAFT202012)
+        .setOutputFormat(Basic));
+
+    final OutputUnit res = validator.validate(new JsonArray().add("a").add("b").add("c"));
+
+    assertThat(res.getValid()).isFalse();
+    // the message must reference the maxContains value, not minContains
+    assertThat(res.getErrors())
+      .anyMatch(e -> e.getError().contains("at most 2 items"));
+  }
+
+  @Test
+  @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
+  public void testAdditionalItemsErrorKeywordLocation() {
+    final Validator validator = Validator.create(
+      JsonSchema.of(new JsonObject()
+        .put("definitions", new JsonObject()
+          .put("tuple", new JsonObject()
+            .put("type", "array")
+            .put("items", new JsonArray().add(new JsonObject().put("type", "string")))
+            .put("additionalItems", new JsonObject().put("type", "string"))))
+        .put("$ref", "#/definitions/tuple")),
+      new JsonSchemaOptions()
+        .setBaseUri("https://vertx.io")
+        .setDraft(Draft.DRAFT7)
+        .setOutputFormat(Basic));
+
+    final OutputUnit res = validator.validate(new JsonArray().add("a").add(2));
+
+    assertThat(res.getValid()).isFalse();
+    // the keyword location is the dynamic path through $ref, like every other error
+    assertThat(res.getErrors())
+      .anyMatch(e -> "#/$ref/additionalItems".equals(e.getKeywordLocation()));
+  }
+
+  @Test
+  @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
+  public void testThenErrorKeywordLocation() {
+    final Validator validator = Validator.create(
+      JsonSchema.of(new JsonObject()
+        .put("if", new JsonObject().put("type", "string"))
+        .put("then", new JsonObject().put("minLength", 5))),
+      new JsonSchemaOptions()
+        .setBaseUri("https://vertx.io")
+        .setDraft(Draft.DRAFT202012)
+        .setOutputFormat(Basic));
+
+    final OutputUnit res = validator.validate("abc");
+
+    assertThat(res.getValid()).isFalse();
+    // a failing "then" schema is reported at /then, like a failing "else" is at /else
+    assertThat(res.getErrors())
+      .anyMatch(e -> "#/then".equals(e.getKeywordLocation()) && e.getError().contains("\"then\""));
+  }
+
+  @Test
+  @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
   public void testAddsSchema() {
     final SchemaRepository repository = SchemaRepository
       .create(
