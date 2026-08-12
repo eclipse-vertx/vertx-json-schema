@@ -179,6 +179,26 @@ public class ValidatorTest {
 
   @Test
   @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
+  public void testThenErrorKeywordLocation() {
+    final Validator validator = Validator.create(
+      JsonSchema.of(new JsonObject()
+        .put("if", new JsonObject().put("type", "string"))
+        .put("then", new JsonObject().put("minLength", 5))),
+      new JsonSchemaOptions()
+        .setBaseUri("https://vertx.io")
+        .setDraft(Draft.DRAFT202012)
+        .setOutputFormat(Basic));
+
+    final OutputUnit res = validator.validate("abc");
+
+    assertThat(res.getValid()).isFalse();
+    // a failing "then" schema is reported at /then, like a failing "else" is at /else
+    assertThat(res.getErrors())
+      .anyMatch(e -> "#/then".equals(e.getKeywordLocation()) && e.getError().contains("\"then\""));
+  }
+
+  @Test
+  @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
   public void testAddsSchema() {
     final SchemaRepository repository = SchemaRepository
       .create(

@@ -405,7 +405,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
             dynamicContext
           );
           if (!thenResult.getValid()) {
-            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/if"), baseLocation + "/if", "Instance does not match \"then\" schema", thenResult.getErrorType()));
+            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/then"), baseLocation + "/then", "Instance does not match \"then\" schema", thenResult.getErrorType()));
             if (thenResult.getErrors() != null) {
               errors.addAll(thenResult.getErrors());
             }
