@@ -150,12 +150,14 @@ public class TCKTest {
       assertThat(testSchema).isNotNull();
 
       // setup the initial validator object
-      final Validator validator = repository.validator(
-        testSchema,
-        new JsonSchemaOptions()
-          .setDraft(draft)
-          .setBaseUri("https://github.com/eclipse-vertx"),
-        true);
+      final JsonSchemaOptions options = new JsonSchemaOptions()
+        .setDraft(draft)
+        .setBaseUri("https://github.com/eclipse-vertx");
+      // the optional format suites assume the format-assertion behavior is enabled
+      if (suiteName.contains("/optional/format")) {
+        options.setFormatValidation(true);
+      }
+      final Validator validator = repository.validator(testSchema, options, true);
 
       OutputUnit result =
         validator
