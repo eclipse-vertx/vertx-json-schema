@@ -40,6 +40,12 @@ public class JsonSchemaOptions {
    */
   private OutputFormat outputFormat = OutputFormat.Flag;
 
+  /**
+   * Whether the {@code format} keyword is validated as an assertion. When {@code null} the behavior follows the
+   * draft in use: formats are asserted up to draft-7 and are annotations only from draft 2019-09 on.
+   */
+  private Boolean formatValidation;
+
   public JsonSchemaOptions() {
   }
 
@@ -52,6 +58,7 @@ public class JsonSchemaOptions {
     this.baseUri = other.baseUri;
     this.draft = other.draft;
     this.outputFormat = other.outputFormat;
+    this.formatValidation = other.formatValidation;
   }
 
   public String getBaseUri() {
@@ -78,6 +85,24 @@ public class JsonSchemaOptions {
 
   public JsonSchemaOptions setOutputFormat(OutputFormat outputFormat) {
     this.outputFormat = outputFormat;
+    return this;
+  }
+
+  public Boolean getFormatValidation() {
+    return formatValidation;
+  }
+
+  /**
+   * Controls whether the {@code format} keyword is validated as an assertion. When not set, the behavior follows
+   * the draft in use: formats are asserted up to draft-7 and are annotations only from draft 2019-09 on, as
+   * required by the specification. Set to {@code true} to always assert formats or {@code false} to never assert
+   * them.
+   *
+   * @param formatValidation {@code true} to always assert formats, {@code false} to never assert them
+   * @return fluent self reference
+   */
+  public JsonSchemaOptions setFormatValidation(Boolean formatValidation) {
+    this.formatValidation = formatValidation;
     return this;
   }
 

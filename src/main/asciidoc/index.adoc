@@ -110,6 +110,13 @@ If a validation fails, you can retrieve the `OutputErrorType` to help determine 
 - INVALID_VALUE, This is used when a value is provided, but the value does not match the given schema.
 - MISSING_VALUE, This is used when a value is not present, or not enough of the value is present but the schema requires it.
 
+== Format validation
+
+By default the `format` keyword follows the specification of the draft in use: it is validated as an assertion up to
+draft-7 and treated as an annotation only from draft 2019-09 on. Use
+{@link io.vertx.json.schema.JsonSchemaOptions#setFormatValidation} to override this behavior: `true` always validates
+formats, `false` never does.
+
 == Defining a custom JSON format
 
 By default, the schema validator will perform an NOOP on unknown formats, so they will be treated as valid inputs.

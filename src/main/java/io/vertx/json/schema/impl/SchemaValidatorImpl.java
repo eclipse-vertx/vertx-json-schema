@@ -20,6 +20,7 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
   private final Draft draft;
   private final OutputFormat outputFormat;
   private final JsonFormatValidator formatValidator;
+  private final boolean assertFormat;
 
   public SchemaValidatorImpl(JsonSchema schema, JsonSchemaOptions options, Map<String, JsonSchema> lookup,
                              boolean dereference, JsonFormatValidator formatValidator) {
@@ -36,6 +37,10 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
       Draft.fromIdentifier(schema.get("$schema")) :
       options.getDraft();
     this.outputFormat = options.getOutputFormat();
+    // by default the format keyword is an assertion up to draft-7 and an annotation from draft 2019-09 on
+    this.assertFormat = options.getFormatValidation() != null ?
+      options.getFormatValidation() :
+      draft == null || !draft.isAfter(Draft.DRAFT7);
     this.lookup = new HashMap<>(lookup);
     if (dereference) {
       URL baseUri = new URL(options.getBaseUri());
@@ -928,7 +933,8 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         if (schema.containsKey("pattern") && !Pattern.compile(schema.get("pattern")).matcher((String) instance).find()) {
           errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/pattern"), baseLocation + "/pattern", "String does not match pattern", OutputErrorType.INVALID_VALUE));
         }
-        if (schema.containsKey("format") &&
+        if (assertFormat &&
+            schema.containsKey("format") &&
             !Format.fastFormat(schema.get("format"), (String) instance)) {
           errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"), baseLocation + "/format", "String does not match format \"" + schema.get("format") + "\"", OutputErrorType.INVALID_VALUE));
         }
