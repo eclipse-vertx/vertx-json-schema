@@ -5,8 +5,8 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.json.schema.*;
 
-import java.util.Objects;
 import java.util.*;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 import static io.vertx.json.schema.impl.SchemaRepositoryImpl.dereference;
@@ -854,20 +854,13 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
         }
 
         if (schema.containsKey("uniqueItems") && Utils.Objects.truthy(schema.get("uniqueItems"))) {
-          outer:
+          Map<Object, Integer> seen = new HashMap<>();
           for (int j = 0; j < length; j++) {
-            final Object a = ((JsonArray) instance).getValue(j);
-            final boolean ao = "object".equals(JSON.typeOf(a)) && a != null;
-            for (int k = 0; k < length; k++) {
-              if (j == k) {
-                continue;
-              }
-              final Object b = ((JsonArray) instance).getValue(k);
-              final boolean bo = "object".equals(JSON.typeOf(b)) && b != null;
-              if (Utils.Objects.equals(a, b) || (ao && bo && JSON.deepCompare(a, b))) {
-                errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/uniqueItems"), baseLocation + "/uniqueItems", "Duplicate items at indexes " + j + " and " + k));
-                break outer;
-              }
+            Object canonical = JSON.canonicalize(((JsonArray) instance).getValue(j));
+            Integer prev = seen.putIfAbsent(canonical, j);
+            if (prev != null) {
+              errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/uniqueItems"), baseLocation + "/uniqueItems", "Duplicate items at indexes " + prev + " and " + j));
+              break;
             }
           }
         }
