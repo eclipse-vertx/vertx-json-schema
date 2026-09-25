@@ -7,10 +7,8 @@ import io.vertx.json.schema.JsonSchema;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
+import java.util.*;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
 
 public class Utils {
 
@@ -36,7 +34,7 @@ public class Utils {
       return false;
     }
 
-    private static BigDecimal toBigDecimal(Number in) {
+    static BigDecimal toBigDecimal(Number in) {
       if (in instanceof BigDecimal) {
         return (BigDecimal) in;
       }
@@ -179,7 +177,7 @@ public class Utils {
     }
   }
 
-  static class JSON {
+  public static class JSON {
 
     public static Object jsonify(Object instance) {
       if (instance instanceof Map) {
@@ -253,6 +251,35 @@ public class Utils {
       }
 
       return Objects.equals(a, b);
+    }
+
+    public static Object canonicalize(Object value) {
+      if (value == null || value instanceof Boolean || value instanceof String) {
+        return value;
+      }
+      if (value instanceof Number) {
+        BigDecimal bd = Numbers.toBigDecimal((Number) value);
+        bd = bd.stripTrailingZeros();
+        if (bd.scale() < 0) {
+          bd = bd.setScale(0);
+        }
+        return bd;
+      }
+      if (value instanceof JsonObject) {
+        TreeMap<String, Object> map = new TreeMap<>();
+        for (String key : ((JsonObject) value).fieldNames()) {
+          map.put(key, canonicalize(((JsonObject) value).getValue(key)));
+        }
+        return map;
+      }
+      if (value instanceof JsonArray) {
+        List<Object> list = new ArrayList<>(((JsonArray) value).size());
+        for (int i = 0; i < ((JsonArray) value).size(); i++) {
+          list.add(canonicalize(((JsonArray) value).getValue(i)));
+        }
+        return list;
+      }
+      return value;
     }
   }
 
