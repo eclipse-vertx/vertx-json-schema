@@ -21,6 +21,9 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
   private final OutputFormat outputFormat;
   private final JsonFormatValidator formatValidator;
 
+  // reserved dynamicContext key holding the stack of schema resources in the current dynamic scope
+  private static final String DYNAMIC_SCOPE = "__dynamic_scope__";
+
   public SchemaValidatorImpl(JsonSchema schema, JsonSchemaOptions options, Map<String, JsonSchema> lookup,
                              boolean dereference, JsonFormatValidator formatValidator) {
     Objects.requireNonNull(schema, "'schema' cannot be null");
@@ -80,6 +83,55 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
    * @throws SchemaException when the schema is not resolvable (unknown $ref)
    */
   private OutputUnit validate(final Object _instance, final JsonSchema schema, final JsonSchema _recursiveAnchor, final String instanceLocation, final String schemaLocation, final String baseLocation, final Set<Object> evaluated, final Map<String, Deque<JsonSchema>> dynamicContext) throws SchemaException {
+    // track the dynamic scope for the duration of this validation subtree. Anchors and entered schema resources
+    // are pushed here and popped again in the finally block, as leaving a dynamic scope must make its anchors
+    // unavailable to $dynamicRef
+    final String dynamicAnchor;
+    final boolean enteredResource;
+    final Deque<JsonSchema> scope;
+    if (schema instanceof BooleanSchema) {
+      dynamicAnchor = null;
+      enteredResource = false;
+      scope = null;
+    } else {
+      if (schema.containsKey("$dynamicAnchor")) {
+        dynamicAnchor = "#" + schema.get("$dynamicAnchor");
+        dynamicContext
+          .computeIfAbsent(dynamicAnchor, k -> new LinkedList<>())
+          .add(schema);
+      } else {
+        dynamicAnchor = null;
+      }
+      scope = dynamicContext.computeIfAbsent(DYNAMIC_SCOPE, k -> new LinkedList<>());
+      if (schema.containsKey("__absolute_uri__")) {
+        final String resource = resourceOf(schema.get("__absolute_uri__"));
+        enteredResource = scope.isEmpty() || !resource.equals(resourceOf(scope.peekLast().get("__absolute_uri__")));
+        if (enteredResource) {
+          final JsonSchema resourceRoot = lookup.get(resource);
+          scope.addLast(resourceRoot != null ? resourceRoot : schema);
+        }
+      } else {
+        enteredResource = false;
+      }
+    }
+    try {
+      return doValidate(_instance, schema, _recursiveAnchor, instanceLocation, schemaLocation, baseLocation, evaluated, dynamicContext);
+    } finally {
+      if (enteredResource) {
+        scope.removeLast();
+      }
+      if (dynamicAnchor != null) {
+        dynamicContext.get(dynamicAnchor).removeLast();
+      }
+    }
+  }
+
+  private static String resourceOf(String uri) {
+    final int hash = uri.indexOf('#');
+    return hash < 0 ? uri : uri.substring(0, hash);
+  }
+
+  private OutputUnit doValidate(final Object _instance, final JsonSchema schema, final JsonSchema _recursiveAnchor, final String instanceLocation, final String schemaLocation, final String baseLocation, final Set<Object> evaluated, final Map<String, Deque<JsonSchema>> dynamicContext) throws SchemaException {
 
     // the are 2 kinds of schemas BooleanSchema and JsonSchema
     // Boolean schemas are terminal and require no further processing.
@@ -101,18 +153,6 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
     String instanceType = JSON.typeOf(instance);
     List<OutputUnit> errors = new ArrayList<>();
     List<OutputUnit> annotations = new ArrayList<>();
-
-    final String dynamicAnchor;
-
-    // push $dynamicAnchor with current "__absolute_uri__"
-    if (schema.containsKey("$dynamicAnchor")) {
-      dynamicAnchor = "#" + schema.get("$dynamicAnchor");
-      dynamicContext
-        .computeIfAbsent(dynamicAnchor, k -> new LinkedList<>())
-        .add(schema);
-    } else {
-      dynamicAnchor = null;
-    }
 
     // Lock (recursive anchor to the current schema, is dealing with $recursiveAnchor)
     final JsonSchema recursiveAnchor;
@@ -147,43 +187,86 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
     }
 
     if (schema.containsKey("$dynamicRef")) {
-      Deque<JsonSchema> deque = dynamicContext.get(schema.<String>get("$dynamicRef"));
-      if (deque != null) {
-        JsonSchema head = deque.peekFirst();
-        if (head != null) {
-          // compute the dynamic reference uri
-          String uri = new URL(schema.<String>get("$dynamicRef"), head.<String>get("__absolute_uri__")).href();
+      if (draft == Draft.DRAFT4 || draft == Draft.DRAFT7) {
+        // legacy behavior: resolve through the first encountered anchor with the same name
+        Deque<JsonSchema> deque = dynamicContext.get(schema.<String>get("$dynamicRef"));
+        if (deque != null) {
+          JsonSchema head = deque.peekFirst();
+          if (head != null) {
+            // compute the dynamic reference uri
+            String uri = new URL(schema.<String>get("$dynamicRef"), head.<String>get("__absolute_uri__")).href();
 
-          if (!lookup.containsKey(uri)) {
-            String message = "Unresolved $dynamicRef " + schema.<String>get("$dynamicRef");
-            message += "\nKnown schemas:\n- " + String.join("\n- ", lookup.keySet());
-            throw new SchemaException(schema, message);
-          }
-
-          final JsonSchema refSchema = lookup.get(uri);
-          final OutputUnit result = validate(
-            instance,
-            recursiveAnchor == null ? schema : recursiveAnchor,
-            refSchema,
-            instanceLocation,
-            schemaLocation + "/$dynamicRef",
-            baseLocation + "/$dynamicRef",
-            evaluated,
-            dynamicContext
-          );
-          if (!result.getValid()) {
-            errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/$dynamicRef"), baseLocation + "/$dynamicRef", "A sub-schema had errors", result.getErrorType()));
-            if (result.getErrors() != null) {
-              errors.addAll(result.getErrors());
+            if (!lookup.containsKey(uri)) {
+              String message = "Unresolved $dynamicRef " + schema.<String>get("$dynamicRef");
+              message += "\nKnown schemas:\n- " + String.join("\n- ", lookup.keySet());
+              throw new SchemaException(schema, message);
             }
-          }
-          if (draft == Draft.DRAFT4 || draft == Draft.DRAFT7) {
-            if (dynamicAnchor != null) {
+
+            final JsonSchema refSchema = lookup.get(uri);
+            final OutputUnit result = validate(
+              instance,
+              recursiveAnchor == null ? schema : recursiveAnchor,
+              refSchema,
+              instanceLocation,
+              schemaLocation + "/$dynamicRef",
+              baseLocation + "/$dynamicRef",
+              evaluated,
               dynamicContext
-                .get(dynamicAnchor)
-                .removeLast();
+            );
+            if (!result.getValid()) {
+              errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/$dynamicRef"), baseLocation + "/$dynamicRef", "A sub-schema had errors", result.getErrorType()));
+              if (result.getErrors() != null) {
+                errors.addAll(result.getErrors());
+              }
             }
             return new OutputUnit(errors.isEmpty()).setErrors(errors).setErrorType(errors.isEmpty() ? OutputErrorType.NONE : errors.get(0).getErrorType());
+          }
+        }
+      } else {
+        // $dynamicRef first resolves like $ref. Only when the resolved schema carries a matching $dynamicAnchor,
+        // the target is replaced by the first (outermost) resource in the dynamic scope that defines a
+        // $dynamicAnchor with the same name. Otherwise it behaves like a plain $ref.
+        final String dynamicRef = schema.get("$dynamicRef");
+        final String initialUri = new URL(dynamicRef, schema.<String>get("__absolute_uri__")).href();
+
+        if (!lookup.containsKey(initialUri)) {
+          String message = "Unresolved $dynamicRef " + dynamicRef;
+          message += "\nKnown schemas:\n- " + String.join("\n- ", lookup.keySet());
+          throw new SchemaException(schema, message);
+        }
+
+        JsonSchema refSchema = lookup.get(initialUri);
+        final int hash = dynamicRef.indexOf('#');
+        final String anchorName = hash < 0 ? "" : dynamicRef.substring(hash + 1);
+        if (!anchorName.isEmpty() && anchorName.equals(refSchema.get("$dynamicAnchor"))) {
+          for (JsonSchema resource : dynamicContext.computeIfAbsent(DYNAMIC_SCOPE, k -> new LinkedList<>())) {
+            final String resourceUri = resourceOf(resource.get("__absolute_uri__"));
+            final JsonSchema candidate = lookup.get(resourceUri + "#" + anchorName);
+            // the candidate must define the anchor and belong to this resource: anchors are also registered
+            // under the parent resource uri during dereferencing, those aliases must not resolve here
+            if (candidate != null
+              && anchorName.equals(candidate.get("$dynamicAnchor"))
+              && resourceUri.equals(resourceOf(candidate.get("__absolute_uri__")))) {
+              refSchema = candidate;
+              break;
+            }
+          }
+        }
+
+        final OutputUnit result = validate(
+          instance,
+          refSchema,
+          recursiveAnchor,
+          instanceLocation,
+          schemaLocation + "/$dynamicRef",
+          baseLocation + "/$dynamicRef",
+          evaluated,
+          dynamicContext
+        );
+        if (!result.getValid()) {
+          errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/$dynamicRef"), baseLocation + "/$dynamicRef", "A sub-schema had errors", result.getErrorType()));
+          if (result.getErrors() != null) {
+            errors.addAll(result.getErrors());
           }
         }
       }
@@ -953,12 +1036,6 @@ public class SchemaValidatorImpl implements SchemaValidatorInternal {
     if (error != null) {
       errors.add(new OutputUnit(instanceLocation, computeAbsoluteKeywordLocation(schema, schemaLocation + "/format"),
         baseLocation + "/format", error, OutputErrorType.INVALID_VALUE));
-    }
-
-    if (dynamicAnchor != null) {
-      dynamicContext
-        .get(dynamicAnchor)
-        .removeLast();
     }
 
     return new OutputUnit(errors.isEmpty())
