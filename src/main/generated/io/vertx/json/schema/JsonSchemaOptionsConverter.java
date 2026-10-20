@@ -27,6 +27,11 @@ public class JsonSchemaOptionsConverter {
             obj.setOutputFormat(io.vertx.json.schema.OutputFormat.valueOf((String)member.getValue()));
           }
           break;
+        case "formatValidation":
+          if (member.getValue() instanceof Boolean) {
+            obj.setFormatValidation((Boolean)member.getValue());
+          }
+          break;
       }
     }
   }
@@ -44,6 +49,9 @@ public class JsonSchemaOptionsConverter {
     }
     if (obj.getOutputFormat() != null) {
       json.put("outputFormat", obj.getOutputFormat().name());
+    }
+    if (obj.getFormatValidation() != null) {
+      json.put("formatValidation", obj.getFormatValidation());
     }
   }
 }

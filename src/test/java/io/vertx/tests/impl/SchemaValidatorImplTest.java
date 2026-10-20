@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class SchemaValidatorImplTest {
   private static final JsonSchemaOptions DUMMY_OPTIONS =
-    new JsonSchemaOptions().setBaseUri("app://").setDraft(DRAFT201909);
+    new JsonSchemaOptions().setBaseUri("app://").setDraft(DRAFT201909).setFormatValidation(true);
 
   static Stream<Arguments> testStringSchema() {
     return Stream.of(
